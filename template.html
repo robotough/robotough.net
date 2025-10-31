@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Template Page</title>
+    <link rel="stylesheet" href="template.css?1">
+    <script src="scripts.js?1" defer></script>
+</head>
+
+<body>
+
+    <!-- Video Background Container -->
+    <div class="video-container">
+        <video autoplay muted loop id="video-background">
+            <source src="images/starfield.mp4" type="video/mp4">
+            <img src="images/stars21.png" alt="Video not supported" />
+        </video>
+    </div>
+
+    <!-- Main Content (Clock Only) -->
+    <div class="container">
+        <div id="clock-container">
+            <div id="clock"></div>
+            <div id="date"></div>
+        </div>
+    </div>
+
+    <!-- The menu is still here, but its content is now empty -->
+    <div class="container">
+        <div class="menu">
+            <a href="index.html">link to main page</a>
+        </div>
+    </div>
+
+     <!-- Static Left Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="hamburger-menu" onclick="toggleSidebar('sidebar')">
+            &#9776; <!-- Hamburger icon for the left sidebar -->
+        </div>
+        <div class="sidebar-header">
+            Sidebar
+        </div>
+        <a href="#">Item 1</a>
+        <a href="#">Item 2</a>
+        <a href="#">Item 3</a>
+        <a href="#">Item 4</a>
+        <a href="#">Item 5</a>
+        <a href="#">Item 6</a>
+        <a href="#">Item 7</a>
+    </div>
+
+    <!-- Static Right Sidebar -->
+    <div class="sidebar-right" id="sidebar-right">
+        <div class="hamburger-menu" onclick="toggleSidebar('sidebar-right')">
+            &#9776; <!-- Hamburger icon for the right sidebar -->
+        </div>
+        <div class="sidebar-right-header">
+            Sidebar
+        </div>
+        <a href="#">Item 1</a>
+        <a href="#">Item 2</a>
+        <a href="#">Item 3</a>
+        <a href="#">Item 4</a>
+        <a href="#">Item 5</a>
+        <a href="#">Item 6</a>
+        <a href="#">Item 7</a>
+    </div>
+
+</body>
+
+</html>

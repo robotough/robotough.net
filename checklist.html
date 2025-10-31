@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checklist - okrobo.net</title>
+  <link rel="stylesheet" href="styles.css?21">
+  <script src="scripts.js" defer></script>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+        <a href="calendar.html">Calendar</a>
+	    <a href="colors.html">Color Selector</a>
+        <a href="checklist.html">Checklist</a>
+        <a href="main.html">Notepad</a>
+        <a href="index.html">Lock</a>
+  </div>
+
+  <!-- Video Background -->
+  <div class="video-container">
+    <video autoplay muted loop id="video-background">
+      <source src="images/starfield.mp4" type="video/mp4">
+      <img src="images/stars21.png" alt="Video not supported" />
+    </video>
+  </div>
+
+  <div class="container">
+        <div id="clock-container">
+            <div id="clock"></div>
+            <div id="date"></div>
+        </div>
+    </div>
+
+  <!-- Checklist App -->
+  <div class="checklist-container">
+    <h2>Checklist</h2>
+    <input type="text" id="inputBox" placeholder="Type item and press Enter">
+    <ul id="checklist"></ul>
+  </div>
+
+  <div class="toggle-container">
+
+        <!-- Toggle Wallpaper Button -->
+        <button id="toggle-wallpaper-btn">Toggle Background</button>
+  </div>
+
+  <!-- Hamburger Menu -->
+  <div class="hamburger-wrapper">
+    <div id="hamburger-menu" class="hamburger-menu">
+      &#9776;
+    </div>
+  </div>
+
+</body>
+</html>

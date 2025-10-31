@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>okrobo.net</title>
+    <!-- Ensure you are linking the latest styles.css -->
+    <link rel="stylesheet" href="styles.css?22">
+    <script src="scripts.js" defer></script>
+</head>
+
+<body>
+
+    <!-- Sidebar Structure -->
+    <div class="sidebar" id="sidebar">
+        <a href="calendar.html">Calendar</a>
+	    <a href="colors.html">Color Selector</a>
+        <a href="checklist.html">Checklist</a>
+        <a href="main.html">Notepad</a>
+        <a href="index.html">Lock</a>
+    </div>
+
+    <!-- Main Content (Video Background) -->
+    <div class="video-container">
+        <video autoplay muted loop id="video-background">
+            <source src="images/starfield.mp4" type="video/mp4">
+            <!-- Fallback image for browsers that do not support the video tag -->
+            <img src="images/stars21.png" alt="Video not supported" />
+        </video>
+    </div>
+
+    <!-- Clock Container -->
+    <div class="container">
+        <div id="clock-container">
+            <div id="clock"></div>
+            <div id="date"></div>
+        </div>
+    </div>
+
+    <!-- Color Picker Container (NO LONGER USING .menu WRAPPER) -->
+    <div class="container">
+        <!-- Added style for margin to keep separation from the clock above -->
+        <div class="color-picker-container" style="margin-top: 40px;">
+            <h1>Theme Accent Color Selector</h1>
+
+            <div class="color-selector-group">
+                <label for="accentColorPicker">SELECT HUE</label>
+                <!-- The ID accentColorPicker is used by the JavaScript in scripts.js -->
+                <input type="color" id="accentColorPicker" value="#fde047">
+            </div>
+
+            <p class="info-text">
+                This color controls the primary accent and glow effects across the dashboard. Your choice is saved locally.
+            </p>
+            <!-- The ID hexDisplay is used by the JavaScript to show the current hex value -->
+            <p id="hexDisplay">Current Hex: #fde047</p>
+        </div>
+    </div>
+
+    <!-- Toggle Wallpaper Button Container (Wrapped in .container for centering) -->
+    <div class="container">
+        <!-- Toggle Wallpaper Button -->
+        <button id="toggle-wallpaper-btn">Toggle Background</button>
+    </div>
+
+    <!-- Hamburger Menu -->
+    <div class="hamburger-wrapper">
+        <div id="hamburger-menu" class="hamburger-menu">
+            &#9776; <!-- Hamburger icon -->
+        </div>
+    </div>
+
+</body>
+</html>

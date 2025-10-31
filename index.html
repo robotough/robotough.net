@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>okrobo.net</title>
+    <link rel="stylesheet" href="styles.css?7">
+    <script src="scripts.js?77" defer></script>
+</head>
+
+<body>
+
+    <!-- Video Background Container -->
+    <div class="video-container">
+        <video autoplay muted loop id="video-background">
+            <source src="images/starfield.mp4" type="video/mp4">
+            <!-- Fallback image for browsers that do not support the video tag -->
+            <img src="images/stars21.png" alt="Video not supported" />
+        </video>
+    </div>
+
+    <!-- Main Content (Clock and Menu) -->
+    <div class="container">
+        <div id="clock-container">
+            <div id="clock"></div>
+            <div id="date"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="menu" style="margin-top: 40px; min-width: 20%; padding-bottom: 10px;">
+            <main>
+                <h1 style="font-size: 14px;">Enter Passcode:</h1>
+                <form autocomplete="off" onsubmit="event.preventDefault(); checkPassword();">
+                    <label for="passwordInput"></label>
+                    <input type="password" id="passwordInput" required>
+                </form>
+
+                <!-- On-Screen Keyboard -->
+                <div id="keyboard">
+                    <div class="row">
+                        <button class="key" data-key="1">1</button>
+                        <button class="key" data-key="2">2</button>
+                        <button class="key" data-key="3">3</button>
+                    </div>
+                    <div class="row">
+                        <button class="key" data-key="4">4</button>
+                        <button class="key" data-key="5">5</button>
+                        <button class="key" data-key="6">6</button>
+                    </div>
+                    <div class="row">
+                        <button class="key" data-key="7">7</button>
+                        <button class="key" data-key="8">8</button>
+                        <button class="key" data-key="9">9</button>
+                    </div>
+                    <div class="row">
+                        <button class="key" data-key="backspace">Del</button>
+                        <button class="key" data-key="0">0</button>
+                        <button class="key" data-key="submit">Go</button>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+        <button id="toggle-wallpaper-btn">Toggle Background</button>
+    </div>
+
+</body>
+</html>
+
+
+
+
+
