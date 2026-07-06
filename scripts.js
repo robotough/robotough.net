@@ -16,6 +16,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Initialize all global components first.
     initClock();
+    initWeather();
     initSidebarToggle();
     initWallpaperToggle();
     // initScrollbarHider() removed - rely on CSS for scrollbar control
@@ -68,6 +69,86 @@ function initClock() {
     // Run once immediately, then set interval
     updateClock();
     setInterval(updateClock, 1000);
+}
+
+
+// -----------------------------------------------
+// 1b. Weather Strip (lives inside the clock card)
+// -----------------------------------------------
+const WEATHER_COORDS_KEY = 'weatherCoords';
+const WEATHER_CACHE_KEY = 'weatherCache';
+const WEATHER_CACHE_MS = 20 * 60 * 1000;   // refetch conditions every 20 min
+const WEATHER_COORDS_MS = 24 * 60 * 60 * 1000; // refetch location once a day
+
+// Compact WMO weather-code -> [icon, label] lookup.
+const WEATHER_CODES = {
+    0:['☀','Clear'], 1:['☀','Mostly Clear'], 2:['⛅','Partly Cloudy'], 3:['☁','Overcast'],
+    45:['🌫','Fog'], 48:['🌫','Fog'],
+    51:['🌦','Drizzle'], 53:['🌦','Drizzle'], 55:['🌦','Drizzle'],
+    56:['🌧','Freezing Drizzle'], 57:['🌧','Freezing Drizzle'],
+    61:['🌧','Light Rain'], 63:['🌧','Rain'], 65:['🌧','Heavy Rain'],
+    66:['🌧','Freezing Rain'], 67:['🌧','Freezing Rain'],
+    71:['❄','Light Snow'], 73:['❄','Snow'], 75:['❄','Heavy Snow'], 77:['❄','Snow Grains'],
+    80:['🌦','Rain Showers'], 81:['🌦','Rain Showers'], 82:['⛈','Violent Showers'],
+    85:['❄','Snow Showers'], 86:['❄','Snow Showers'],
+    95:['⛈','Thunderstorm'], 96:['⛈','Thunderstorm'], 99:['⛈','Thunderstorm']
+};
+
+function initWeather() {
+    const weatherEl = getElement('weather', false);
+    if (!weatherEl) return; // this page has no clock card
+
+    function render(data) {
+        const code = data && data.current ? data.current.weather_code : null;
+        const temp = data && data.current ? Math.round(data.current.temperature_2m) : null;
+        if (temp === null) return;
+        const [icon, label] = WEATHER_CODES[code] || ['', ''];
+        weatherEl.innerHTML = `${icon ? icon + ' ' : ''}<span class="w-temp">${temp}°F</span>${label ? ' ' + label : ''}`;
+    }
+
+    function readCache(key) {
+        try { return JSON.parse(localStorage.getItem(key)); } catch (e) { return null; }
+    }
+
+    function fetchWeather(lat, lon) {
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&temperature_unit=fahrenheit&timezone=auto`;
+        fetch(url)
+            .then(r => r.ok ? r.json() : Promise.reject(new Error('weather fetch failed')))
+            .then(data => {
+                if (!data || !data.current) throw new Error('no current weather in response');
+                localStorage.setItem(WEATHER_CACHE_KEY, JSON.stringify({ data: data, ts: Date.now() }));
+                render(data);
+            })
+            .catch(e => console.warn('Weather fetch failed:', e.message));
+    }
+
+    // Show whatever is cached right away (even if stale) so there's no blank flash.
+    const cachedWeather = readCache(WEATHER_CACHE_KEY);
+    if (cachedWeather) render(cachedWeather.data);
+
+    const coords = readCache(WEATHER_COORDS_KEY);
+    const coordsFresh = coords && (Date.now() - coords.ts < WEATHER_COORDS_MS);
+    const weatherFresh = cachedWeather && (Date.now() - cachedWeather.ts < WEATHER_CACHE_MS);
+
+    if (coordsFresh && weatherFresh) return; // everything up to date
+
+    if (coordsFresh) {
+        fetchWeather(coords.lat, coords.lon);
+        return;
+    }
+
+    if (!navigator.geolocation) return; // no way to locate; leave cached/blank as-is
+
+    navigator.geolocation.getCurrentPosition(
+        pos => {
+            const lat = pos.coords.latitude.toFixed(2);
+            const lon = pos.coords.longitude.toFixed(2);
+            localStorage.setItem(WEATHER_COORDS_KEY, JSON.stringify({ lat: lat, lon: lon, ts: Date.now() }));
+            fetchWeather(lat, lon);
+        },
+        err => { console.warn('Weather: geolocation unavailable (' + err.message + ') — keeping whatever\'s cached'); },
+        { timeout: 8000, maximumAge: 60 * 60 * 1000 }
+    );
 }
 
 
@@ -137,7 +218,7 @@ function initWallpaperToggle() {
 const TEXTAREA_STORAGE_KEY = 'notepadContent';
 
 function initTextBoxStorage() {
-    const textarea = getElement('notepad', false);
+    const textarea = getElement('text-box', false);
 
     if (!textarea) {
         return; // Exit safely

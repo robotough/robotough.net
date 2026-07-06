@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>robotough.net</title>
+<link rel="icon" type="image/png" href="images/robotough_star_icon.png">
+<link rel="stylesheet" href="styles.css?1">
+<script src="scripts.js" defer></script>
+</head>
+<body>
+
+  <!-- Sidebar Structure -->
+  <div class="sidebar" id="sidebar">
+      <a href="calendar.html">Calendar</a>
+	  <a href="colors.html">Color Selector</a>
+      <a href="checklist.html">Checklist</a>
+      <a href="main.html">Notepad</a>
+      <a href="meals.html">Meals</a>
+      <a href="index.html">Lock</a>
+  </div>
+
+  <!-- Video Background -->
+  <div class="video-container">
+    <video autoplay muted loop id="video-background">
+      <source src="images/starfield.mp4" type="video/mp4">
+      <img src="images/stars21.png" alt="Video not supported" />
+    </video>
+  </div>
+
+  <!-- Clock -->
+  <div class="container">
+      <div id="clock-container">
+          <div id="clock"></div>
+          <div id="date"></div>
+          <div id="weather"></div>
+      </div>
+  </div>
+
+  <!-- Hamburger Menu -->
+  <div class="hamburger-wrapper">
+    <div id="hamburger-menu" class="hamburger-menu">
+      &#9776;
+    </div>
+  </div>
+
+  <!-- Meal Plan Section Nav -->
+  <nav class="mp-nav">
+    <div class="mp-wrap">
+      <a class="mp-brand" href="#home">Meal Plan</a>
+      <div class="mp-links">
+        <a href="#home" data-nav="home">Home</a>
+        <a href="#meals" data-nav="meals">All Meals</a>
+        <a href="#breakfasts" data-nav="breakfasts">Breakfasts</a>
+        <a href="#lunches" data-nav="lunches">Lunches</a>
+        <a href="#dinners" data-nav="dinners">Dinners</a>
+        <a href="#snacks" data-nav="snacks">Snacks</a>
+        <a href="#randomize" data-nav="randomize">Randomize</a>
+        <a href="#grocery" data-nav="grocery">Grocery List</a>
+      </div>
+    </div>
+  </nav>
+
+  <main id="app" class="mp-wrap"></main>
+
+  <footer class="mp-footer">
+    <div class="mp-wrap">Estimates only — weigh proteins raw for accuracy. Built for a ~1,500–1,600 kcal/day plan (~120–140g protein).</div>
+  </footer>
+
+  <!-- Toggle Wallpaper Button -->
+  <div class="toggle-container">
+      <button id="toggle-wallpaper-btn">Toggle Background</button>
+  </div>
+
+<script>
+const MEALS = [
+  // ---------- BREAKFASTS ----------
+  {id:"b1",cat:"Breakfast",orig:true,code:"B1",name:"Greek Yogurt Fruit Bowl",kcal:320,p:22,c:46,f:4,flavor:"Fresh & fruity",
+   ing:[["Plain non-fat Greek yogurt","200 g"],["Blackberries","100 g"],["Kiwi, sliced","1"],["Banana","½ medium"],["Chia seeds","1 tbsp"]],
+   steps:["Spoon yogurt into a bowl.","Top with blackberries, kiwi, and banana.","Sprinkle chia seeds over the top."]},
+  {id:"b2",cat:"Breakfast",orig:true,code:"B2",name:"Hard-Boiled Egg Plate",kcal:320,p:24,c:20,f:17,flavor:"Simple & savory",
+   ing:[["Hard-boiled eggs","2"],["Whole grain bread","1 slice"],["Cherry tomatoes","100 g"],["Part-skim mozzarella string cheese","1"]],
+   steps:["Boil eggs 10–11 min (batch-prep Sunday), peel and halve.","Toast the bread.","Plate with halved cherry tomatoes (salt + pepper) and string cheese."]},
+  {id:"b3",cat:"Breakfast",orig:true,code:"B3",name:"Egg White Volume Scramble",kcal:300,p:36,c:6,f:11,flavor:"Cheesy & hearty",
+   ing:[["Egg whites","200 g (~6)"],["Whole egg","1"],["String cheese, pulled apart","1"],["Spinach","50 g"],["Mushrooms, sliced","50 g"],["Salsa","to taste"]],
+   steps:["Sauté spinach and mushrooms in cooking spray until soft.","Add egg whites + whole egg; scramble on medium-low.","Fold in string cheese shreds until melted. Top with salsa."]},
+  {id:"b4",cat:"Breakfast",code:"B4",name:"Peanut Butter Banana Protein Oats",kcal:320,p:19,c:44,f:9,flavor:"Sweet & nutty",
+   ing:[["Rolled oats","40 g"],["Egg whites","100 g"],["Banana","½ medium"],["Peanut butter","2 tsp"],["Cinnamon","to taste"]],
+   steps:["Microwave oats with water 90 sec; stir in egg whites and microwave in 30-sec bursts, stirring, until thick and creamy.","Top with sliced banana, peanut butter, and cinnamon."]},
+  {id:"b5",cat:"Breakfast",code:"B5",name:"Savory Cottage Cheese Toast",kcal:320,p:28,c:25,f:10,flavor:"Creamy & savory",
+   ing:[["Whole grain bread","1 slice"],["Low-fat cottage cheese","150 g"],["Hard-boiled egg, sliced","1"],["Cherry tomatoes, halved","75 g"],["Avocado","¼"],["Everything bagel seasoning","sprinkle"]],
+   steps:["Toast bread; spread with mashed avocado.","Pile on cottage cheese, sliced egg, and tomatoes.","Finish with everything bagel seasoning and cracked pepper."]},
+
+  // ---------- LUNCHES ----------
+  {id:"l1",cat:"Lunch",orig:true,code:"L1",name:"Falafel Mediterranean Bowl",kcal:330,p:14,c:33,f:13,flavor:"Bright Mediterranean",
+   ing:[["Falafel","3 pieces (~85 g)"],["Cucumber, diced","100 g"],["Cherry tomatoes, halved","100 g"],["Mixed greens or spinach","2 cups"],["Non-fat Greek yogurt (tzatziki base)","60 g"],["Lemon, garlic powder, dried dill, oregano","to taste"]],
+   steps:["Reheat falafel in toaster oven ~6–8 min at 375°F.","Stir yogurt with lemon juice, garlic powder, and dill for quick tzatziki.","Assemble greens, cucumber, tomatoes; top with falafel and tzatziki, finish with oregano and lemon."]},
+  {id:"l2",cat:"Lunch",orig:true,code:"L2",name:"Air-Fryer Crispy Tofu Bowl",kcal:360,p:27,c:46,f:12,flavor:"Ginger-soy glaze",
+   ing:[["Extra firm tofu, cubed","200 g"],["Cornstarch","1 tsp"],["Soy sauce","1 tbsp"],["Honey","1 tsp"],["Ginger + garlic powder","to taste"],["Broccoli","150 g"],["Cooked rice","½ cup"]],
+   steps:["Toss tofu cubes in cornstarch; air-fry 12 min at 400°F, shaking once.","Microwave-steam broccoli 3 min; reheat rice.","Mix soy, honey, ginger, garlic; toss hot tofu in glaze and assemble bowl."]},
+  {id:"l3",cat:"Lunch",orig:true,code:"L3",name:"Egg White & Veggie Wrap",kcal:330,p:30,c:31,f:7,flavor:"Fresh with a sriracha kick",
+   ing:[["Low-carb high-fiber tortilla","1"],["Egg whites","150 g"],["Light cheddar stick","1"],["Spinach","50 g"],["Cherry tomatoes","50 g"],["Cucumber ribbons","a few"],["Greek yogurt + sriracha spread","30 g"],["Kiwi or ½ banana (side)","1"]],
+   steps:["Microwave egg whites in a mug 60–90 sec, stirring halfway, until set.","Melt cheddar shreds into the hot eggs.","Spread yogurt-sriracha on tortilla, layer veg + eggs, roll. Fruit on the side."]},
+  {id:"l4",cat:"Lunch",code:"L4",name:"Chicken Caesar-ish Wrap",kcal:350,p:36,c:22,f:9,flavor:"Garlicky Caesar",
+   ing:[["Chicken breast (raw)","100 g"],["Low-carb high-fiber tortilla","1"],["Romaine or mixed greens","2 cups"],["Non-fat Greek yogurt","40 g"],["Grated parmesan","1 tbsp"],["Lemon, garlic powder, Dijon (optional)","to taste"]],
+   steps:["Sear or air-fry chicken (batch-prep works); slice thin.","Whisk yogurt with lemon, garlic powder, half the parmesan (and Dijon) for a quick Caesar-style dressing.","Toss greens and chicken in dressing, roll into tortilla, top with remaining parmesan."]},
+  {id:"l5",cat:"Lunch",code:"L5",name:"Black Bean & Egg Burrito Bowl",kcal:330,p:24,c:45,f:6,flavor:"Zesty Tex-Mex",
+   ing:[["Black beans, rinsed","½ cup"],["Cooked rice","½ cup"],["Egg whites","100 g"],["Whole egg","1"],["Salsa","¼ cup"],["Lime + cilantro","to finish"],["Cumin + chili powder","to taste"]],
+   steps:["Warm beans with cumin and chili powder; reheat rice.","Scramble egg whites + whole egg.","Layer rice, beans, eggs; top with salsa, lime, cilantro."]},
+
+  // ---------- DINNERS ----------
+  {id:"d1",cat:"Dinner",orig:true,code:"D1",name:"Lemon Garlic Chicken over Wilted Spinach",kcal:470,p:47,c:29,f:18,flavor:"Bright lemon-garlic-herb",
+   ing:[["Chicken breast (raw)","180 g"],["Olive oil","1 tbsp"],["Garlic cloves","3"],["Lemon (juice + zest)","½"],["Fresh spinach","200 g"],["Baby potatoes","150 g"]],
+   steps:["Roast potatoes at 425°F ~25 min.","Sear chicken in olive oil 5–6 min/side; add garlic, lemon juice + zest in the last 2 min.","Remove chicken; wilt spinach in the same pan. Serve chicken over spinach with potatoes."]},
+  {id:"d2",cat:"Dinner",orig:true,code:"D2",name:"Jerk Chicken, Broccoli & Rice",kcal:470,p:49,c:54,f:5,flavor:"Caribbean jerk",
+   ing:[["Chicken breast (raw)","180 g"],["Jerk marinade","1½ tbsp"],["Broccoli","200 g"],["Cooked rice","¾ cup"]],
+   steps:["Marinate chicken in jerk sauce 30 min+ (or overnight).","Roast chicken and broccoli on a sheet pan at 425°F ~18–20 min.","Serve over rice."]},
+  {id:"d3",cat:"Dinner",orig:true,code:"D3",name:"Chipotle Turkey Taco Bowl",kcal:470,p:34,c:33,f:18,flavor:"Smoky Mexican chipotle",
+   ing:[["93% lean ground turkey (raw)","150 g"],["Chipotle powder, cumin, chili powder, garlic powder","taco blend"],["Cooked rice","½ cup"],["Cherry tomatoes + shredded lettuce","100 g"],["Non-fat Greek yogurt (sour cream sub)","50 g"],["Avocado","¼"],["Lime + cilantro","to finish"]],
+   steps:["Brown turkey; season with chipotle-cumin blend and a splash of water.","Build bowl: rice, turkey, tomatoes, lettuce.","Top with yogurt, avocado, lime, cilantro."]},
+  {id:"d4",cat:"Dinner",orig:true,code:"D4",name:"Balsamic Chicken, Mushrooms & Couscous",kcal:450,p:46,c:31,f:9,flavor:"Italian balsamic-herb",
+   ing:[["Chicken breast (raw)","180 g"],["Mushrooms","150 g"],["Cherry tomatoes","100 g"],["Balsamic vinegar","1½ tbsp"],["Olive oil","1 tsp"],["Italian herbs","to taste"],["Cooked couscous","½ cup"],["Spinach","handful"]],
+   steps:["Sear chicken in oil; set aside.","Sear mushrooms + tomatoes; deglaze with balsamic, add Italian herbs.","Return chicken to glaze; stir spinach into hot couscous and serve under the chicken."]},
+  {id:"d5",cat:"Dinner",orig:true,code:"D5",name:"Pesto Chicken & Roasted Veggies",kcal:470,p:46,c:31,f:12,flavor:"Italian basil-pesto",
+   ing:[["Chicken breast (raw)","180 g"],["Basil pesto","1 tbsp"],["Mushrooms","150 g"],["Cherry tomatoes","100 g"],["Baby potatoes","150 g"],["Spinach","handful"]],
+   steps:["Roast potatoes, mushrooms, tomatoes at 425°F ~25 min.","Sear or roast chicken alongside (~18 min).","Toss hot chicken and veg with pesto; stir spinach in to wilt."]},
+  {id:"d6",cat:"Dinner",orig:true,code:"D6",name:"Chili Crisp Beef & Broccoli",kcal:490,p:40,c:39,f:13,flavor:"Sichuan chili-soy",
+   ing:[["Lean sirloin, thin-sliced (raw)","150 g"],["Broccoli","200 g"],["Soy sauce","1 tbsp"],["Cornstarch","1 tsp"],["Garlic","2 cloves"],["Crispy chili oil","exactly 1 tsp"],["Cooked rice","½ cup"]],
+   steps:["Stir-fry broccoli with a splash of water until crisp-tender; remove.","Sear beef hot and fast; add garlic.","Add soy + cornstarch slurry to coat; kill the heat and stir in 1 tsp crispy chili oil. Serve over rice."]},
+  {id:"d7",cat:"Dinner",orig:true,code:"D7",name:"Cajun Chicken & Dirty-Style Rice",kcal:460,p:42,c:40,f:9,flavor:"Spicy Cajun",
+   ing:[["Chicken breast (raw)","180 g"],["Paprika, cayenne, thyme, garlic powder","Cajun blend"],["Bell pepper","½"],["Onion","½"],["Cooked rice","¾ cup"],["Olive oil","1 tsp"]],
+   steps:["Rub chicken with Cajun blend; sear in oil 5–6 min/side, then slice.","Sauté pepper + onion in the same pan.","Toss rice through the pan drippings and veg; top with sliced chicken."]},
+  {id:"d8",cat:"Dinner",orig:true,code:"D8",name:"Chicken Fajita Skillet",kcal:470,p:54,c:40,f:8,flavor:"Lime-pepper Tex-Mex",
+   ing:[["Chicken breast, sliced (raw)","180 g"],["Chili powder, garlic powder, lime","fajita blend"],["Bell pepper","1"],["Onion","½"],["Low-carb high-fiber tortillas","2"],["Non-fat Greek yogurt (sour cream sub)","50 g"],["Lime wedge","1"]],
+   steps:["Sear seasoned chicken strips hot; remove.","Char peppers + onion in the same skillet; return chicken, squeeze lime over.","Warm tortillas, fill, top with yogurt."]},
+  {id:"d9",cat:"Dinner",code:"D9",name:"Turkey Meatballs Marinara & Zucchini",kcal:460,p:36,c:38,f:14,flavor:"Italian tomato-basil",
+   ing:[["93% lean ground turkey (raw)","150 g"],["Marinara sauce","½ cup"],["Zucchini, half-moons","200 g"],["Cooked couscous","½ cup"],["Grated parmesan","1 tbsp"],["Garlic powder, oregano, Italian herbs","to taste"]],
+   steps:["Season turkey and roll into 5–6 meatballs; sear in cooking spray until browned.","Add marinara and zucchini; cover and simmer 8–10 min until cooked through.","Serve over couscous with parmesan on top."]},
+  {id:"d10",cat:"Dinner",code:"D10",name:"Tandoori-Style Yogurt Chicken & Rice",kcal:460,p:47,c:40,f:9,flavor:"Warm Indian spice",
+   ing:[["Chicken breast (raw)","180 g"],["Non-fat Greek yogurt (marinade)","50 g"],["Paprika, cumin, garlic powder, cayenne","spice blend"],["Lemon","½"],["Cooked rice","¾ cup"],["Cucumber + cherry tomatoes, diced","100 g"],["Olive oil","1 tsp"]],
+   steps:["Marinate chicken in yogurt, spices, and lemon juice 30 min+ (or overnight).","Roast at 425°F ~18–20 min or air-fry until charred at the edges.","Serve over rice with the cucumber-tomato salad dressed in olive oil and lemon."]},
+  {id:"d11",cat:"Dinner",code:"D11",name:"Honey Garlic Pork Tenderloin Plate",kcal:470,p:38,c:50,f:11,flavor:"Sticky honey-garlic",
+   ing:[["Pork tenderloin (raw)","170 g"],["Honey","2 tsp"],["Soy sauce","1 tbsp"],["Garlic cloves","2"],["Green beans","200 g"],["Baby potatoes","150 g"],["Olive oil","1 tsp"]],
+   steps:["Roast potatoes at 425°F ~25 min; add green beans for the last 12 min.","Sear medallions of pork in oil 3–4 min/side.","Add honey, soy, and garlic to the pan; reduce to a glaze and coat the pork."]},
+
+  // ---------- SNACKS ----------
+  {id:"s1",cat:"Snack",orig:true,code:"S1 · Savory",name:"Cottage Cheese & Cucumber",kcal:130,p:18,c:7,f:2,flavor:"Savory & crunchy",
+   ing:[["Low-fat cottage cheese","150 g"],["Cucumber, sliced","½"],["Everything bagel seasoning","sprinkle"]],
+   steps:["Scoop cottage cheese, surround with cucumber slices, season."]},
+  {id:"s2",cat:"Snack",orig:true,code:"S2 · Savory",name:"Popcorn & String Cheese",kcal:170,p:10,c:15,f:8,flavor:"Salty & snacky",
+   ing:[["Light popcorn","25 g bag"],["String cheese","1"]],
+   steps:["Pop the popcorn; pair with string cheese."]},
+  {id:"s3",cat:"Snack",orig:true,code:"S3 · Sweet",name:"Honey Berry Yogurt Cup",kcal:140,p:15,c:18,f:0,flavor:"Sweet & creamy",
+   ing:[["Plain non-fat Greek yogurt","150 g"],["Honey","1 tsp"],["Blackberries","75 g"]],
+   steps:["Stir honey into yogurt; top with blackberries."]},
+  {id:"s4",cat:"Snack",orig:true,code:"S4 · Sweet",name:"Apple & Peanut Butter",kcal:190,p:4,c:29,f:8,flavor:"Sweet & nutty",
+   ing:[["Apple","1 medium"],["Peanut butter","1 tbsp"]],
+   steps:["Slice apple; dip in peanut butter."]},
+  {id:"s5",cat:"Snack",code:"S5 · Savory",name:"Crispy Roasted Chickpeas",kcal:160,p:6,c:20,f:6,flavor:"Spiced & crunchy",
+   ing:[["Canned chickpeas, drained + patted dry","½ cup"],["Olive oil","1 tsp"],["Paprika, cumin, garlic powder","to taste"]],
+   steps:["Toss chickpeas with oil and spices.","Air-fry 12–15 min at 400°F (or roast ~25 min at 425°F) until crunchy."]},
+  {id:"s6",cat:"Snack",code:"S6 · Sweet",name:"Dark Chocolate & Strawberries",kcal:140,p:2,c:18,f:6,flavor:"Sweet & indulgent",
+   ing:[["Dark chocolate (70%+)","15 g"],["Strawberries","150 g"]],
+   steps:["Break chocolate into squares; pair with fresh strawberries (or melt 30 sec and dip)."]}
+];
+
+const GROCERY = [
+  ["Produce",[["Fresh spinach","1 large tub (~600 g)"],["Broccoli","3 crowns (~700 g)"],["Cherry tomatoes","3 pints (~700 g)"],["Cucumbers","3"],["Mushrooms","~300 g"],["Mixed greens","1 small bag"],["Baby potatoes","~350 g"],["Bell peppers","2"],["Onions","2"],["Garlic","1 head"],["Lemons","2"],["Limes","2"],["Blackberries","2 containers (~350 g)"],["Kiwis","4"],["Bananas","2"],["Apples","3–4"],["Avocado","1"],["Zucchini","2 (~400 g)"],["Green beans","~200 g"],["Strawberries","1 container (~300 g)"],["Romaine","1 head (or extra mixed greens)"],["Cilantro (optional)","1 bunch"]]],
+  ["Meat / Protein",[["Chicken breast","~1.3 kg (2.9 lbs)"],["93% lean ground turkey","300 g (most of a 1 lb pack)"],["Lean sirloin steak","150 g"],["Pork tenderloin","170 g (freeze the rest)"],["Extra firm tofu","1 block (400 g)"],["Falafel (frozen or deli)","9 pieces"],["Eggs","1 dozen"],["Liquid egg whites","2 cartons (~1 L)"]]],
+  ["Dairy",[["Plain non-fat Greek yogurt","1 large tub (~1.5 kg)"],["Part-skim mozzarella string cheese","1 pack (need ~5)"],["Light cheddar sticks","1 pack (need 2)"],["Low-fat cottage cheese","1 tub (~750 g)"],["Grated parmesan","1 small container"]]],
+  ["Grains",[["Rice (white or jasmine)","1 bag (~4 cups cooked used)"],["Couscous","1 small box"],["Low-carb high-fiber tortillas","1 pack (L3 + D8)"],["Whole grain bread","1 loaf (freeze half)"],["Rolled oats","1 canister"]]],
+  ["Pantry / Sauces",[["Olive oil + cooking spray",""],["Marinara sauce","1 jar"],["Black beans","1 can"],["Chickpeas","1 can"],["Dark chocolate (70%+)","1 bar"],["Soy sauce (low sodium)",""],["Crispy chili oil","1 jar"],["Jerk marinade","1 bottle"],["Basil pesto","1 jar"],["Balsamic vinegar",""],["Chia seeds",""],["Honey",""],["Peanut butter",""],["Cornstarch",""],["Salsa + sriracha",""],["Spices","paprika, cayenne, thyme, chipotle powder, cumin, chili powder, garlic powder, oregano, Italian herbs, dried dill, cinnamon, everything bagel seasoning"]]],
+  ["Snacks",[["Light popcorn","bags or kernels"]]]
+];
+
+const SCHEDULE = [
+  ["Mon","B1","L1","D1"],["Tue","B3","L2","D3"],["Wed","B2","L3","D2"],
+  ["Thu","B1","L2","D5"],["Fri","B3","L1","D6"],["Sat","B2","L3","D7"],["Sun","B1","L1","D8"]
+];
+
+const app = document.getElementById("app");
+const byCode = Object.fromEntries(MEALS.map(m=>[m.code.split(" ")[0],m]));
+
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;")}
+function badge(m){return m.orig ? `<span class="mp-orig-badge">Original</span>` : ""}
+
+function renderHome(){
+  const days = SCHEDULE.map(([d,b,l,dn])=>{
+    const bm = byCode[b], lm = byCode[l], dm = byCode[dn];
+    return `<tr><td><b>${d}</b></td><td><a href="#meal/${bm.id}">${bm.name}</a></td><td><a href="#meal/${lm.id}">${lm.name}</a></td><td><a href="#meal/${dm.id}">${dm.name}</a></td></tr>`;
+  }).join("");
+  app.innerHTML = `
+  <section class="mp-splash">
+    <h1>Meal Plan</h1>
+    <p class="mp-lede">27 meals across breakfast, lunch, dinner, and snacks — one grocery run, eleven rotating dinners.</p>
+    <div class="mp-stat-row">
+      <div class="mp-stat"><b>~1,550</b><span>kcal / day</span></div>
+      <div class="mp-stat"><b>120–140g</b><span>protein / day</span></div>
+      <div class="mp-stat"><b>27</b><span>meal options</span></div>
+      <div class="mp-stat"><b>11</b><span>distinct dinners</span></div>
+    </div>
+  </section>
+  <section class="mp-tiles">
+    <a class="mp-tile" href="#meals"><h3>All Meals</h3><p>Every breakfast, lunch, dinner, and snack with calories and macros at a glance.</p><span class="mp-go">Browse meals →</span></a>
+    <a class="mp-tile" href="#grocery"><h3>Grocery List</h3><p>The master weekly list, organized by supermarket section.</p><span class="mp-go">See the list →</span></a>
+    <a class="mp-tile" href="#randomize"><h3>Randomize</h3><p>Draw a random meal per category, or generate a full random week.</p><span class="mp-go">Shuffle →</span></a>
+  </section>
+  <section>
+    <div class="mp-pagehead"><h2>This Week</h2><p>Pick 1 savory + 1 sweet snack daily.</p></div>
+    <table class="mp-table">
+      <thead><tr><th>Day</th><th>Breakfast</th><th>Lunch</th><th>Dinner</th></tr></thead>
+      <tbody>${days}</tbody>
+    </table>
+  </section>`;
+}
+
+function renderMeals(){
+  const cats = ["Breakfast","Lunch","Dinner","Snack"];
+  let rows = "";
+  for(const cat of cats){
+    rows += `<tr class="mp-cat"><td colspan="5"><div class="mp-cat-label">${cat}s</div></td></tr>`;
+    for(const m of MEALS.filter(m=>m.cat===cat)){
+      rows += `<tr>
+        <td class="mp-num"><b>${m.code}</b></td>
+        <td><a href="#meal/${m.id}">${m.name}</a>${badge(m)}</td>
+        <td class="mp-kcal">${m.kcal} kcal</td>
+        <td class="mp-num">${m.p}P / ${m.c}C / ${m.f}F</td>
+        <td>${m.flavor}</td></tr>`;
+    }
+  }
+  app.innerHTML = `
+    <div class="mp-pagehead"><h2>All Meals</h2><p>Tap any meal for the full recipe and a nutrition panel. Macros are estimates; weigh proteins raw.</p></div>
+    <table class="mp-table">
+      <thead><tr><th>#</th><th>Meal</th><th>Calories</th><th>Macros (g)</th><th>Flavor profile</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+const CATPAGES = {
+  breakfasts:{cat:"Breakfast",title:"Breakfasts",blurb:"Five options, ~300–320 kcal each. Rotate freely. Originals are tagged."},
+  lunches:{cat:"Lunch",title:"Lunches",blurb:"Five options, ~330–360 kcal — all fridge + microwave + toaster oven/air fryer friendly."},
+  dinners:{cat:"Dinner",title:"Dinners",blurb:"Eleven options, ~450–490 kcal, each with a distinct flavor profile. Seven rotate in per week."},
+  snacks:{cat:"Snack",title:"Snacks",blurb:"Pick 1 savory + 1 sweet per day (~280–310 kcal total)."}
+};
+
+function renderCategory(key){
+  const cfg = CATPAGES[key];
+  const cards = MEALS.filter(m=>m.cat===cfg.cat).map(m=>`
+    <a class="mp-tile" href="#meal/${m.id}">
+      <div class="mp-eyebrow">${m.code} · ${m.kcal} kcal · ${m.p}P/${m.c}C/${m.f}F</div>
+      <h3>${m.name}${badge(m)}</h3>
+      <p>${m.flavor}</p>
+      <span class="mp-go">Open recipe →</span>
+    </a>`).join("");
+  app.innerHTML = `
+    <div class="mp-pagehead"><h2>${cfg.title}</h2><p>${cfg.blurb}</p></div>
+    <section class="mp-tiles">${cards}</section>`;
+}
+
+// ---------- randomize page ----------
+const RAND_CATS = ["Breakfast","Lunch","Dinner","Snack"];
+const randPicks = {};      // current single pick per category
+let randWeek = null;       // generated weekly table
+
+function shuffle(a){
+  a = a.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function randPick(cat){
+  const pool = MEALS.filter(m=>m.cat===cat && m !== randPicks[cat]);
+  randPicks[cat] = pool[Math.floor(Math.random()*pool.length)];
+}
+
+// Fill 7 days from a pool with no repeats; if pool < 7, every option is used
+// once before any repeat, and no two consecutive days match.
+function weekColumn(cat){
+  const pool = MEALS.filter(m=>m.cat===cat);
+  const out = [];
+  while(out.length < 7){
+    let batch = shuffle(pool);
+    if(out.length && batch[0] === out[out.length-1]){
+      [batch[0], batch[batch.length-1]] = [batch[batch.length-1], batch[0]];
+    }
+    out.push(...batch);
+  }
+  return out.slice(0,7);
+}
+
+function makeWeek(){
+  const b = weekColumn("Breakfast"), l = weekColumn("Lunch"), d = weekColumn("Dinner");
+  const days = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  randWeek = days.map((day,i)=>[day, b[i], l[i], d[i]]);
+}
+
+function slotHTML(cat){
+  const m = randPicks[cat];
+  const pick = m
+    ? `<a href="#meal/${m.id}">${m.name}</a>${badge(m)}<span class="mp-meta">${m.code} · ${m.kcal} kcal · ${m.p}P/${m.c}C/${m.f}F</span>`
+    : `<span class="mp-meta">Hit the button to draw a ${cat.toLowerCase()}.</span>`;
+  return `<div class="mp-rand-slot">
+    <h3>${cat}</h3>
+    <div class="mp-pick">${pick}</div>
+    <button class="mp-btn" data-rand="${cat}">Randomize ↻</button>
+  </div>`;
+}
+
+function renderRandomize(){
+  const slots = RAND_CATS.map(slotHTML).join("");
+  let weekTable = "";
+  if(randWeek){
+    const rows = randWeek.map(([day,b,l,d])=>`<tr><td><b>${day}</b></td>
+      <td><a href="#meal/${b.id}">${b.name}</a>${badge(b)}</td>
+      <td><a href="#meal/${l.id}">${l.name}</a>${badge(l)}</td>
+      <td><a href="#meal/${d.id}">${d.name}</a>${badge(d)}</td></tr>`).join("");
+    weekTable = `<table class="mp-table">
+      <thead><tr><th>Day</th><th>Breakfast</th><th>Lunch</th><th>Dinner</th></tr></thead>
+      <tbody>${rows}</tbody></table>`;
+  } else {
+    weekTable = `<p style="margin:20px 0 64px;color:rgba(255,255,255,0.6)">No week generated yet — hit the button.</p>`;
+  }
+  app.innerHTML = `
+    <div class="mp-pagehead"><h2>Randomize</h2><p>Draw a single dish per meal, or generate a full week. Dinners never repeat in a week; breakfasts and lunches cycle through every option before repeating, never twice in a row.</p></div>
+    <div class="mp-rand-grid">${slots}</div>
+    <div class="mp-rand-head">
+      <div class="mp-pagehead" style="padding:0"><h2>Random Week</h2></div>
+      <button class="mp-btn mp-dark" id="genweek">Generate Week ⚄</button>
+    </div>
+    ${weekTable}`;
+  app.querySelectorAll("[data-rand]").forEach(btn=>btn.addEventListener("click",()=>{
+    randPick(btn.dataset.rand); renderRandomize();
+  }));
+  document.getElementById("genweek").addEventListener("click",()=>{
+    makeWeek(); renderRandomize();
+  });
+}
+
+function renderGrocery(){
+  const aisles = GROCERY.map(([name,items])=>`
+    <div class="mp-aisle"><h3>${name}</h3><ul>
+      ${items.map(([it,q])=>`<li><span>${esc(it)}</span><span class="mp-qty">${esc(q)}</span></li>`).join("")}
+    </ul></div>`).join("");
+  app.innerHTML = `
+    <div class="mp-pagehead"><h2>Master Grocery List</h2><p>One weekly run covers all 27 meals. Spinach, cherry tomatoes, broccoli, rice, and Greek yogurt each work across 3+ meals.</p></div>
+    <div class="mp-grocery">${aisles}</div>`;
+}
+
+function renderMeal(id){
+  const m = MEALS.find(x=>x.id===id);
+  if(!m){renderHome();return}
+  const total = m.p+m.c+m.f;
+  const pw=(m.p/total*100).toFixed(1), cw=(m.c/total*100).toFixed(1), fw=(m.f/total*100).toFixed(1);
+  app.innerHTML = `
+    <a class="mp-backlink" href="#meals">← All meals</a>
+    <div class="mp-pagehead">
+      <div class="mp-eyebrow">${m.code} · ${m.cat}${badge(m)}</div>
+      <h2>${m.name}</h2>
+      <span class="mp-flavor-tag">${m.flavor}</span>
+    </div>
+    <div class="mp-meal-grid">
+      <div class="mp-recipe">
+        <h3>Ingredients</h3>
+        <ul>${m.ing.map(([i,q])=>`<li><b>${esc(q)}</b> — ${esc(i)}</li>`).join("")}</ul>
+        <h3>Method</h3>
+        <ol>${m.steps.map(s=>`<li>${esc(s)}</li>`).join("")}</ol>
+      </div>
+      <aside class="mp-facts" aria-label="Nutrition facts">
+        <div class="mp-nf-title">Nutrition Facts</div>
+        <div class="mp-nf-serv">1 serving · estimates</div>
+        <div class="mp-nf-cal"><span class="mp-lbl">Calories</span><span class="mp-val">${m.kcal}</span></div>
+        <div class="mp-nf-row"><b>Protein</b><span>${m.p} g</span></div>
+        <div class="mp-nf-row"><b>Carbohydrates</b><span>${m.c} g</span></div>
+        <div class="mp-nf-row"><b>Fat</b><span>${m.f} g</span></div>
+        <div class="mp-macro-split" role="img" aria-label="Macro split: protein ${pw}%, carbs ${cw}%, fat ${fw}% by grams">
+          <div class="mp-p" style="width:${pw}%"></div><div class="mp-c" style="width:${cw}%"></div><div class="mp-f" style="width:${fw}%"></div>
+        </div>
+        <div class="mp-split-key"><span class="mp-kp"><i></i>Protein</span><span class="mp-kc"><i></i>Carbs</span><span class="mp-kf"><i></i>Fat</span></div>
+        <div class="mp-nf-note">Raw weights for proteins. Values are estimates and vary by brand.</div>
+      </aside>
+    </div>`;
+}
+
+function route(){
+  const h = location.hash.replace(/^#/,"") || "home";
+  let navKey = h;
+  if(h.startsWith("meal/")){
+    const m = MEALS.find(x=>x.id===h.slice(5));
+    navKey = m ? {Breakfast:"breakfasts",Lunch:"lunches",Dinner:"dinners",Snack:"snacks"}[m.cat] : "meals";
+  }
+  document.querySelectorAll("[data-nav]").forEach(a=>{
+    a.classList.toggle("active", navKey===a.dataset.nav);
+  });
+  if(h==="home") renderHome();
+  else if(h==="meals") renderMeals();
+  else if(h==="grocery") renderGrocery();
+  else if(h==="randomize") renderRandomize();
+  else if(CATPAGES[h]) renderCategory(h);
+  else if(h.startsWith("meal/")) renderMeal(h.slice(5));
+  else renderHome();
+  window.scrollTo(0,0);
+}
+window.addEventListener("hashchange",route);
+route();
+</script>
+</body>
+</html>
