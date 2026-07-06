@@ -76,91 +76,91 @@
 const MEALS = [
   // ---------- BREAKFASTS ----------
   {id:"b1",cat:"Breakfast",orig:true,code:"B1",name:"Greek Yogurt Fruit Bowl",kcal:320,p:22,c:46,f:4,flavor:"Fresh & fruity",
-   ing:[["Plain non-fat Greek yogurt","200 g"],["Blackberries","100 g"],["Kiwi, sliced","1"],["Banana","½ medium"],["Chia seeds","1 tbsp"]],
+   ing:[["Plain non-fat Greek yogurt","200 g",120,20,7,1],["Blackberries","100 g",43,1,10,1],["Kiwi, sliced","1",44,1,10,0],["Banana","½ medium",53,1,14,0],["Chia seeds","1 tbsp",58,2,5,4]],
    steps:["Spoon yogurt into a bowl.","Top with blackberries, kiwi, and banana.","Sprinkle chia seeds over the top."]},
   {id:"b2",cat:"Breakfast",orig:true,code:"B2",name:"Hard-Boiled Egg Plate",kcal:320,p:24,c:20,f:17,flavor:"Simple & savory",
-   ing:[["Hard-boiled eggs","2"],["Whole grain bread","1 slice"],["Cherry tomatoes","100 g"],["Part-skim mozzarella string cheese","1"]],
+   ing:[["Hard-boiled eggs","2",156,12,1,10],["Whole grain bread","1 slice",80,4,14,1],["Cherry tomatoes","100 g",18,1,4,0],["Part-skim mozzarella string cheese","1",80,7,1,6]],
    steps:["Boil eggs 10–11 min (batch-prep Sunday), peel and halve.","Toast the bread.","Plate with halved cherry tomatoes (salt + pepper) and string cheese."]},
   {id:"b3",cat:"Breakfast",orig:true,code:"B3",name:"Egg White Volume Scramble",kcal:300,p:36,c:6,f:11,flavor:"Cheesy & hearty",
-   ing:[["Egg whites","200 g (~6)"],["Whole egg","1"],["String cheese, pulled apart","1"],["Spinach","50 g"],["Mushrooms, sliced","50 g"],["Salsa","to taste"]],
+   ing:[["Egg whites","200 g (~6)",104,22,1,0],["Whole egg","1",72,6,0,5],["String cheese, pulled apart","1",80,7,1,6],["Spinach","50 g",12,1,2,0],["Mushrooms, sliced","50 g",11,2,2,0],["Salsa","to taste",10,0,2,0]],
    steps:["Sauté spinach and mushrooms in cooking spray until soft.","Add egg whites + whole egg; scramble on medium-low.","Fold in string cheese shreds until melted. Top with salsa."]},
   {id:"b4",cat:"Breakfast",code:"B4",name:"Peanut Butter Banana Protein Oats",kcal:320,p:19,c:44,f:9,flavor:"Sweet & nutty",
-   ing:[["Rolled oats","40 g"],["Egg whites","100 g"],["Banana","½ medium"],["Peanut butter","2 tsp"],["Cinnamon","to taste"]],
+   ing:[["Rolled oats","40 g",150,5,27,3],["Egg whites","100 g",52,11,1,0],["Banana","½ medium",53,1,14,0],["Peanut butter","2 tsp",63,3,2,5],["Cinnamon","to taste",2,0,1,0]],
    steps:["Microwave oats with water 90 sec; stir in egg whites and microwave in 30-sec bursts, stirring, until thick and creamy.","Top with sliced banana, peanut butter, and cinnamon."]},
   {id:"b5",cat:"Breakfast",code:"B5",name:"Savory Cottage Cheese Toast",kcal:320,p:28,c:25,f:10,flavor:"Creamy & savory",
-   ing:[["Whole grain bread","1 slice"],["Low-fat cottage cheese","150 g"],["Hard-boiled egg, sliced","1"],["Cherry tomatoes, halved","75 g"],["Avocado","¼"],["Everything bagel seasoning","sprinkle"]],
+   ing:[["Whole grain bread","1 slice",80,4,14,1],["Low-fat cottage cheese","150 g",135,17,5,4],["Hard-boiled egg, sliced","1",78,6,1,5],["Cherry tomatoes, halved","75 g",14,1,3,0],["Avocado","¼",80,1,4,7],["Everything bagel seasoning","sprinkle",5,0,1,0]],
    steps:["Toast bread; spread with mashed avocado.","Pile on cottage cheese, sliced egg, and tomatoes.","Finish with everything bagel seasoning and cracked pepper."]},
 
   // ---------- LUNCHES ----------
   {id:"l1",cat:"Lunch",orig:true,code:"L1",name:"Falafel Mediterranean Bowl",kcal:330,p:14,c:33,f:13,flavor:"Bright Mediterranean",
-   ing:[["Falafel","3 pieces (~85 g)"],["Cucumber, diced","100 g"],["Cherry tomatoes, halved","100 g"],["Mixed greens or spinach","2 cups"],["Non-fat Greek yogurt (tzatziki base)","60 g"],["Lemon, garlic powder, dried dill, oregano","to taste"]],
+   ing:[["Falafel","3 pieces (~85 g)",230,9,20,13],["Cucumber, diced","100 g",15,1,4,0],["Cherry tomatoes, halved","100 g",18,1,4,0],["Mixed greens or spinach","2 cups",20,2,3,0],["Non-fat Greek yogurt (tzatziki base)","60 g",35,6,2,0],["Lemon, garlic powder, dried dill, oregano","to taste",5,0,1,0]],
    steps:["Reheat falafel in toaster oven ~6–8 min at 375°F.","Stir yogurt with lemon juice, garlic powder, and dill for quick tzatziki.","Assemble greens, cucumber, tomatoes; top with falafel and tzatziki, finish with oregano and lemon."]},
   {id:"l2",cat:"Lunch",orig:true,code:"L2",name:"Air-Fryer Crispy Tofu Bowl",kcal:360,p:27,c:46,f:12,flavor:"Ginger-soy glaze",
-   ing:[["Extra firm tofu, cubed","200 g"],["Cornstarch","1 tsp"],["Soy sauce","1 tbsp"],["Honey","1 tsp"],["Ginger + garlic powder","to taste"],["Broccoli","150 g"],["Cooked rice","½ cup"]],
+   ing:[["Extra firm tofu, cubed","200 g",180,20,4,10],["Cornstarch","1 tsp",10,0,2,0],["Soy sauce","1 tbsp",9,1,1,0],["Honey","1 tsp",21,0,6,0],["Ginger + garlic powder","to taste",5,0,1,0],["Broccoli","150 g",51,4,10,1],["Cooked rice","½ cup",130,3,28,0]],
    steps:["Toss tofu cubes in cornstarch; air-fry 12 min at 400°F, shaking once.","Microwave-steam broccoli 3 min; reheat rice.","Mix soy, honey, ginger, garlic; toss hot tofu in glaze and assemble bowl."]},
   {id:"l3",cat:"Lunch",orig:true,code:"L3",name:"Egg White & Veggie Wrap",kcal:330,p:30,c:31,f:7,flavor:"Fresh with a sriracha kick",
-   ing:[["Low-carb high-fiber tortilla","1"],["Egg whites","150 g"],["Light cheddar stick","1"],["Spinach","50 g"],["Cherry tomatoes","50 g"],["Cucumber ribbons","a few"],["Greek yogurt + sriracha spread","30 g"],["Kiwi or ½ banana (side)","1"]],
+   ing:[["Low-carb high-fiber tortilla","1",90,5,19,3],["Egg whites","150 g",78,16,1,0],["Light cheddar stick","1",50,6,1,3],["Spinach","50 g",12,1,2,0],["Cherry tomatoes","50 g",9,0,2,0],["Cucumber ribbons","a few",5,0,1,0],["Greek yogurt + sriracha spread","30 g",20,3,1,0],["Kiwi or ½ banana (side)","1",44,1,10,0]],
    steps:["Microwave egg whites in a mug 60–90 sec, stirring halfway, until set.","Melt cheddar shreds into the hot eggs.","Spread yogurt-sriracha on tortilla, layer veg + eggs, roll. Fruit on the side."]},
   {id:"l4",cat:"Lunch",code:"L4",name:"Chicken Caesar-ish Wrap",kcal:350,p:36,c:22,f:9,flavor:"Garlicky Caesar",
-   ing:[["Chicken breast (raw)","100 g"],["Low-carb high-fiber tortilla","1"],["Romaine or mixed greens","2 cups"],["Non-fat Greek yogurt","40 g"],["Grated parmesan","1 tbsp"],["Lemon, garlic powder, Dijon (optional)","to taste"]],
+   ing:[["Chicken breast (raw)","100 g",165,31,0,4],["Low-carb high-fiber tortilla","1",90,5,19,3],["Romaine or mixed greens","2 cups",16,1,3,0],["Non-fat Greek yogurt","40 g",24,4,1,0],["Grated parmesan","1 tbsp",22,2,0,2],["Lemon, garlic powder, Dijon (optional)","to taste",3,0,1,0]],
    steps:["Sear or air-fry chicken (batch-prep works); slice thin.","Whisk yogurt with lemon, garlic powder, half the parmesan (and Dijon) for a quick Caesar-style dressing.","Toss greens and chicken in dressing, roll into tortilla, top with remaining parmesan."]},
   {id:"l5",cat:"Lunch",code:"L5",name:"Black Bean & Egg Burrito Bowl",kcal:330,p:24,c:45,f:6,flavor:"Zesty Tex-Mex",
-   ing:[["Black beans, rinsed","½ cup"],["Cooked rice","½ cup"],["Egg whites","100 g"],["Whole egg","1"],["Salsa","¼ cup"],["Lime + cilantro","to finish"],["Cumin + chili powder","to taste"]],
+   ing:[["Black beans, rinsed","½ cup",114,7,20,1],["Cooked rice","½ cup",130,3,28,0],["Egg whites","100 g",52,11,1,0],["Whole egg","1",72,6,0,5],["Salsa","¼ cup",17,1,4,0],["Lime + cilantro","to finish",2,0,1,0],["Cumin + chili powder","to taste",2,0,1,0]],
    steps:["Warm beans with cumin and chili powder; reheat rice.","Scramble egg whites + whole egg.","Layer rice, beans, eggs; top with salsa, lime, cilantro."]},
 
   // ---------- DINNERS ----------
   {id:"d1",cat:"Dinner",orig:true,code:"D1",name:"Lemon Garlic Chicken over Wilted Spinach",kcal:470,p:47,c:29,f:18,flavor:"Bright lemon-garlic-herb",
-   ing:[["Chicken breast (raw)","180 g"],["Olive oil","1 tbsp"],["Garlic cloves","3"],["Lemon (juice + zest)","½"],["Fresh spinach","200 g"],["Baby potatoes","150 g"]],
+   ing:[["Chicken breast (raw)","180 g",297,56,0,6],["Olive oil","1 tbsp",119,0,0,14],["Garlic cloves","3",13,1,3,0],["Lemon (juice + zest)","½",8,0,3,0],["Fresh spinach","200 g",46,6,7,1],["Baby potatoes","150 g",116,3,26,0]],
    steps:["Roast potatoes at 425°F ~25 min.","Sear chicken in olive oil 5–6 min/side; add garlic, lemon juice + zest in the last 2 min.","Remove chicken; wilt spinach in the same pan. Serve chicken over spinach with potatoes."]},
   {id:"d2",cat:"Dinner",orig:true,code:"D2",name:"Jerk Chicken, Broccoli & Rice",kcal:470,p:49,c:54,f:5,flavor:"Caribbean jerk",
-   ing:[["Chicken breast (raw)","180 g"],["Jerk marinade","1½ tbsp"],["Broccoli","200 g"],["Cooked rice","¾ cup"]],
+   ing:[["Chicken breast (raw)","180 g",297,56,0,6],["Jerk marinade","1½ tbsp",35,0,7,1],["Broccoli","200 g",68,6,14,1],["Cooked rice","¾ cup",195,4,42,0]],
    steps:["Marinate chicken in jerk sauce 30 min+ (or overnight).","Roast chicken and broccoli on a sheet pan at 425°F ~18–20 min.","Serve over rice."]},
   {id:"d3",cat:"Dinner",orig:true,code:"D3",name:"Chipotle Turkey Taco Bowl",kcal:470,p:34,c:33,f:18,flavor:"Smoky Mexican chipotle",
-   ing:[["93% lean ground turkey (raw)","150 g"],["Chipotle powder, cumin, chili powder, garlic powder","taco blend"],["Cooked rice","½ cup"],["Cherry tomatoes + shredded lettuce","100 g"],["Non-fat Greek yogurt (sour cream sub)","50 g"],["Avocado","¼"],["Lime + cilantro","to finish"]],
+   ing:[["93% lean ground turkey (raw)","150 g",225,30,0,12],["Chipotle powder, cumin, chili powder, garlic powder","taco blend",3,0,1,0],["Cooked rice","½ cup",130,3,28,0],["Cherry tomatoes + shredded lettuce","100 g",20,1,4,0],["Non-fat Greek yogurt (sour cream sub)","50 g",30,5,2,0],["Avocado","¼",80,1,4,7],["Lime + cilantro","to finish",2,0,1,0]],
    steps:["Brown turkey; season with chipotle-cumin blend and a splash of water.","Build bowl: rice, turkey, tomatoes, lettuce.","Top with yogurt, avocado, lime, cilantro."]},
   {id:"d4",cat:"Dinner",orig:true,code:"D4",name:"Balsamic Chicken, Mushrooms & Couscous",kcal:450,p:46,c:31,f:9,flavor:"Italian balsamic-herb",
-   ing:[["Chicken breast (raw)","180 g"],["Mushrooms","150 g"],["Cherry tomatoes","100 g"],["Balsamic vinegar","1½ tbsp"],["Olive oil","1 tsp"],["Italian herbs","to taste"],["Cooked couscous","½ cup"],["Spinach","handful"]],
+   ing:[["Chicken breast (raw)","180 g",297,56,0,6],["Mushrooms","150 g",33,4,5,1],["Cherry tomatoes","100 g",18,1,4,0],["Balsamic vinegar","1½ tbsp",30,0,6,0],["Olive oil","1 tsp",40,0,0,5],["Italian herbs","to taste",2,0,0,0],["Cooked couscous","½ cup",88,3,18,0],["Spinach","handful",12,1,2,0]],
    steps:["Sear chicken in oil; set aside.","Sear mushrooms + tomatoes; deglaze with balsamic, add Italian herbs.","Return chicken to glaze; stir spinach into hot couscous and serve under the chicken."]},
   {id:"d5",cat:"Dinner",orig:true,code:"D5",name:"Pesto Chicken & Roasted Veggies",kcal:470,p:46,c:31,f:12,flavor:"Italian basil-pesto",
-   ing:[["Chicken breast (raw)","180 g"],["Basil pesto","1 tbsp"],["Mushrooms","150 g"],["Cherry tomatoes","100 g"],["Baby potatoes","150 g"],["Spinach","handful"]],
+   ing:[["Chicken breast (raw)","180 g",297,56,0,6],["Basil pesto","1 tbsp",80,1,1,8],["Mushrooms","150 g",33,4,5,1],["Cherry tomatoes","100 g",18,1,4,0],["Baby potatoes","150 g",116,3,26,0],["Spinach","handful",12,1,2,0]],
    steps:["Roast potatoes, mushrooms, tomatoes at 425°F ~25 min.","Sear or roast chicken alongside (~18 min).","Toss hot chicken and veg with pesto; stir spinach in to wilt."]},
   {id:"d6",cat:"Dinner",orig:true,code:"D6",name:"Chili Crisp Beef & Broccoli",kcal:490,p:40,c:39,f:13,flavor:"Sichuan chili-soy",
-   ing:[["Lean sirloin, thin-sliced (raw)","150 g"],["Broccoli","200 g"],["Soy sauce","1 tbsp"],["Cornstarch","1 tsp"],["Garlic","2 cloves"],["Crispy chili oil","exactly 1 tsp"],["Cooked rice","½ cup"]],
+   ing:[["Lean sirloin, thin-sliced (raw)","150 g",250,35,0,11],["Broccoli","200 g",68,6,14,1],["Soy sauce","1 tbsp",9,1,1,0],["Cornstarch","1 tsp",10,0,2,0],["Garlic","2 cloves",9,0,2,0],["Crispy chili oil","exactly 1 tsp",40,0,0,5],["Cooked rice","½ cup",130,3,28,0]],
    steps:["Stir-fry broccoli with a splash of water until crisp-tender; remove.","Sear beef hot and fast; add garlic.","Add soy + cornstarch slurry to coat; kill the heat and stir in 1 tsp crispy chili oil. Serve over rice."]},
   {id:"d7",cat:"Dinner",orig:true,code:"D7",name:"Cajun Chicken & Dirty-Style Rice",kcal:460,p:42,c:40,f:9,flavor:"Spicy Cajun",
-   ing:[["Chicken breast (raw)","180 g"],["Paprika, cayenne, thyme, garlic powder","Cajun blend"],["Bell pepper","½"],["Onion","½"],["Cooked rice","¾ cup"],["Olive oil","1 tsp"]],
+   ing:[["Chicken breast (raw)","180 g",297,56,0,6],["Paprika, cayenne, thyme, garlic powder","Cajun blend",3,0,1,0],["Bell pepper","½",12,0,3,0],["Onion","½",22,0,5,0],["Cooked rice","¾ cup",195,4,42,0],["Olive oil","1 tsp",40,0,0,5]],
    steps:["Rub chicken with Cajun blend; sear in oil 5–6 min/side, then slice.","Sauté pepper + onion in the same pan.","Toss rice through the pan drippings and veg; top with sliced chicken."]},
   {id:"d8",cat:"Dinner",orig:true,code:"D8",name:"Chicken Fajita Skillet",kcal:470,p:54,c:40,f:8,flavor:"Lime-pepper Tex-Mex",
-   ing:[["Chicken breast, sliced (raw)","180 g"],["Chili powder, garlic powder, lime","fajita blend"],["Bell pepper","1"],["Onion","½"],["Low-carb high-fiber tortillas","2"],["Non-fat Greek yogurt (sour cream sub)","50 g"],["Lime wedge","1"]],
+   ing:[["Chicken breast, sliced (raw)","180 g",297,56,0,6],["Chili powder, garlic powder, lime","fajita blend",3,0,1,0],["Bell pepper","1",24,1,6,0],["Onion","½",22,0,5,0],["Low-carb high-fiber tortillas","2",180,10,38,6],["Non-fat Greek yogurt (sour cream sub)","50 g",30,5,2,0],["Lime wedge","1",2,0,1,0]],
    steps:["Sear seasoned chicken strips hot; remove.","Char peppers + onion in the same skillet; return chicken, squeeze lime over.","Warm tortillas, fill, top with yogurt."]},
   {id:"d9",cat:"Dinner",code:"D9",name:"Turkey Meatballs Marinara & Zucchini",kcal:460,p:36,c:38,f:14,flavor:"Italian tomato-basil",
-   ing:[["93% lean ground turkey (raw)","150 g"],["Marinara sauce","½ cup"],["Zucchini, half-moons","200 g"],["Cooked couscous","½ cup"],["Grated parmesan","1 tbsp"],["Garlic powder, oregano, Italian herbs","to taste"]],
+   ing:[["93% lean ground turkey (raw)","150 g",225,30,0,12],["Marinara sauce","½ cup",70,2,11,2],["Zucchini, half-moons","200 g",34,3,7,1],["Cooked couscous","½ cup",88,3,18,0],["Grated parmesan","1 tbsp",22,2,0,2],["Garlic powder, oregano, Italian herbs","to taste",2,0,1,0]],
    steps:["Season turkey and roll into 5–6 meatballs; sear in cooking spray until browned.","Add marinara and zucchini; cover and simmer 8–10 min until cooked through.","Serve over couscous with parmesan on top."]},
   {id:"d10",cat:"Dinner",code:"D10",name:"Tandoori-Style Yogurt Chicken & Rice",kcal:460,p:47,c:40,f:9,flavor:"Warm Indian spice",
-   ing:[["Chicken breast (raw)","180 g"],["Non-fat Greek yogurt (marinade)","50 g"],["Paprika, cumin, garlic powder, cayenne","spice blend"],["Lemon","½"],["Cooked rice","¾ cup"],["Cucumber + cherry tomatoes, diced","100 g"],["Olive oil","1 tsp"]],
+   ing:[["Chicken breast (raw)","180 g",297,56,0,6],["Non-fat Greek yogurt (marinade)","50 g",30,5,2,0],["Paprika, cumin, garlic powder, cayenne","spice blend",5,0,1,0],["Lemon","½",4,0,1,0],["Cooked rice","¾ cup",195,4,42,0],["Cucumber + cherry tomatoes, diced","100 g",20,1,4,0],["Olive oil","1 tsp",40,0,0,5]],
    steps:["Marinate chicken in yogurt, spices, and lemon juice 30 min+ (or overnight).","Roast at 425°F ~18–20 min or air-fry until charred at the edges.","Serve over rice with the cucumber-tomato salad dressed in olive oil and lemon."]},
   {id:"d11",cat:"Dinner",code:"D11",name:"Honey Garlic Pork Tenderloin Plate",kcal:470,p:38,c:50,f:11,flavor:"Sticky honey-garlic",
-   ing:[["Pork tenderloin (raw)","170 g"],["Honey","2 tsp"],["Soy sauce","1 tbsp"],["Garlic cloves","2"],["Green beans","200 g"],["Baby potatoes","150 g"],["Olive oil","1 tsp"]],
+   ing:[["Pork tenderloin (raw)","170 g",204,37,0,5],["Honey","2 tsp",42,0,11,0],["Soy sauce","1 tbsp",9,1,1,0],["Garlic cloves","2",9,0,2,0],["Green beans","200 g",62,4,14,0],["Baby potatoes","150 g",116,3,26,0],["Olive oil","1 tsp",40,0,0,5]],
    steps:["Roast potatoes at 425°F ~25 min; add green beans for the last 12 min.","Sear medallions of pork in oil 3–4 min/side.","Add honey, soy, and garlic to the pan; reduce to a glaze and coat the pork."]},
 
   // ---------- SNACKS ----------
   {id:"s1",cat:"Snack",orig:true,code:"S1 · Savory",name:"Cottage Cheese & Cucumber",kcal:130,p:18,c:7,f:2,flavor:"Savory & crunchy",
-   ing:[["Low-fat cottage cheese","150 g"],["Cucumber, sliced","½"],["Everything bagel seasoning","sprinkle"]],
+   ing:[["Low-fat cottage cheese","150 g",135,17,5,4],["Cucumber, sliced","½",8,0,2,0],["Everything bagel seasoning","sprinkle",3,0,1,0]],
    steps:["Scoop cottage cheese, surround with cucumber slices, season."]},
   {id:"s2",cat:"Snack",orig:true,code:"S2 · Savory",name:"Popcorn & String Cheese",kcal:170,p:10,c:15,f:8,flavor:"Salty & snacky",
-   ing:[["Light popcorn","25 g bag"],["String cheese","1"]],
+   ing:[["Light popcorn","25 g bag",100,3,20,3],["String cheese","1",80,7,1,6]],
    steps:["Pop the popcorn; pair with string cheese."]},
   {id:"s3",cat:"Snack",orig:true,code:"S3 · Sweet",name:"Honey Berry Yogurt Cup",kcal:140,p:15,c:18,f:0,flavor:"Sweet & creamy",
-   ing:[["Plain non-fat Greek yogurt","150 g"],["Honey","1 tsp"],["Blackberries","75 g"]],
+   ing:[["Plain non-fat Greek yogurt","150 g",90,15,5,1],["Honey","1 tsp",21,0,6,0],["Blackberries","75 g",32,1,8,0]],
    steps:["Stir honey into yogurt; top with blackberries."]},
   {id:"s4",cat:"Snack",orig:true,code:"S4 · Sweet",name:"Apple & Peanut Butter",kcal:190,p:4,c:29,f:8,flavor:"Sweet & nutty",
-   ing:[["Apple","1 medium"],["Peanut butter","1 tbsp"]],
+   ing:[["Apple","1 medium",95,0,25,0],["Peanut butter","1 tbsp",94,4,3,8]],
    steps:["Slice apple; dip in peanut butter."]},
   {id:"s5",cat:"Snack",code:"S5 · Savory",name:"Crispy Roasted Chickpeas",kcal:160,p:6,c:20,f:6,flavor:"Spiced & crunchy",
-   ing:[["Canned chickpeas, drained + patted dry","½ cup"],["Olive oil","1 tsp"],["Paprika, cumin, garlic powder","to taste"]],
+   ing:[["Canned chickpeas, drained + patted dry","½ cup",134,7,22,2],["Olive oil","1 tsp",40,0,0,5],["Paprika, cumin, garlic powder","to taste",3,0,1,0]],
    steps:["Toss chickpeas with oil and spices.","Air-fry 12–15 min at 400°F (or roast ~25 min at 425°F) until crunchy."]},
   {id:"s6",cat:"Snack",code:"S6 · Sweet",name:"Dark Chocolate & Strawberries",kcal:140,p:2,c:18,f:6,flavor:"Sweet & indulgent",
-   ing:[["Dark chocolate (70%+)","15 g"],["Strawberries","150 g"]],
+   ing:[["Dark chocolate (70%+)","15 g",84,1,6,6],["Strawberries","150 g",48,1,12,0]],
    steps:["Break chocolate into squares; pair with fresh strawberries (or melt 30 sec and dip)."]}
 ];
 
@@ -352,8 +352,15 @@ function renderGrocery(){
 function renderMeal(id){
   const m = MEALS.find(x=>x.id===id);
   if(!m){renderHome();return}
-  const total = m.p+m.c+m.f;
-  const pw=(m.p/total*100).toFixed(1), cw=(m.c/total*100).toFixed(1), fw=(m.f/total*100).toFixed(1);
+
+  const ingRows = m.ing.map(([i,q,kcal,p,c,f],idx)=>`
+    <li class="mp-ing-row" data-idx="${idx}">
+      <label>
+        <input type="checkbox" class="mp-ing-check" data-idx="${idx}" checked>
+        <span class="mp-ing-text"><b>${esc(q)}</b> — ${esc(i)}</span>
+      </label>
+    </li>`).join("");
+
   app.innerHTML = `
     <a class="mp-backlink" href="#meals">← All meals</a>
     <div class="mp-pagehead">
@@ -363,25 +370,55 @@ function renderMeal(id){
     </div>
     <div class="mp-meal-grid">
       <div class="mp-recipe">
-        <h3>Ingredients</h3>
-        <ul>${m.ing.map(([i,q])=>`<li><b>${esc(q)}</b> — ${esc(i)}</li>`).join("")}</ul>
+        <h3>Ingredients <span class="mp-ing-hint">untick to see the effect on nutrition</span></h3>
+        <ul class="mp-ing-list">${ingRows}</ul>
         <h3>Method</h3>
         <ol>${m.steps.map(s=>`<li>${esc(s)}</li>`).join("")}</ol>
       </div>
       <aside class="mp-facts" aria-label="Nutrition facts">
         <div class="mp-nf-title">Nutrition Facts</div>
-        <div class="mp-nf-serv">1 serving · estimates</div>
-        <div class="mp-nf-cal"><span class="mp-lbl">Calories</span><span class="mp-val">${m.kcal}</span></div>
-        <div class="mp-nf-row"><b>Protein</b><span>${m.p} g</span></div>
-        <div class="mp-nf-row"><b>Carbohydrates</b><span>${m.c} g</span></div>
-        <div class="mp-nf-row"><b>Fat</b><span>${m.f} g</span></div>
-        <div class="mp-macro-split" role="img" aria-label="Macro split: protein ${pw}%, carbs ${cw}%, fat ${fw}% by grams">
-          <div class="mp-p" style="width:${pw}%"></div><div class="mp-c" style="width:${cw}%"></div><div class="mp-f" style="width:${fw}%"></div>
+        <div class="mp-nf-serv">1 serving · live estimate</div>
+        <div class="mp-nf-cal"><span class="mp-lbl">Calories</span><span class="mp-val" id="nf-kcal">0</span></div>
+        <div class="mp-nf-row"><b>Protein</b><span id="nf-p">0 g</span></div>
+        <div class="mp-nf-row"><b>Carbohydrates</b><span id="nf-c">0 g</span></div>
+        <div class="mp-nf-row"><b>Fat</b><span id="nf-f">0 g</span></div>
+        <div class="mp-macro-split" role="img" id="nf-split" aria-label="Macro split by grams">
+          <div class="mp-p" id="nf-split-p"></div><div class="mp-c" id="nf-split-c"></div><div class="mp-f" id="nf-split-f"></div>
         </div>
         <div class="mp-split-key"><span class="mp-kp"><i></i>Protein</span><span class="mp-kc"><i></i>Carbs</span><span class="mp-kf"><i></i>Fat</span></div>
-        <div class="mp-nf-note">Raw weights for proteins. Values are estimates and vary by brand.</div>
+        <div class="mp-nf-note">Raw weights for proteins. Values are estimates and vary by brand. Untick an ingredient above to see its impact.</div>
       </aside>
     </div>`;
+
+  function recompute(){
+    let kcal=0,p=0,c=0,f=0;
+    app.querySelectorAll(".mp-ing-check").forEach(cb=>{
+      const idx = +cb.dataset.idx;
+      const row = cb.closest(".mp-ing-row");
+      const [,,ik,ip,ic,iff] = m.ing[idx];
+      if(cb.checked){
+        kcal += ik; p += ip; c += ic; f += iff;
+        row.classList.remove("mp-ing-off");
+      } else {
+        row.classList.add("mp-ing-off");
+      }
+    });
+    document.getElementById("nf-kcal").textContent = Math.round(kcal);
+    document.getElementById("nf-p").textContent = Math.round(p) + " g";
+    document.getElementById("nf-c").textContent = Math.round(c) + " g";
+    document.getElementById("nf-f").textContent = Math.round(f) + " g";
+    const total = (p + c + f) || 1;
+    document.getElementById("nf-split-p").style.width = (p/total*100) + "%";
+    document.getElementById("nf-split-c").style.width = (c/total*100) + "%";
+    document.getElementById("nf-split-f").style.width = (f/total*100) + "%";
+    const splitEl = document.getElementById("nf-split");
+    splitEl.setAttribute("aria-label", `Macro split: protein ${(p/total*100).toFixed(0)}%, carbs ${(c/total*100).toFixed(0)}%, fat ${(f/total*100).toFixed(0)}% by grams`);
+  }
+
+  app.querySelectorAll(".mp-ing-check").forEach(cb=>{
+    cb.addEventListener("change", recompute);
+  });
+  recompute();
 }
 
 function route(){

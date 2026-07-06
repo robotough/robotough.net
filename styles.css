@@ -835,6 +835,17 @@ input[type="checkbox"] {
 .mp-recipe li { margin-bottom: 7px; font-size: 14px; }
 .mp-recipe li b { font-weight: 700; }
 
+/* Ingredient hint next to the "Ingredients" heading */
+.mp-ing-hint { font-size: 11px; font-weight: 400; text-transform: none; letter-spacing: 0; color: rgba(255,255,255,0.5); margin-left: 8px; }
+
+/* Interactive ingredient checklist */
+.mp-ing-list { list-style: none; padding: 0; margin: 0 0 4px; }
+.mp-ing-row { padding: 5px 0; }
+.mp-ing-row label { display: flex; align-items: flex-start; gap: 9px; cursor: pointer; }
+.mp-ing-check { margin-top: 4px; accent-color: var(--accent-color); cursor: pointer; flex-shrink: 0; }
+.mp-ing-text { font-size: 14px; color: var(--text-color); transition: opacity 0.15s ease; }
+.mp-ing-row.mp-ing-off .mp-ing-text { text-decoration: line-through; opacity: 0.4; }
+
 .mp-facts {
     background-color: var(--primary-bg-transparent); border-radius: 10px; box-shadow: var(--container-glow);
     padding: 12px 14px; align-self: start; position: sticky; top: 100px; color: var(--text-color);
