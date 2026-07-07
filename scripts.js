@@ -1,36 +1,36 @@
 // A utility function to safely get an element and log an error if it's missing.
 const getElement = (id, required = true) => {
-    const element = document.getElementById(id);
-    if (!element && required) {
-        // Only log errors for elements essential for core functionality
-        console.error(`Required element with ID "${id}" not found.`);
-    }
-    return element;
+        const element = document.getElementById(id);
+        if (!element && required) {
+                    // Only log errors for elements essential for core functionality
+            console.error(`Required element with ID "${id}" not found.`);
+        }
+        return element;
 };
 
 // ===============================================
 // === Core DOMContentLoaded Logic (Main App) ===
 // ===============================================
 document.addEventListener("DOMContentLoaded", function () {
-    console.log("DOM fully loaded and parsed");
+        console.log("DOM fully loaded and parsed");
 
-    // Initialize all global components first.
-    initClock();
-    initWeather();
-    initSidebarToggle();
-    initWallpaperToggle();
-    // initScrollbarHider() removed - rely on CSS for scrollbar control
+                              // Initialize all global components first.
+                              initClock();
+        initWeather();
+        initSidebarToggle();
+        initWallpaperToggle();
+        // initScrollbarHider() removed - rely on CSS for scrollbar control
 
-    // Initialize page-specific components (must be non-blocking)
-    initTextBoxStorage();
-    initPasswordProtection();
-    initKeyboardInput();
-    initChecklist();
-    generateCalendar();
-    initThemeSelector();
+                              // Initialize page-specific components (must be non-blocking)
+                              initTextBoxStorage();
+        initPasswordProtection();
+        initKeyboardInput();
+        initChecklist();
+        generateCalendar();
+        initThemeSelector();
 
-    // Initialize Calendar Navigation Listeners (must run after generateCalendar is defined)
-    initCalendarNavigationListeners();
+                              // Initialize Calendar Navigation Listeners (must run after generateCalendar is defined)
+                              initCalendarNavigationListeners();
 });
 
 
@@ -38,117 +38,100 @@ document.addEventListener("DOMContentLoaded", function () {
 // 1. Clock Component
 // -----------------------------------------------
 function updateClock() {
-    const now = new Date();
-    // Use modern Intl API for robust and locale-aware time/date formatting
+        const now = new Date();
+        // Use modern Intl API for robust and locale-aware time/date formatting
     const formattedTime = now.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: true
+                hour: 'numeric',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true
     });
-    const formattedDate = now.toLocaleDateString('en-US', {
-        weekday: 'short',
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-    });
+        const formattedDate = now.toLocaleDateString('en-US', {
+                    weekday: 'short',
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+        });
 
     // Use required=false as clock elements may not exist on every single page (e.g., lock screen)
     const clockElement = getElement('clock', false);
-    const dateElement = getElement('date', false);
+        const dateElement = getElement('date', false);
 
     if (clockElement) {
-        clockElement.textContent = formattedTime;
+                clockElement.textContent = formattedTime;
     }
-    if (dateElement) {
-        dateElement.textContent = formattedDate;
-    }
+        if (dateElement) {
+                    dateElement.textContent = formattedDate;
+        }
 }
 
 function initClock() {
-    // Run once immediately, then set interval
+        // Run once immediately, then set interval
     updateClock();
-    setInterval(updateClock, 1000);
+        setInterval(updateClock, 1000);
 }
 
 
 // -----------------------------------------------
 // 1b. Weather Strip (lives inside the clock card)
 // -----------------------------------------------
-const WEATHER_COORDS_KEY = 'weatherCoords';
 const WEATHER_CACHE_KEY = 'weatherCache';
 const WEATHER_CACHE_MS = 20 * 60 * 1000;   // refetch conditions every 20 min
-const WEATHER_COORDS_MS = 24 * 60 * 60 * 1000; // refetch location once a day
+
+// Fixed location: Mount Laurel, NJ
+const WEATHER_LAT = 39.93;
+const WEATHER_LON = -74.89;
 
 // Compact WMO weather-code -> [icon, label] lookup.
 const WEATHER_CODES = {
-    0:['☀','Clear'], 1:['☀','Mostly Clear'], 2:['⛅','Partly Cloudy'], 3:['☁','Overcast'],
-    45:['🌫','Fog'], 48:['🌫','Fog'],
-    51:['🌦','Drizzle'], 53:['🌦','Drizzle'], 55:['🌦','Drizzle'],
-    56:['🌧','Freezing Drizzle'], 57:['🌧','Freezing Drizzle'],
-    61:['🌧','Light Rain'], 63:['🌧','Rain'], 65:['🌧','Heavy Rain'],
-    66:['🌧','Freezing Rain'], 67:['🌧','Freezing Rain'],
-    71:['❄','Light Snow'], 73:['❄','Snow'], 75:['❄','Heavy Snow'], 77:['❄','Snow Grains'],
-    80:['🌦','Rain Showers'], 81:['🌦','Rain Showers'], 82:['⛈','Violent Showers'],
-    85:['❄','Snow Showers'], 86:['❄','Snow Showers'],
-    95:['⛈','Thunderstorm'], 96:['⛈','Thunderstorm'], 99:['⛈','Thunderstorm']
+        0:['☀','Clear'], 1:['☀','Mostly Clear'], 2:['⛅','Partly Cloudy'], 3:['☁','Overcast'],
+        45:['🌫','Fog'], 48:['🌫','Fog'],
+        51:['🌦','Drizzle'], 53:['🌦','Drizzle'], 55:['🌦','Drizzle'],
+        56:['🌧','Freezing Drizzle'], 57:['🌧','Freezing Drizzle'],
+        61:['🌧','Light Rain'], 63:['🌧','Rain'], 65:['🌧','Heavy Rain'],
+        66:['🌧','Freezing Rain'], 67:['🌧','Freezing Rain'],
+        71:['❄','Light Snow'], 73:['❄','Snow'], 75:['❄','Heavy Snow'], 77:['❄','Snow Grains'],
+        80:['🌦','Rain Showers'], 81:['🌦','Rain Showers'], 82:['⛈','Violent Showers'],
+        85:['❄','Snow Showers'], 86:['❄','Snow Showers'],
+        95:['⛈','Thunderstorm'], 96:['⛈','Thunderstorm'], 99:['⛈','Thunderstorm']
 };
 
 function initWeather() {
-    const weatherEl = getElement('weather', false);
-    if (!weatherEl) return; // this page has no clock card
+        const weatherEl = getElement('weather', false);
+        if (!weatherEl) return; // this page has no clock card
 
     function render(data) {
-        const code = data && data.current ? data.current.weather_code : null;
-        const temp = data && data.current ? Math.round(data.current.temperature_2m) : null;
-        if (temp === null) return;
-        const [icon, label] = WEATHER_CODES[code] || ['', ''];
-        weatherEl.innerHTML = `${icon ? icon + ' ' : ''}<span class="w-temp">${temp}°F</span>${label ? ' ' + label : ''}`;
+                const code = data && data.current ? data.current.weather_code : null;
+                const temp = data && data.current ? Math.round(data.current.temperature_2m) : null;
+                if (temp === null) return;
+                const [icon, label] = WEATHER_CODES[code] || ['', ''];
+                weatherEl.innerHTML = `${icon ? icon + ' ' : ''}<span class="w-temp">${temp}°F</span>${label ? ' ' + label : ''}`;
     }
 
     function readCache(key) {
-        try { return JSON.parse(localStorage.getItem(key)); } catch (e) { return null; }
+                try { return JSON.parse(localStorage.getItem(key)); } catch (e) { return null; }
     }
 
     function fetchWeather(lat, lon) {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&temperature_unit=fahrenheit&timezone=auto`;
-        fetch(url)
-            .then(r => r.ok ? r.json() : Promise.reject(new Error('weather fetch failed')))
-            .then(data => {
-                if (!data || !data.current) throw new Error('no current weather in response');
-                localStorage.setItem(WEATHER_CACHE_KEY, JSON.stringify({ data: data, ts: Date.now() }));
-                render(data);
-            })
-            .catch(e => console.warn('Weather fetch failed:', e.message));
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&temperature_unit=fahrenheit&timezone=auto`;
+                fetch(url)
+                    .then(r => r.ok ? r.json() : Promise.reject(new Error('weather fetch failed')))
+                    .then(data => {
+                                        if (!data || !data.current) throw new Error('no current weather in response');
+                                        localStorage.setItem(WEATHER_CACHE_KEY, JSON.stringify({ data: data, ts: Date.now() }));
+                                        render(data);
+                    })
+                    .catch(e => console.warn('Weather fetch failed:', e.message));
     }
 
     // Show whatever is cached right away (even if stale) so there's no blank flash.
     const cachedWeather = readCache(WEATHER_CACHE_KEY);
-    if (cachedWeather) render(cachedWeather.data);
+        if (cachedWeather) render(cachedWeather.data);
 
-    const coords = readCache(WEATHER_COORDS_KEY);
-    const coordsFresh = coords && (Date.now() - coords.ts < WEATHER_COORDS_MS);
     const weatherFresh = cachedWeather && (Date.now() - cachedWeather.ts < WEATHER_CACHE_MS);
+        if (weatherFresh) return; // everything up to date
 
-    if (coordsFresh && weatherFresh) return; // everything up to date
-
-    if (coordsFresh) {
-        fetchWeather(coords.lat, coords.lon);
-        return;
-    }
-
-    if (!navigator.geolocation) return; // no way to locate; leave cached/blank as-is
-
-    navigator.geolocation.getCurrentPosition(
-        pos => {
-            const lat = pos.coords.latitude.toFixed(2);
-            const lon = pos.coords.longitude.toFixed(2);
-            localStorage.setItem(WEATHER_COORDS_KEY, JSON.stringify({ lat: lat, lon: lon, ts: Date.now() }));
-            fetchWeather(lat, lon);
-        },
-        err => { console.warn('Weather: geolocation unavailable (' + err.message + ') — keeping whatever\'s cached'); },
-        { timeout: 8000, maximumAge: 60 * 60 * 1000 }
-    );
+    fetchWeather(WEATHER_LAT, WEATHER_LON);
 }
 
 
@@ -156,15 +139,15 @@ function initWeather() {
 // 2. Sidebar Toggle (Hamburger Menu)
 // -----------------------------------------------
 function initSidebarToggle() {
-    const hamburger = getElement('hamburger-menu', false);
-    const sidebar = getElement('sidebar', false);
+        const hamburger = getElement('hamburger-menu', false);
+        const sidebar = getElement('sidebar', false);
 
     if (!hamburger || !sidebar) {
-        return; // Exit gracefully if elements are not present
+                return; // Exit gracefully if elements are not present
     }
 
     hamburger.addEventListener('click', () => {
-        sidebar.classList.toggle('expanded');
+                sidebar.classList.toggle('expanded');
     });
 }
 
@@ -175,39 +158,39 @@ function initSidebarToggle() {
 const WALLPAPER_STORAGE_KEY = 'wallpaperState'; // 'video' or 'image'
 
 function initWallpaperToggle() {
-    const toggleButton = getElement('toggle-wallpaper-btn', false);
-    const videoContainer = document.querySelector('.video-container');
-    const video = getElement('video-background', false);
+        const toggleButton = getElement('toggle-wallpaper-btn', false);
+        const videoContainer = document.querySelector('.video-container');
+        const video = getElement('video-background', false);
 
     if (!toggleButton || !videoContainer) {
-        return; // Exit gracefully if button or container is missing
+                return; // Exit gracefully if button or container is missing
     }
 
     // Load initial state
     const savedState = localStorage.getItem(WALLPAPER_STORAGE_KEY) || 'video';
 
     function setWallpaperState(state) {
-        if (state === 'video' && video) {
-            videoContainer.style.backgroundImage = 'none';
-            video.style.display = 'block';
-            // Use try/catch for play() due to potential browser autoplay restrictions
-            video.play().catch(e => console.warn("Video autoplay prevented:", e.message));
-            toggleButton.textContent = 'Use Static Image';
-        } else {
-            // Static image fallback
-            videoContainer.style.backgroundImage = "url('images/stars21.png')";
-            if (video) video.style.display = 'none';
-            toggleButton.textContent = 'Use Video Background';
-        }
-        localStorage.setItem(WALLPAPER_STORAGE_KEY, state);
+                if (state === 'video' && video) {
+                                videoContainer.style.backgroundImage = 'none';
+                                video.style.display = 'block';
+                                // Use try/catch for play() due to potential browser autoplay restrictions
+                    video.play().catch(e => console.warn("Video autoplay prevented:", e.message));
+                                toggleButton.textContent = 'Use Static Image';
+                } else {
+                                // Static image fallback
+                    videoContainer.style.backgroundImage = "url('images/stars21.png')";
+                                if (video) video.style.display = 'none';
+                                toggleButton.textContent = 'Use Video Background';
+                }
+                localStorage.setItem(WALLPAPER_STORAGE_KEY, state);
     }
 
     // Set initial state on load
     setWallpaperState(savedState);
 
     toggleButton.addEventListener('click', () => {
-        const currentState = localStorage.getItem(WALLPAPER_STORAGE_KEY) === 'video' ? 'image' : 'video';
-        setWallpaperState(currentState);
+                const currentState = localStorage.getItem(WALLPAPER_STORAGE_KEY) === 'video' ? 'image' : 'video';
+                setWallpaperState(currentState);
     });
 }
 
@@ -218,21 +201,21 @@ function initWallpaperToggle() {
 const TEXTAREA_STORAGE_KEY = 'notepadContent';
 
 function initTextBoxStorage() {
-    const textarea = getElement('text-box', false);
+        const textarea = getElement('text-box', false);
 
     if (!textarea) {
-        return; // Exit safely
+                return; // Exit safely
     }
 
     // Load and set saved content
     const savedContent = localStorage.getItem(TEXTAREA_STORAGE_KEY);
-    if (savedContent) {
-        textarea.value = savedContent;
-    }
+        if (savedContent) {
+                    textarea.value = savedContent;
+        }
 
     // Save content on input
     textarea.addEventListener('input', () => {
-        localStorage.setItem(TEXTAREA_STORAGE_KEY, textarea.value);
+                localStorage.setItem(TEXTAREA_STORAGE_KEY, textarea.value);
     });
 }
 
@@ -242,49 +225,49 @@ function initTextBoxStorage() {
 // -----------------------------------------------
 // Placeholder for password logic, keeping the function definition for safety
 function checkPassword() {
-    // This function must be defined globally to be called by the form's onsubmit in index.html
+        // This function must be defined globally to be called by the form's onsubmit in index.html
     const passwordInput = getElement('passwordInput', false);
-    if (passwordInput && passwordInput.value === 'twentyone') { // Example Password
-        window.location.href = 'main.html'; // Navigate to the main app page
-    } else {
-        alert("Incorrect Passcode. Try '1234'."); // Using custom alert message box is better here
-    }
+        if (passwordInput && passwordInput.value === 'twentyone') { // Example Password
+            window.location.href = 'main.html'; // Navigate to the main app page
+        } else {
+                    alert("Incorrect Passcode. Try '1234'."); // Using custom alert message box is better here
+        }
 }
 window.checkPassword = checkPassword; // Expose to global scope for HTML form
 
 function initPasswordProtection() {
-    const passwordInput = getElement('passwordInput', false);
-    if (!passwordInput) {
-        return; // Exit safely if not on the lock page
-    }
-    // No additional listeners needed here as the form handles submit and keyboard handles input
+        const passwordInput = getElement('passwordInput', false);
+        if (!passwordInput) {
+                    return; // Exit safely if not on the lock page
+        }
+        // No additional listeners needed here as the form handles submit and keyboard handles input
 }
 
 function initKeyboardInput() {
-    const keyboard = getElement('keyboard', false);
-    const passwordInput = getElement('passwordInput', false);
+        const keyboard = getElement('keyboard', false);
+        const passwordInput = getElement('passwordInput', false);
 
     if (!keyboard || !passwordInput) {
-        return; // Exit safely if not on the lock page
+                return; // Exit safely if not on the lock page
     }
 
     keyboard.addEventListener('click', (event) => {
-        // Find the nearest key element (handles clicks on child spans/icons)
-        const key = event.target.closest('.key');
-        if (!key) return;
+                // Find the nearest key element (handles clicks on child spans/icons)
+                                      const key = event.target.closest('.key');
+                if (!key) return;
 
-        const keyValue = key.getAttribute('data-key');
+                                      const keyValue = key.getAttribute('data-key');
 
-        if (keyValue === 'backspace') {
-            passwordInput.value = passwordInput.value.slice(0, -1);
-        } else if (keyValue === 'submit') {
-            checkPassword(); // Call the global checkPassword function
-        } else {
-            // Limit to max 4 digits for passcode
-            if (passwordInput.value.length < 4) {
-                 passwordInput.value += keyValue;
-            }
-        }
+                                      if (keyValue === 'backspace') {
+                                                      passwordInput.value = passwordInput.value.slice(0, -1);
+                                      } else if (keyValue === 'submit') {
+                                                      checkPassword(); // Call the global checkPassword function
+                                      } else {
+                                                      // Limit to max 4 digits for passcode
+                    if (passwordInput.value.length < 4) {
+                                         passwordInput.value += keyValue;
+                    }
+                                      }
     });
 }
 
@@ -296,89 +279,89 @@ const CHECKLIST_STORAGE_KEY = 'checklistItems';
 
 // Helper to save data to localStorage
 function saveChecklist(items) {
-    localStorage.setItem(CHECKLIST_STORAGE_KEY, JSON.stringify(items));
+        localStorage.setItem(CHECKLIST_STORAGE_KEY, JSON.stringify(items));
 }
 
 // Helper to load data from localStorage
 function loadChecklist() {
-    const saved = localStorage.getItem(CHECKLIST_STORAGE_KEY);
-    return saved ? JSON.parse(saved) : [];
+        const saved = localStorage.getItem(CHECKLIST_STORAGE_KEY);
+        return saved ? JSON.parse(saved) : [];
 }
 
 function deleteItem(index, checklistElement) {
-    let items = loadChecklist();
-    // Remove one item at the given index
+        let items = loadChecklist();
+        // Remove one item at the given index
     items.splice(index, 1);
-    saveChecklist(items);
-    renderChecklist(checklistElement);
+        saveChecklist(items);
+        renderChecklist(checklistElement);
 }
 
 function toggleItem(index, checklistElement) {
-    let items = loadChecklist();
-    // Toggle the checked state
+        let items = loadChecklist();
+        // Toggle the checked state
     items[index].checked = !items[index].checked;
-    saveChecklist(items);
-    renderChecklist(checklistElement);
+        saveChecklist(items);
+        renderChecklist(checklistElement);
 }
 
 function renderChecklist(checklistElement) {
-    const items = loadChecklist();
-    checklistElement.innerHTML = ''; // Clear existing items
+        const items = loadChecklist();
+        checklistElement.innerHTML = ''; // Clear existing items
 
     items.forEach((item, index) => {
-        const li = document.createElement('li');
+                const li = document.createElement('li');
 
-        li.classList.add('checklist-item');
-        li.dataset.index = index;
+                          li.classList.add('checklist-item');
+                li.dataset.index = index;
 
-        // FIX: Use 'completed' class to match CSS for styling and button visibility
-        if (item.checked) {
-            li.classList.add('completed');
-        }
+                          // FIX: Use 'completed' class to match CSS for styling and button visibility
+                          if (item.checked) {
+                                          li.classList.add('completed');
+                          }
 
-        // Create the text span
-        const textSpan = document.createElement('span');
-        textSpan.classList.add('item-text');
-        textSpan.textContent = item.text;
+                          // Create the text span
+                          const textSpan = document.createElement('span');
+                textSpan.classList.add('item-text');
+                textSpan.textContent = item.text;
 
-        // --- Delete Button (Visible/Required) ---
-        const deleteButton = document.createElement('button');
-        deleteButton.classList.add('delete-btn');
-        deleteButton.textContent = '✕';
+                          // --- Delete Button (Visible/Required) ---
+                          const deleteButton = document.createElement('button');
+                deleteButton.classList.add('delete-btn');
+                deleteButton.textContent = '✕';
 
-        // Add click handler for deletion (using addEventListener)
-        deleteButton.addEventListener('click', (e) => {
-            e.stopPropagation(); // CRITICAL: Prevents the LI click (toggle) from triggering
-            deleteItem(index, checklistElement);
-        });
+                          // Add click handler for deletion (using addEventListener)
+                          deleteButton.addEventListener('click', (e) => {
+                                          e.stopPropagation(); // CRITICAL: Prevents the LI click (toggle) from triggering
+                                                                    deleteItem(index, checklistElement);
+                          });
 
-        // Attach elements
-        li.append(textSpan, deleteButton);
-        checklistElement.appendChild(li);
+                          // Attach elements
+                          li.append(textSpan, deleteButton);
+                checklistElement.appendChild(li);
 
-        // Add the click listener for toggling the state on the main list item area (using addEventListener)
-        li.addEventListener('click', () => {
-            toggleItem(index, checklistElement);
-        });
+                          // Add the click listener for toggling the state on the main list item area (using addEventListener)
+                          li.addEventListener('click', () => {
+                                          toggleItem(index, checklistElement);
+                          });
     });
 }
 
 function addItem(inputBox, checklistElement) {
-    const text = inputBox.value.trim();
-    if (text === '') return;
+        const text = inputBox.value.trim();
+        if (text === '') return;
 
     let items = loadChecklist();
-    // New items are unchecked by 
+        // New items are unchecked by 
     items.push({ text: text, checked: false });
-    inputBox.value = '';
-    saveChecklist(items);
-    renderChecklist(checklistElement);
+        inputBox.value = '';
+        saveChecklist(items);
+        renderChecklist(checklistElement);
 }
 
 
 function initChecklist() {
-    const inputBox = getElement('inputBox', false);
-    const checklist = getElement('checklist', false);
+        const inputBox = getElement('inputBox', false);
+        const checklist = getElement('checklist', false);
 
     if (!inputBox || !checklist) return;
 
@@ -387,10 +370,10 @@ function initChecklist() {
 
     // 2. Handle Enter keypress to add new item
     inputBox.addEventListener('keypress', (event) => {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            addItem(inputBox, checklist);
-        }
+                if (event.key === 'Enter') {
+                                event.preventDefault();
+                                addItem(inputBox, checklist);
+                }
     });
 }
 
@@ -406,11 +389,11 @@ const monthNames = ["January", "February", "March", "April", "May", "June", "Jul
 const getCalendarStorageKey = (year, month) => `calendarNotes-${year}-${month}`;
 
 function generateCalendar() {
-    const monthYearDisplay = getElement('month-year', false);
-    const calendarBody = getElement('calendar-body', false);
+        const monthYearDisplay = getElement('month-year', false);
+        const calendarBody = getElement('calendar-body', false);
 
     if (!monthYearDisplay || !calendarBody) {
-        return; // Exit safely if not on the calendar page
+                return; // Exit safely if not on the calendar page
     }
 
     // Clear existing days
@@ -420,77 +403,77 @@ function generateCalendar() {
 
     // Get the first day of the month (0=Sunday, 6=Saturday)
     const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
-    // Get the number of days in the current month
+        // Get the number of days in the current month
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
     // Load notes for the current month
     const localStorageKey = getCalendarStorageKey(currentYear, currentMonth);
-    const savedNotes = JSON.parse(localStorage.getItem(localStorageKey) || '{}');
+        const savedNotes = JSON.parse(localStorage.getItem(localStorageKey) || '{}');
 
     // Fill in leading blank days
     for (let i = 0; i < firstDayOfMonth; i++) {
-        const dayDiv = document.createElement('div');
-        dayDiv.classList.add('day', 'empty-day');
-        calendarBody.appendChild(dayDiv);
+                const dayDiv = document.createElement('div');
+                dayDiv.classList.add('day', 'empty-day');
+                calendarBody.appendChild(dayDiv);
     }
 
     // Fill in days of the month
     for (let i = 1; i <= daysInMonth; i++) {
-        const dayDiv = document.createElement('div');
-        dayDiv.classList.add('day');
+                const dayDiv = document.createElement('div');
+                dayDiv.classList.add('day');
 
-        const dayNumber = document.createElement('span');
-        dayNumber.textContent = i;
-        dayDiv.dataset.date = `${currentYear}-${currentMonth + 1}-${i}`;
+            const dayNumber = document.createElement('span');
+                dayNumber.textContent = i;
+                dayDiv.dataset.date = `${currentYear}-${currentMonth + 1}-${i}`;
 
-        // Highlight today's date if applicable
-        const today = new Date();
-        if (i === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear()) {
-             dayNumber.classList.add('today-highlight');
-        }
+            // Highlight today's date if applicable
+            const today = new Date();
+                if (i === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear()) {
+                                 dayNumber.classList.add('today-highlight');
+                }
 
-        const textarea = document.createElement('textarea');
-        textarea.placeholder = `...`;
-        // Load saved text for this day (i.e., day 'i')
-        textarea.value = savedNotes[i] || '';
+            const textarea = document.createElement('textarea');
+                textarea.placeholder = `...`;
+                // Load saved text for this day (i.e., day 'i')
+            textarea.value = savedNotes[i] || '';
 
-        // Add event listener to save text to localStorage
-        textarea.addEventListener('input', () => {
-            savedNotes[i] = textarea.value;
-            localStorage.setItem(localStorageKey, JSON.stringify(savedNotes));
-        });
+            // Add event listener to save text to localStorage
+            textarea.addEventListener('input', () => {
+                            savedNotes[i] = textarea.value;
+                            localStorage.setItem(localStorageKey, JSON.stringify(savedNotes));
+            });
 
-        dayDiv.append(dayNumber, textarea);
-        calendarBody.appendChild(dayDiv);
+            dayDiv.append(dayNumber, textarea);
+                calendarBody.appendChild(dayDiv);
     }
 }
 
 // Helper to update month/year and regenerate calendar
 function navigateMonth(direction) {
-    currentMonth += direction;
-    if (currentMonth < 0) {
-        currentMonth = 11;
-        currentYear--;
-    } else if (currentMonth > 11) {
-        currentMonth = 0;
-        currentYear++;
-    }
-    generateCalendar();
+        currentMonth += direction;
+        if (currentMonth < 0) {
+                    currentMonth = 11;
+                    currentYear--;
+        } else if (currentMonth > 11) {
+                    currentMonth = 0;
+                    currentYear++;
+        }
+        generateCalendar();
 }
 
 // ----------------------------------------------
 // Calendar Navigation Event Listeners
 // ----------------------------------------------
 function initCalendarNavigationListeners() {
-    const prevButton = getElement('prev-month', false);
-    const nextButton = getElement('next-month', false);
+        const prevButton = getElement('prev-month', false);
+        const nextButton = getElement('next-month', false);
 
     if (prevButton) {
-        prevButton.addEventListener('click', () => navigateMonth(-1));
+                prevButton.addEventListener('click', () => navigateMonth(-1));
     }
-    if (nextButton) {
-        nextButton.addEventListener('click', () => navigateMonth(1));
-    }
+        if (nextButton) {
+                    nextButton.addEventListener('click', () => navigateMonth(1));
+        }
 }
 
 
@@ -503,11 +486,11 @@ const ROOT_COLOR_VAR = '--accent-color';
 const ROOT_RGB_COLOR_VAR = '--accent-color-rgb';
 
 function hexToRgb(hex) {
-    // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
+        // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
     const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
-    hex = hex.replace(shorthandRegex, function(m, r, g, b) {
-        return r + r + g + g + b + b;
-    });
+        hex = hex.replace(shorthandRegex, function(m, r, g, b) {
+                    return r + r + g + g + b + b;
+        });
 
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
 
@@ -516,44 +499,44 @@ function hexToRgb(hex) {
 }
 
 function applyColor(hexColor, inputElement = null) {
-    // 1. Set the root CSS variables
+        // 1. Set the root CSS variables
     document.documentElement.style.setProperty(ROOT_COLOR_VAR, hexColor);
-    document.documentElement.style.setProperty(ROOT_RGB_COLOR_VAR, hexToRgb(hexColor));
+        document.documentElement.style.setProperty(ROOT_RGB_COLOR_VAR, hexToRgb(hexColor));
 
     // 2. Save to browser storage
     localStorage.setItem(COLOR_STORAGE_KEY, hexColor);
 
     // 3. Update the input element's value if provided
     if (inputElement) {
-        inputElement.value = hexColor; // Ensure the picker reflects the actual color
+                inputElement.value = hexColor; // Ensure the picker reflects the actual color
     }
 
     // 4. Update display text (Only applicable if the hexDisplay element exists)
     const hexDisplay = getElement('hexDisplay', false);
-    if(hexDisplay) {
-        hexDisplay.textContent = 'Current Hex: ' + hexColor.toUpperCase();
-    }
+        if(hexDisplay) {
+                    hexDisplay.textContent = 'Current Hex: ' + hexColor.toUpperCase();
+        }
 }
 
 function initThemeSelector() {
-    const colorInput = getElement('accentColorPicker', false);
+        const colorInput = getElement('accentColorPicker', false);
 
     // 1. Determine the color to use: saved, or default
     const savedColor = localStorage.getItem(COLOR_STORAGE_KEY);
-    const initialColor = savedColor || DEFAULT_HEX;
+        const initialColor = savedColor || DEFAULT_HEX;
 
     // 2. Apply the color immediately on load to the whole document
     applyColor(initialColor, colorInput);
 
     // 3. If the input exists, set up listeners
     if (colorInput) {
-        colorInput.addEventListener('input', (event) => {
-            applyColor(event.target.value, colorInput);
-        });
+                colorInput.addEventListener('input', (event) => {
+                                applyColor(event.target.value, colorInput);
+                });
 
-        colorInput.addEventListener('change', (event) => {
-            // Re-apply on 'change' to ensure the final color is saved/displayed after selection
-            applyColor(event.target.value, colorInput);
-        });
+            colorInput.addEventListener('change', (event) => {
+                            // Re-apply on 'change' to ensure the final color is saved/displayed after selection
+                                                    applyColor(event.target.value, colorInput);
+            });
     }
 }
