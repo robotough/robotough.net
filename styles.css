@@ -17,7 +17,18 @@
     --container-glow: 0px 0px 10px rgba(255, 255, 255, 0.5);
     --focus-glow: 0 0 10px rgba(var(--accent-color-rgb), 0.8);
 
+    /* Border tint used by structural container borders; switched to the
+       accent color sitewide when the "Accent Borders" toggle is on. */
+    --border-tint-rgb: 255, 255, 255;
+
     font-family: Consolas, monospace;
+}
+
+/* When enabled via the toggle on the Color Selector page, containers'
+   drop shadows and borders pick up the accent color instead of white. */
+body.accent-borders {
+    --container-glow: 0px 0px 10px rgba(var(--accent-color-rgb), 0.5);
+    --border-tint-rgb: var(--accent-color-rgb);
 }
 
 /* 2. Global HTML & Body Setup (Fixed Syntax & Merged) */
@@ -116,7 +127,7 @@ body::-webkit-scrollbar {
     min-height: 1.1em;
 }
 #weather .w-temp {
-    color: var(--accent-color);
+    color: var(--text-color);
     font-weight: bold;
 }
 
@@ -201,7 +212,7 @@ h1 {
 #passwordInput {
     background-color: var(--primary-bg-transparent);
     color: var(--text-color);
-    border: 1px solid rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(var(--border-tint-rgb), 0.5);
     border-radius: 8px;
     padding: 10px;
     font-family: Consolas, monospace;
@@ -412,7 +423,7 @@ iframe {
     width: 100%;
     padding: 20px;
     font-size: 16px;
-    border: 1px solid rgba(255,255,255,0.5);
+    border: 1px solid rgba(var(--border-tint-rgb), 0.5);
     border-radius: 6px;
     background-color: rgba(0,0,0,0.6);
     color: var(--text-color);
@@ -440,7 +451,7 @@ iframe {
     justify-content: space-between;
     margin: 10px 0;
     padding: 8px 12px;
-    border: 1px solid rgba(255,255,255,0.5);
+    border: 1px solid rgba(var(--border-tint-rgb), 0.5);
     border-radius: 6px;
     background: rgba(0,0,0,0.6);
     word-break: break-word;
@@ -518,7 +529,7 @@ input[type="checkbox"] {
 
 /* Calendar Styles */
 .calendar {
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    border: 2px solid rgba(var(--border-tint-rgb), 0.3);
     border-radius: 10px;
     width: 90%;
     height: 95%;
@@ -572,7 +583,7 @@ input[type="checkbox"] {
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(var(--border-tint-rgb), 0.15);
     padding: 10px;
     box-sizing: border-box;
     min-height: 90px;
@@ -743,6 +754,81 @@ input[type="checkbox"] {
     font-size: 0.8rem;
     color: var(--accent-color);
     transition: color 0.3s;
+}
+
+/* Accent Borders toggle row */
+.accent-toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.accent-toggle-row .switch-label {
+    font-size: 0.85rem;
+    color: var(--text-color);
+    opacity: 0.85;
+    text-align: left;
+    line-height: 1.3;
+}
+
+/* Stylized toggle switch */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 52px;
+    height: 28px;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.switch .slider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 34px;
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.switch .slider::before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background-color: #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.4);
+    transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+.switch input:checked + .slider {
+    background-color: rgba(var(--accent-color-rgb), 0.35);
+    border-color: var(--accent-color);
+    box-shadow: var(--focus-glow);
+}
+
+.switch input:checked + .slider::before {
+    transform: translateX(24px);
+    background-color: var(--accent-color);
+}
+
+.switch input:focus-visible + .slider {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
 }
 
 /* * ====================================================
