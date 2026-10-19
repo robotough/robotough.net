@@ -221,11 +221,11 @@ function initTextBoxStorage() {
 
 
 // -----------------------------------------------
-// 5. Password Protection (index.html only)
+// 5. Password Protection (passcode.html only)
 // -----------------------------------------------
 // Placeholder for password logic, keeping the function definition for safety
 function checkPassword() {
-    // This function must be defined globally to be called by the form's onsubmit in index.html
+    // This function must be defined globally to be called by the form's onsubmit in passcode.html
     const passwordInput = getElement('passwordInput', false);
     if (passwordInput && passwordInput.value === 'twentyone') { // Example Password
         window.location.href = 'main.html'; // Navigate to the main app page

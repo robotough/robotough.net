@@ -1,81 +1,1106 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>robotough.net</title>
-    <link rel="icon" type="image/png" href="images/robotough_star_icon.png">
-    <link rel="stylesheet" href="styles.css?100">
-    <script src="scripts.js?100" defer></script>
-</head>
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>robotough.net</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;height:100%;background:#000;overflow:hidden}
+#c{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);image-rendering:pixelated;image-rendering:crisp-edges}
+#hint{position:fixed;right:16px;bottom:14px;font:10px/1.6 'Press Start 2P',ui-monospace,Consolas,monospace;color:#888;pointer-events:none;display:none}
+body.idle{cursor:none}
+#burger{position:fixed;left:14px;top:14px;z-index:3;width:40px;height:40px;padding:10px 9px;background:#0b0b10cc;border:2px solid #2a2a33;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;transition:opacity .6s,left .25s}
+#burger span{display:block;height:3px;background:#e6e6e6}
+#burger:hover span{background:#ff4a3a}
+body.idle:not(.open) #burger{opacity:0;pointer-events:none}
+body.open #burger{left:272px}
+#menu{position:fixed;left:0;top:0;bottom:0;width:260px;overflow-y:auto;z-index:2;box-sizing:border-box;padding:70px 14px 18px;background:#08080cf0;border-right:2px solid #2a2a33;display:flex;flex-direction:column;gap:8px;transform:translateX(-100%);transition:transform .25s;font:10px/1.6 'Press Start 2P',ui-monospace,Consolas,monospace;color:#ddd}
+body.open #menu{transform:none}
+#menu h2{font:inherit;font-size:11px;color:#ff4a3a;margin:0 0 6px;letter-spacing:1px}
+#menu button{font:inherit;color:#ddd;background:#12121a;border:2px solid #2a2a33;padding:9px 10px;text-align:left;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px}
+#menu button:hover,#menu button:focus-visible{border-color:#ff4a3a;color:#fff;outline:none}
+#menu button.on{border-color:#e6e6e6}
+#menu kbd{font:inherit;font-size:8px;color:#777}
+#menu .val{color:#ff8a70}
+#menu button:disabled{opacity:.45;cursor:default;border-color:#2a2a33;color:#ddd}
+#menu .view{display:flex;flex-direction:column;gap:8px;flex:1}
+#menu.shop #mainView,#menu.cust #mainView,#menu:not(.shop) #shopView,#menu:not(.cust) #custView{display:none}
+#cust h3{font:inherit;font-size:8px;color:#888;margin:10px 0 2px;letter-spacing:1px}
+#cust button{justify-content:flex-start!important}
+#cust button[aria-pressed="true"]{border-color:#e6e6e6;color:#fff}
+#cust button[aria-pressed="true"]::after{content:'\2713';margin-left:auto;color:#ff4a3a}
+#cust .fsel{display:flex;gap:6px}
+#cust .fsel button{flex:1;justify-content:center!important;padding:9px 4px;font-size:8px}
+#cust .fsel button::after{content:none!important}
+#cust .fsel button[aria-pressed="true"]{border-color:#ff4a3a;background:#1c1016}
+#cust .fnote,#s-for{font-size:8px;color:#888;margin-top:2px}
+.bal{color:#ffd24a;margin:2px 0 6px}
+.tabs,#tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px}
+#tabs button:last-child:nth-child(odd){grid-column:span 2}
+#tabs button{font-size:8px;justify-content:center!important;padding:8px 4px!important}
+#tabs button[aria-selected="true"]{border-color:#ff4a3a;color:#fff;background:#1c1016}
+.item{border:2px solid #2a2a33;background:#0e0e15;padding:9px 10px;display:flex;flex-direction:column;gap:6px}
+.item .nm{color:#fff}
+.item .ds{font-size:8px;color:#888;line-height:1.7}
+.item button{justify-content:center!important;color:#ffd24a!important}
+.item.owned{opacity:.55}
+.item.eq{border-color:#e6e6e6}
+.item.pick{cursor:pointer}
+.item.pick:hover{border-color:#4a4a58}
+.item.sel{border-color:#ff4a3a!important;background:#160c12}
+.item button:disabled{pointer-events:none}
+#preview{position:fixed;left:276px;top:70px;z-index:2;width:340px;padding:10px;background:#08080cf0;border:2px solid #2a2a33;display:none;font:10px/1.6 'Press Start 2P',ui-monospace,Consolas,monospace;color:#ddd}
+body.pv #preview{display:block}
+#pv-cv{display:block;width:340px;height:240px;image-rendering:pixelated;background:#000;margin-bottom:8px}
+#pv-pr{font-size:8px;color:#ffd24a}
+.pv-ctl{display:flex;gap:6px;margin:0 0 10px}
+.pv-ctl button{flex:1;height:30px;display:flex;align-items:center;justify-content:center;background:#12121a;border:2px solid #2a2a33;cursor:pointer;padding:0;touch-action:none}
+.pv-ctl button:hover{border-color:#ff4a3a}
+.pv-ctl button[aria-pressed="true"]{border-color:#e6e6e6;background:#1c1016}
+.pv-ctl svg{width:14px;height:12px;fill:#ddd;shape-rendering:crispEdges}
+#pv-pr.poor{color:#d04030}
+@media (max-width:660px){body.pv #preview{display:none}}
+.sw{display:inline-flex;gap:2px;margin-right:8px;vertical-align:middle}
+.sw i{display:block;width:8px;height:8px}
+#status{margin-top:auto;font-size:8px;color:#888;line-height:1.8}
+#hud{position:fixed;top:16px;left:50%;z-index:1;display:flex;gap:28px;font:10px/1.8 'Press Start 2P',ui-monospace,Consolas,monospace;color:#8a8a8a;pointer-events:none;white-space:nowrap;transform:translateX(-50%)}
+#hud b{font-weight:normal;color:#5a5a5a;margin-right:8px}
+#hud .cr{color:#9a8a50}
+#fuel{position:fixed;bottom:18px;left:50%;z-index:1;display:flex;align-items:center;gap:10px;font:10px/1 'Press Start 2P',ui-monospace,Consolas,monospace;color:#5a5a5a;pointer-events:none;transform:translateX(-50%)}
+#fuel .bar{display:flex;gap:3px;padding:2px;border:2px solid #2a2a33}
+#fuel i{display:block;width:34px;height:8px;background:#16161c}
+#fuel .st{min-width:5em;color:#8a8a8a}
+#fuel.low .st{color:#d04030}
+#fuel.empty .st{animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+.pop{position:fixed;z-index:1;pointer-events:none;font:10px/1 'Press Start 2P',ui-monospace,Consolas,monospace;color:#ffd24a;transform:translate(-50%,-50%);animation:pop 1.3s ease-out forwards;text-shadow:0 0 4px #000}
+.pop.gold{font-size:14px;color:#fff1a0;text-shadow:0 0 6px #d8a020,0 0 2px #000;animation-duration:2s}
+@keyframes pop{from{opacity:1;margin-top:0}to{opacity:0;margin-top:-40px}}
+#home{position:fixed;left:68px;top:14px;height:40px;display:flex;align-items:center;gap:6px;z-index:1;font:13px/1 'Press Start 2P',ui-monospace,Consolas,monospace;color:#8a8a8a;text-decoration:none;transition:opacity .6s,color .2s,left .25s}
+body.open #home{left:326px;z-index:3}   /* rides along with the hamburger button when the menu slides open */
+#home:hover,#home:focus-visible{color:#ff4a3a;outline:none}
+#home .ret{font:bold 26px/1 ui-monospace,Consolas,monospace}
+body.idle:not(.open) #home{opacity:0;pointer-events:none}
+</style></head><body>
+<canvas id="c"></canvas>
+<a id="home" href="main.html">to robotough.net <span class="ret">&#8629;</span></a>
+<button id="burger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+<nav id="menu" aria-label="Menu">
+  <div class="view" id="mainView">
+  <h2>SPACE GAME</h2>
+  <button data-k="b"><span>Shop <span class="val" id="v-cr">&cent;0</span></span><kbd>B</kbd></button>
+  <button data-k="f"><span>Fullscreen</span><kbd>F</kbd></button>
+  <button data-k="n"><span>Wingmen <span class="val" id="v-n">0/0</span></span><kbd>N</kbd></button>
+  <button data-k="s"><span>Customize</span><kbd>S</kbd></button>
+  <button data-k="c"><span>Coverage map</span><kbd>C</kbd></button>
+  <button data-k=" "><span id="v-p">Pause</span><kbd>Space</kbd></button>
+  <div id="status">M or Esc: menu<br>Earn 1&cent; per 777 km<br>Click asteroids to shoot them</div>
+  </div>
+  <div class="view" id="custView">
+  <button data-k="back"><span>&larr; Back</span><kbd>Esc</kbd></button>
+  <h2 style="margin-top:6px">CUSTOMIZE</h2>
+  <div id="cust" class="view"></div>
+  <button data-k="b"><span>Get more in the shop</span><kbd>B</kbd></button>
+  </div>
+  <div class="view" id="shopView">
+  <button data-k="back"><span>&larr; Back</span><kbd>Esc</kbd></button>
+  <h2 style="margin-top:6px">SHOP</h2>
+  <div class="bal">&cent;<span id="s-cr">0</span></div>
+  <div id="s-for"></div>
+  <div id="tabs" role="tablist"></div>
+  <div id="items" class="view"></div>
+  </div>
+</nav>
+<div id="hint"></div>
+<div id="preview" aria-live="polite"><canvas id="pv-cv"></canvas><div class="pv-ctl">
+  <button data-pv="play" aria-label="Play" aria-pressed="true"><svg viewBox="0 0 14 12"><polygon points="3,0 12,6 3,12"/></svg></button>
+  <button data-pv="pause" aria-label="Pause" aria-pressed="false"><svg viewBox="0 0 14 12"><rect x="3" y="1" width="3" height="10"/><rect x="8" y="1" width="3" height="10"/></svg></button>
+  <button data-pv="rw" aria-label="Rewind (hold)"><svg viewBox="0 0 14 12"><polygon points="7,0 0,6 7,12"/><polygon points="14,0 7,6 14,12"/></svg></button>
+  <button data-pv="ff" aria-label="Fast forward (hold)"><svg viewBox="0 0 14 12"><polygon points="0,0 7,6 0,12"/><polygon points="7,0 14,6 7,12"/></svg></button>
+</div><div id="pv-nm"></div><div id="pv-pr"></div></div>
+<div id="hud"><div class="cr"><b>CREDITS</b>&cent;<span id="h-cr">0</span></div><div><b>SPEED</b><span id="h-spd">0</span> km/s</div><div><b>DIST</b><span id="h-dst">0</span> km</div></div>
+<div id="fuel"><span>FUEL</span><span class="bar"><i></i><i></i><i></i><i></i></span><span class="st" id="f-st">100%</span></div>
+<script>
+'use strict';
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let W,H,SCALE,F,img,buf,zb;
+const rand=(a,b)=>a+Math.random()*(b-a);
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+function hex(h){const n=parseInt(h.slice(1),16);return (0xff000000|((n&255)<<16)|(n&0xff00)|(n>>16&255))>>>0}
+const ramp=a=>Uint32Array.from(a,hex);
+const BLACK=hex('#000000');
+const BAY=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5].map(v=>(v+.5)/16);
 
-<body>
+// ---------- vector math ----------
+const sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]];
+const add=(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]];
+const scl=(a,s)=>[a[0]*s,a[1]*s,a[2]*s];
+const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+const norm=a=>{const l=Math.hypot(a[0],a[1],a[2])||1;return [a[0]/l,a[1]/l,a[2]/l]};
+const mulR=(R,v)=>[R[0]*v[0]+R[1]*v[1]+R[2]*v[2],R[3]*v[0]+R[4]*v[1]+R[5]*v[2],R[6]*v[0]+R[7]*v[1]+R[8]*v[2]];
+function mul3(A,B){const C=new Array(9);for(let i=0;i<3;i++)for(let j=0;j<3;j++)C[i*3+j]=A[i*3]*B[j]+A[i*3+1]*B[3+j]+A[i*3+2]*B[6+j];return C}
+function euler(yaw,pitch,roll){
+  const cy=Math.cos(yaw),sy=Math.sin(yaw),cp=Math.cos(pitch),sp=Math.sin(pitch),cr=Math.cos(roll),sr=Math.sin(roll);
+  return mul3([cy,0,sy,0,1,0,-sy,0,cy],mul3([1,0,0,0,cp,-sp,0,sp,cp],[cr,-sr,0,sr,cr,0,0,0,1]));
+}
 
-    <!-- Video Background Container -->
-    <div class="video-container">
-        <video autoplay muted loop id="video-background">
-            <source src="images/starfield.mp4" type="video/mp4">
-            <!-- Fallback image for browsers that do not support the video tag -->
-            <img src="images/stars21.png?7" alt="Video not supported" />
-        </video>
-    </div>
+// ---------- model building ----------
+function tri(m,a,b,c,mat,ref){
+  let n=cross(sub(b,a),sub(c,a));const L=Math.hypot(n[0],n[1],n[2]);if(L<1e-7)return;
+  n=[n[0]/L,n[1]/L,n[2]/L];
+  const cen=[(a[0]+b[0]+c[0])/3,(a[1]+b[1]+c[1])/3,(a[2]+b[2]+c[2])/3];
+  if(dot(n,sub(cen,ref))<0){[b,c]=[c,b];n=[-n[0],-n[1],-n[2]]}
+  m.tris.push({v:[a,b,c],n,mat});
+}
+const quad=(m,a,b,c,d,mat,ref)=>{tri(m,a,b,c,mat,ref);tri(m,a,c,d,mat,ref)};
+// stations front-to-back; last station gets a rear cap
+function loft(m,st,sides,mat,xo,yo,capMat,rot0){
+  const r0=rot0===undefined?Math.PI/sides:rot0;
+  const rings=st.map(s=>{const r=[];for(let k=0;k<sides;k++){const a=k/sides*Math.PI*2+r0;r.push([xo+Math.cos(a)*s.rx,yo+s.yo+Math.sin(a)*s.ry,s.z])}return r});
+  for(let i=0;i<st.length-1;i++){
+    const A=rings[i],B=rings[i+1],ref=[xo,yo+(st[i].yo+st[i+1].yo)/2,(st[i].z+st[i+1].z)/2];
+    for(let k=0;k<sides;k++){const k2=(k+1)%sides;quad(m,A[k],A[k2],B[k2],B[k],mat,ref)}
+  }
+  const l=st[st.length-1],R=rings[rings.length-1];
+  if(l.rx>0){const c=[xo,yo+l.yo,l.z],ref=[xo,yo+l.yo,l.z+1];for(let k=0;k<sides;k++)tri(m,c,R[k],R[(k+1)%sides],capMat||mat,ref)}
+}
+function hexa(m,t,b,mat){
+  const ref=[0,0,0];for(const p of [...t,...b]){ref[0]+=p[0]/8;ref[1]+=p[1]/8;ref[2]+=p[2]/8}
+  quad(m,t[0],t[1],t[2],t[3],mat,ref);quad(m,b[0],b[1],b[2],b[3],mat,ref);
+  for(let k=0;k<4;k++){const k2=(k+1)%4;quad(m,t[k],t[k2],b[k2],b[k],mat,ref)}
+}
+function plate(m,pts,off,mat){hexa(m,pts.map(p=>add(p,off)),pts.map(p=>sub(p,off)),mat)}
 
-    <!-- Main Content (Clock and Menu) -->
-    <div class="container">
-        <div id="clock-container">
-            <div id="clock"></div>
-            <div id="date"></div>
-            <div id="weather"></div>
-        </div>
-    </div>
+function buildFighter(){
+  const m={tris:[],lights:[],engines:[]};
+  // fuselage: flattened, angular
+  loft(m,[{z:3.3,rx:0,ry:0,yo:-.02},{z:2.4,rx:.24,ry:.13,yo:0},{z:1.2,rx:.46,ry:.24,yo:.04},{z:0,rx:.58,ry:.3,yo:.06},{z:-.7,rx:.62,ry:.32,yo:.06}],6,'hull',0,0,'panel');
+  // canopy
+  loft(m,[{z:1.9,rx:0,ry:0,yo:0},{z:1.3,rx:.17,ry:.1,yo:0},{z:.5,rx:.2,ry:.12,yo:0},{z:-.1,rx:0,ry:0,yo:0}],6,'glass',0,.27);
+  // engine block
+  hexa(m,
+    [[-.95,.28,-.4],[.95,.28,-.4],[1.0,.3,-1.8],[-1.0,.3,-1.8]],
+    [[-.95,-.3,-.4],[.95,-.3,-.4],[1.0,-.34,-1.8],[-1.0,-.34,-1.8]],'panel');
+  // nozzles (square), three across plus two small below
+  const noz=[[-.6,0,.26],[0,0,.28],[.6,0,.26],[-.32,-.25,.13],[.32,-.25,.13]];
+  for(const [x,y,r] of noz){
+    loft(m,[{z:-1.7,rx:r,ry:r*.9,yo:0},{z:-2.05,rx:r*1.1,ry:r,yo:0}],4,'hull',x,y,'engine',Math.PI/4);
+    m.engines.push([x,y,-2.07,r]);
+  }
+  // swept wings
+  for(const s of [-1,1]){
+    const P=u=>({x:.5+2.4*u,zf:.8-1.9*u,zb:-1.5-.2*u,y:-.02-.18*u,th:.13-.09*u});
+    const seg=(u0,u1,mat)=>{const a=P(u0),b=P(u1);
+      const t=[[s*a.x,a.y+a.th/2,a.zf],[s*b.x,b.y+b.th/2,b.zf],[s*b.x,b.y+b.th/2,b.zb],[s*a.x,a.y+a.th/2,a.zb]];
+      hexa(m,t,t.map((p,i)=>[p[0],p[1]-(i===0||i===3?a:b).th,p[2]]),mat)};
+    seg(0,.55,'hull');seg(.55,.85,'panel');seg(.85,1,'hull');
+    // wingtip down-fin
+    plate(m,[[s*2.9,-.2,-.9],[s*2.95,-.2,-1.7],[s*3.05,-.75,-1.95],[s*3.0,-.75,-1.4]],[s*.03,0,0],'trim');
+    // tall canted tail fin
+    plate(m,[[s*.55,.28,-.6],[s*1.05,1.35,-1.55],[s*1.12,1.35,-2.05],[s*.62,.28,-1.85]],[s*.035,-.02,0],'trim');
+    // side intake
+    loft(m,[{z:.6,rx:.12,ry:.14,yo:0},{z:-.4,rx:.16,ry:.18,yo:0}],4,'panel',s*.6,-.08,'panel',Math.PI/4);
+    // blue running lights
+    m.lights.push({p:[s*3.02,-.76,-1.93],blink:0},{p:[s*1.12,1.37,-2.06],blink:0},{p:[s*1.8,.0,-1.62],blink:0},{p:[s*.95,.3,-1.81],blink:0},{p:[s*2.95,-.2,-.95],blink:s>0?1:2});
+  }
+  m.lights.push({p:[0,.38,-1.2],blink:3});
+  return m;
+}
 
-    <div class="container">
-        <div class="menu" style="margin-top: 40px; min-width: 20%; padding-bottom: 10px;">
-            <main>
-                <h1 style="font-size: 14px;">Enter Passcode:</h1>
-                <form autocomplete="off" onsubmit="event.preventDefault(); checkPassword();">
-                    <label for="passwordInput"></label>
-                    <input type="password" id="passwordInput" required>
-                </form>
+// Skins. 'blue' is the original ship, kept for later.
+// ---------- cosmetics ----------
+// Paint = hull colors, Exhaust = engine glow + plume, Lasers = bolt color. Each is bought and equipped separately.
+const pal=(hull,panel,glass,light)=>({hull,panel,trim:panel,glass,light});
+const SKINS={
+  red:pal(['#140f11','#2e2729','#5a5254','#948d8d','#cfcac8','#ffffff'],['#12040a','#2e0710','#5c0e18','#951a22','#cc2a2c','#f25a44'],['#05070d','#101a2c','#1f3552','#3d6488','#9cc8ec'],['#4a0c0c','#ff4a3a','#ffe0d0']),
+  blue:{hull:['#06070b','#0e1019','#191d2c','#283047','#3f4c6e','#6a7ea8'],panel:['#040509','#0a0c13','#12151f','#1d2230','#2d3549'],
+        trim:['#06070b','#0e1019','#191d2c','#283047','#3f4c6e','#6a7ea8'],glass:['#050a14','#0c1d33','#173a5c','#2f6b91','#7fc4e0'],light:['#1a3a8a','#3f7fff','#a8d0ff']},
+  arctic:pal(['#0e1216','#243038','#4c6070','#8aa4b4','#c8dce6','#ffffff'],['#021018','#06303e','#0c5a6e','#1690a8','#38c8dc','#9af4ff'],['#040a14','#0c1e36','#1a3c64','#3a70a0','#a0d8ff'],['#0c3a4a','#38e0ff','#d0ffff']),
+  gunmetal:pal(['#0a0b0d','#1a1c20','#2e3238','#4a5058','#707a84','#a4aeb8'],['#1a0802','#3e1404','#7a2a08','#c04810','#f07020','#ffb070'],['#06080a','#141c24','#263444','#44607a','#9ab8d0'],['#4a1a04','#ff8a2a','#ffe0b0']),
+  hornet:pal(['#050505','#0e0e0e','#1c1c1c','#2e2e2e','#474747','#6a6a6a'],['#1a1402','#3e3004','#7a5e06','#c09208','#f0c020','#ffe66a'],['#140c02','#3a2206','#6a4410','#a8741e','#ffd080'],['#4a3a04','#ffd020','#fff4b0']),
+  viper:pal(['#060a06','#0e1a10','#1c3020','#2e4a32','#4a6e4c','#7aa27a'],['#081402','#163006','#2e5c0a','#4c9410','#7cc81c','#c0f060'],['#040a06','#0c2014','#184028','#2e6c46','#8ae0a8'],['#0e3a06','#6aff3a','#e0ffc0']),
+  royal:pal(['#0c0612','#1c0e2a','#321a4a','#4e2c70','#7448a0','#a47ad0'],['#1a1004','#3e2808','#7a5010','#b8801c','#e8b034','#fff0a0'],['#0a0614','#1e1236','#38245e','#5e4494','#c8a8ff'],['#3a2a04','#ffd24a','#fff4c0']),
+};
+const EXHAUSTS={
+  flame:{eng:['#b83a10','#ff7a1a','#ffb347','#ffe9b0'],exh:['#ffffff','#fff2c0','#ffd070','#ff9a3a','#e0502a','#9a2020','#401010']},
+  ion:{eng:['#1a4ab8','#3f8cff','#8fd0ff','#e0f6ff'],exh:['#ffffff','#d8f6ff','#8fdcff','#4aa6f0','#2a64c0','#153572','#0a1a3c']},
+  plasma:{eng:['#1a8a2a','#3fe04a','#a0ff8a','#f0ffe0'],exh:['#ffffff','#e8ffd8','#a8ff90','#50e060','#20a040','#0c5a24','#04240e']},
+  void:{eng:['#6a1ab8','#a44aff','#d8a0ff','#f6e8ff'],exh:['#ffffff','#f2e0ff','#d0a0ff','#9a5af0','#6a2ac0','#3a1672','#180a34']},
+  whitehot:{eng:['#a0a0b0','#d0d4e0','#f0f4ff','#ffffff'],exh:['#ffffff','#ffffff','#e8ecff','#b8c0e0','#7880a8','#3c4060','#181a2a']},
+};
+const LASERS={red:['#ff3a2a','#ffb0a0','#ffffff'],green:['#20e040','#a0ffb0','#ffffff'],blue:['#2a7aff','#a0d0ff','#ffffff'],violet:['#b03aff','#e0b0ff','#ffffff'],gold:['#ffb000','#ffe080','#ffffff']};
+function shade(h,f){const n=parseInt(h.slice(1),16),c=v=>Math.round(v*f).toString(16).padStart(2,'0');return '#'+c(n>>16&255)+c(n>>8&255)+c(n&255)}
+let MATS,ENGC,LIGHTC,EXH,SKIN,EXHAUST='flame',LASER='red',BOLT;
+const ROCKC=ramp(['#1e1814','#3e332c','#66564a','#948068','#c2aa8c','#e8d4b4']);
+const GOLDC=ramp(['#2a1a04','#5a3a08','#9a6a10','#d8a020','#ffd24a','#fff4c0']);
+const XHAIR=hex('#ff2a2a'),XHAIR2=hex('#8a1010');
+const LOCK_RANGE=180,FIRE_RANGE=120;   // Targeting Optics: lock-on and auto-fire distances
+function applySkin(k){const S=SKINS[k];SKIN=k;MATS={rock:ROCKC,gold:GOLDC,hull:ramp(S.hull),panel:ramp(S.panel),trim:ramp(S.trim),glass:ramp(S.glass)};LIGHTC=ramp(S.light)}
+function applyExhaust(k){const E=EXHAUSTS[k];EXHAUST=k;ENGC=ramp([shade(E.eng[0],.12),shade(E.eng[0],.25),shade(E.eng[0],.48),...E.eng]);EXH=ramp(E.exh)}
+function applyLaser(k){LASER=k;BOLT=ramp(LASERS[k])}
+applySkin('red');applyExhaust('flame');applyLaser('red');
+const STARC=ramp(['#5a5a5a','#a0a0a0','#ffffff']);
+const LIGHT=norm([.35,.85,.45]);   // light from ahead and above, like the glow in the reference
+const AMB=.12;
 
-                <!-- On-Screen Keyboard -->
-                <div id="keyboard">
-                    <div class="row">
-                        <button class="key" data-key="1">1</button>
-                        <button class="key" data-key="2">2</button>
-                        <button class="key" data-key="3">3</button>
-                    </div>
-                    <div class="row">
-                        <button class="key" data-key="4">4</button>
-                        <button class="key" data-key="5">5</button>
-                        <button class="key" data-key="6">6</button>
-                    </div>
-                    <div class="row">
-                        <button class="key" data-key="7">7</button>
-                        <button class="key" data-key="8">8</button>
-                        <button class="key" data-key="9">9</button>
-                    </div>
-                    <div class="row">
-                        <button class="key" data-key="backspace">Del</button>
-                        <button class="key" data-key="0">0</button>
-                        <button class="key" data-key="submit">Go</button>
-                    </div>
-                </div>
+// ---------- camera ----------
+const CAM={pos:[0,0,0],r:[1,0,0],u:[0,1,0],f:[0,0,1]};
+function setCam(){
+  CAM.pos=[4.6,2.6,-13];
+  const T=[-.4,-.2,0];
+  CAM.f=norm(sub(T,CAM.pos));CAM.r=norm(cross([0,1,0],CAM.f));CAM.u=cross(CAM.f,CAM.r);
+  DIRC=[CAM.r[2],CAM.u[2],CAM.f[2]];   // world forward (+z) expressed in camera space
+}
+let DIRC=[0,0,1];
+function proj(p){
+  const dx=p[0]-CAM.pos[0],dy=p[1]-CAM.pos[1],dz=p[2]-CAM.pos[2];
+  const cz=dx*CAM.f[0]+dy*CAM.f[1]+dz*CAM.f[2];if(cz<.25)return null;
+  const cx=dx*CAM.r[0]+dy*CAM.r[1]+dz*CAM.r[2],cy=dx*CAM.u[0]+dy*CAM.u[1]+dz*CAM.u[2];
+  return {x:W/2+cx*F/cz,y:H/2-cy*F/cz,w:1/cz};
+}
 
-            </main>
-        </div>
-        <button id="toggle-wallpaper-btn">Toggle Background</button>
-    </div>
+// ---------- rasterizer ----------
+let engFlick=0;
+function raster(a,b,c,rp,l){
+  const minx=Math.max(0,Math.floor(Math.min(a.x,b.x,c.x))),maxx=Math.min(W-1,Math.ceil(Math.max(a.x,b.x,c.x)));
+  const miny=Math.max(0,Math.floor(Math.min(a.y,b.y,c.y))),maxy=Math.min(H-1,Math.ceil(Math.max(a.y,b.y,c.y)));
+  if(minx>maxx||miny>maxy)return;
+  const area=(b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x);if(Math.abs(area)<1e-9)return;
+  const inv=1/area,n=rp?rp.length:ENGC.length;
+  for(let y=miny;y<=maxy;y++){const py=y+.5;
+    for(let x=minx;x<=maxx;x++){const px=x+.5;
+      const w0=((b.x-px)*(c.y-py)-(b.y-py)*(c.x-px))*inv;if(w0<0)continue;
+      const w1=((c.x-px)*(a.y-py)-(c.y-py)*(a.x-px))*inv;if(w1<0)continue;
+      const w2=1-w0-w1;if(w2<0)continue;
+      const z=w0*a.w+w1*b.w+w2*c.w,i=y*W+x;if(z<=zb[i])continue;zb[i]=z;
+      const th=BAY[(x&3)|((y&3)<<2)];
+      if(rp){buf[i]=rp[clamp(Math.floor(l*(n-1)+.2+th*.6),0,n-1)]}
+      else buf[i]=ENGC[clamp(Math.floor(engLvl+engFlick*(.3+.7*THR)+th),0,n-1)];
+    }}
+}
+function drawMesh(m,pos,R,sc=1){
+  for(const t of m.tris){
+    const n=mulR(R,t.n),w0=add(scl(mulR(R,t.v[0]),sc),pos);
+    if(dot(n,sub(CAM.pos,w0))<=0)continue;
+    const a=proj(w0),b=proj(add(scl(mulR(R,t.v[1]),sc),pos)),c=proj(add(scl(mulR(R,t.v[2]),sc),pos));
+    if(!a||!b||!c)continue;
+    const l=AMB+(1-AMB)*Math.max(0,dot(n,LIGHT));
+    raster(a,b,c,t.mat==='engine'?null:MATS[t.mat],l);
+  }
+}
+function plot(x,y,w,col){x|=0;y|=0;if(x<0||y<0||x>=W||y>=H)return;const i=y*W+x;if(w*1.03<zb[i])return;buf[i]=col}
 
-</body>
-</html>
+// ---------- world ----------
+// ---------- modular ship parts ----------
+// A ship is a nose + hull + wings + engine. Parts meet at two fixed hexagonal joints so any mix lines up:
+// the nose ends on J1 (z=1), the hull runs J1 -> J2 (z=-1), the engine bolts onto J2, and wing roots sit
+// inside the hull (|x|<=.2). Wings also carry the gun mounts. +z is forward, +y up.
+const PI2=Math.PI*2;
+const J1={z:1,rx:.4,ry:.25,yo:.04},J2={z:-1,rx:.56,ry:.3,yo:.05};
+const S_=(z,rx,ry,yo=0)=>({z,rx,ry,yo});
+const lit=(m,p,blink=0)=>m.lights.push({p,blink});
+const W_=(x,zf,zb,y,th)=>({x,zf,zb,y,th});
+function wingSeg(m,s,a,b,mat){const t=[[s*a.x,a.y+a.th/2,a.zf],[s*b.x,b.y+b.th/2,b.zf],[s*b.x,b.y+b.th/2,b.zb],[s*a.x,a.y+a.th/2,a.zb]];
+  hexa(m,t,t.map((p,i)=>[p[0],p[1]-(i===0||i===3?a:b).th,p[2]]),mat)}
+// chain of wing segments: pts are W_ stations root to tip, mats one per gap
+function wingChain(m,s,pts,mats){for(let i=0;i<pts.length-1;i++)wingSeg(m,s,pts[i],pts[i+1],mats[i]||mats[mats.length-1])}
+function nozzle(m,x,y,z,r,sides=4){loft(m,[{z:z+.35,rx:r,ry:r*.9,yo:0},{z,rx:r*1.1,ry:r,yo:0}],sides,'hull',x,y,'engine',sides===4?Math.PI/4:undefined);m.engines.push([x,y,z-.02,r])}
+// axis-aligned box
+function box(m,x0,x1,y0,y1,z0,z1,mat){
+  hexa(m,[[x0,y1,z1],[x1,y1,z1],[x1,y1,z0],[x0,y1,z0]],[[x0,y0,z1],[x1,y0,z1],[x1,y0,z0],[x0,y0,z0]],mat)}
+// prism through convex cross-sections (front to back), both ends capped
+function prism(m,rings,mat,capF=mat,capB=mat){
+  const n=rings[0].p.length,R=rings.map(r=>r.p.map(([x,y])=>[x,y,r.z]));
+  const cen=a=>{const c=[0,0,0];for(const p of a)for(let k=0;k<3;k++)c[k]+=p[k]/a.length;return c};
+  for(let i=0;i<R.length-1;i++){const c=cen([...R[i],...R[i+1]]);
+    for(let k=0;k<n;k++){const k2=(k+1)%n;quad(m,R[i][k],R[i][k2],R[i+1][k2],R[i+1][k],mat,c)}}
+  const cap=(ring,dz,mt)=>{if(!mt)return;const c=cen(ring),ref=[c[0],c[1],c[2]-dz];for(let k=0;k<n;k++)tri(m,c,ring[k],ring[(k+1)%n],mt,ref)};
+  cap(R[0],1,capF);cap(R[R.length-1],-1,capB);
+}
+const rect=(cx,cy,hw,hh)=>[[cx-hw,cy-hh],[cx+hw,cy-hh],[cx+hw,cy+hh],[cx-hw,cy+hh]];
+// round-ish tube along z, front and back capped
+function tube(m,x,y,st,sides,mat,capF,capB){
+  const ring=s=>Array.from({length:sides},(_,k)=>{const a=(k+.5)/sides*PI2;return [x+Math.cos(a)*s.rx,y+s.yo+Math.sin(a)*s.ry]});
+  prism(m,st.map(s=>({z:s.z,p:ring(s)})),mat,capF,capB)}
+// flat polygonal ring around the z axis (halo frames, ring wings)
+function hoop(m,z,r,ry,depth,th,n,mat,cy=0,rot=0){
+  for(let k=0;k<n;k++){const a0=k/n*PI2+rot,a1=(k+1)/n*PI2+rot;
+    const P=(a,rr,zz)=>[Math.cos(a)*rr,cy+Math.sin(a)*rr*ry/r,zz];
+    hexa(m,[P(a0,r,z+depth/2),P(a1,r,z+depth/2),P(a1,r,z-depth/2),P(a0,r,z-depth/2)],
+           [P(a0,r-th,z+depth/2),P(a1,r-th,z+depth/2),P(a1,r-th,z-depth/2),P(a0,r-th,z-depth/2)],mat)}}
 
+const SHIP_PARTS={
+nose:{
+  dart:{name:'Dart',desc:'Faceted fighter nose with a bubble canopy. Standard issue.',price:0,b(m){
+    loft(m,[S_(3.3,0,0,-.02),S_(2.4,.24,.13),S_(1.6,.36,.21,.03),J1],6,'hull',0,0,'panel');
+    loft(m,[S_(2.0,0,0),S_(1.5,.16,.1),S_(1.0,.19,.12),S_(.6,0,0)],6,'glass',0,.25);
+    for(const s of [-1,1])plate(m,[[s*.16,.03,2.7],[s*.3,.04,2.0],[s*.36,.05,1.5],[s*.24,.02,2.1]],[s*.02,.02,0],'trim');
+  }},
+  needle:{name:'Needle',desc:'Long sensor probe and small canards.',price:600,b(m){
+    loft(m,[S_(4.1,0,0),S_(3.6,.05,.05),S_(2.7,.07,.07)],6,'trim',0,.02);
+    loft(m,[S_(2.9,0,0),S_(2.6,.16,.12,.01),S_(1.8,.33,.21,.03),J1],6,'hull',0,0,'panel');
+    loft(m,[S_(1.95,0,0),S_(1.5,.14,.09),S_(.95,.17,.11),S_(.55,0,0)],6,'glass',0,.24);
+    for(const s of [-1,1])wingSeg(m,s,W_(.15,2.45,1.95,.02,.05),W_(.75,2.05,1.85,.06,.03),'trim');
+    lit(m,[0,.02,4.12],3);
+  }},
+  mandible:{name:'Mandible',desc:'Split twin prongs around a short cockpit.',price:900,b(m){
+    loft(m,[S_(2.05,0,0,.02),S_(1.75,.24,.16,.03),J1],6,'hull',0,0,'panel');
+    loft(m,[S_(1.85,0,0),S_(1.5,.15,.1),S_(.9,.18,.12),S_(.5,0,0)],6,'glass',0,.24);
+    for(const s of [-1,1]){
+      prism(m,[{z:3.55,p:rect(s*.26,-.03,.05,.04)},{z:2.7,p:rect(s*.36,0,.12,.1)},{z:1.5,p:rect(s*.44,.02,.17,.16)},{z:.2,p:rect(s*.4,.02,.17,.16)}],'hull');
+      prism(m,[{z:3.3,p:rect(s*.28,.02,.04,.015)},{z:2.7,p:rect(s*.36,.11,.08,.015)},{z:1.5,p:rect(s*.44,.19,.12,.015)},{z:.8,p:rect(s*.43,.19,.12,.015)}],'trim');
+      lit(m,[s*.26,-.03,3.57],0);
+    }
+  }},
+  chisel:{name:'Chisel',desc:'Flat, wide wedge with a long low canopy.',price:700,b(m){
+    loft(m,[S_(3.2,.12,.005,-.03),S_(2.5,.62,.1,-.01),S_(2.0,.66,.14,0),S_(1.5,.48,.2,.03),J1],6,'hull',0,0,'panel');
+    for(const s of [-1,1])plate(m,[[s*.1,.0,3.15],[s*.55,.03,2.5],[s*.58,.06,2.1],[s*.08,.04,2.75]],[0,.02,0],'trim');
+    loft(m,[S_(2.2,0,0),S_(1.8,.15,.08),S_(1.0,.17,.1),S_(.6,0,0)],6,'glass',0,.2);
+  }},
+  beak:{name:'Beak',desc:'Hooked raptor beak, cockpit set high.',price:800,b(m){
+    loft(m,[S_(3.0,0,0,-.34),S_(2.75,.11,.12,-.18),S_(2.25,.25,.24,.0),S_(1.6,.38,.3,.07),J1],6,'hull',0,0,'panel');
+    loft(m,[S_(2.15,0,0),S_(1.75,.17,.12),S_(1.05,.2,.13),S_(.6,0,0)],6,'glass',0,.33);
+    for(const s of [-1,1])plate(m,[[s*.1,-.2,2.75],[s*.3,-.1,2.1],[s*.42,-.05,1.3],[s*.25,-.18,2.0]],[s*.02,0,0],'trim');
+  }},
+  bubble:{name:'Bubble',desc:'Blunt cockpit pod, wraparound glass, chin guns.',price:1000,b(m){
+    loft(m,[S_(2.45,0,0,.04),S_(2.3,.27,.2,.04),S_(1.95,.43,.31,.06),S_(1.45,.46,.32,.06),J1],6,'hull',0,0,'panel');
+    loft(m,[S_(2.42,0,0,.06),S_(2.3,.22,.17,.06),S_(1.9,.32,.24,.08),S_(1.35,.26,.2,.06),S_(1.1,0,0,.04)],6,'glass',0,.17);
+    for(const s of [-1,1]){box(m,s*.16-.05,s*.16+.05,-.33,-.22,1.5,2.3,'trim');box(m,s*.16-.025,s*.16+.025,-.3,-.25,2.3,2.7,'hull')}
+  }},
+  keel:{name:'Keel',desc:'Tall prow with a ram blade underneath.',price:1100,b(m){
+    loft(m,[S_(3.35,0,0,.06),S_(2.7,.12,.2,.06),S_(1.8,.28,.27,.06),J1],6,'hull',0,0,'panel');
+    plate(m,[[0,-.05,1.0],[0,-.08,3.0],[0,-.42,2.55],[0,-.44,1.3]],[.04,0,0],'trim');
+    loft(m,[S_(2.15,0,0),S_(1.8,.11,.12),S_(1.0,.14,.13),S_(.6,0,0)],6,'glass',0,.3);
+    lit(m,[0,-.08,3.0],3);
+  }},
+},
+hull:{
+  standard:{name:'Standard',desc:'Angular fuselage with side intakes. Standard issue.',price:0,b(m){
+    loft(m,[J1,S_(0,.54,.3,.06),J2],6,'hull',0,0,'panel');
+    for(const s of [-1,1])loft(m,[{z:.7,rx:.12,ry:.14,yo:0},{z:-.4,rx:.16,ry:.18,yo:0}],4,'panel',s*.52,-.08,'panel',Math.PI/4);
+    lit(m,[0,.37,-.3],3);
+  }},
+  spine:{name:'Spine',desc:'Pinched waist and a dorsal blade.',price:700,b(m){
+    loft(m,[J1,S_(.55,.32,.21,.04),S_(-.5,.32,.21,.04),J2],6,'hull',0,0,'panel');
+    plate(m,[[0,.2,1.05],[0,.66,.15],[0,.74,-1.35],[0,.3,-1.75]],[.045,0,0],'trim');
+    for(const s of [-1,1])plate(m,[[s*.05,.2,.9],[s*.06,.6,.1],[s*.06,.66,-1.2],[s*.05,.25,-1.6]],[s*.015,0,0],'hull');
+    lit(m,[0,.76,-1.35]);
+  }},
+  plated:{name:'Plated',desc:'Overlapping armor plates down each flank.',price:1100,b(m){
+    loft(m,[J1,S_(0,.52,.3,.06),J2],6,'hull',0,0,'panel');
+    for(const s of [-1,1])for(const [z0,z1,o,mat] of [[1.55,.35,0,'trim'],[.75,-.4,.08,'hull'],[.0,-1.2,.16,'trim']]){
+      plate(m,[[s*.12,.36+o,z0],[s*(.62+o),.2+o*.5,z0-.35],[s*(.68+o),.18+o*.5,z1],[s*.14,.4+o,z1]],[0,.04,0],mat);
+      plate(m,[[s*(.64+o),.16+o*.5,z0-.35],[s*(.7+o),-.26,z0-.45],[s*(.74+o),-.28,z1],[s*(.7+o),.16+o*.5,z1]],[s*.035,0,0],mat);
+    }
+    lit(m,[0,.52,-.9],3);
+  }},
+  slab:{name:'Slab',desc:'Wide, flat lifting body.',price:900,b(m){
+    loft(m,[J1,S_(.4,.85,.22,.03),S_(-.5,.95,.24,.03),J2],6,'hull',0,0,'panel');
+    for(const s of [-1,1]){plate(m,[[s*.25,.06,2.3],[s*1.05,.02,.2],[s*1.2,.02,-.9],[s*.3,.08,-.6]],[0,.04,0],'hull');
+      plate(m,[[s*.6,.06,1.2],[s*1.05,.05,.2],[s*1.2,.05,-.9],[s*.95,.07,-.3]],[0,.045,0],'trim')}
+    lit(m,[0,.28,-.6],3);
+  }},
+  halo:{name:'Halo',desc:'Slim core braced by two hexagonal frames.',price:1300,b(m){
+    loft(m,[J1,S_(0,.42,.26,.05),J2],6,'hull',0,0,'panel');
+    hoop(m,.45,.8,.6,.14,.08,6,'trim',.05,PI2/12);hoop(m,-.45,.9,.68,.14,.08,6,'trim',.05,PI2/12);
+    for(const s of [-1,1])lit(m,[s*.9,.05,-.45],s>0?1:2);lit(m,[0,.73,-.45],3);
+  }},
+  sidepod:{name:'Sidepod',desc:'Core flanked by two intake pods.',price:1000,b(m){
+    loft(m,[J1,S_(0,.5,.28,.05),J2],6,'hull',0,0,'panel');
+    for(const s of [-1,1]){tube(m,s*.72,-.04,[S_(1.35,.24,.22),S_(1.0,.29,.27),S_(-1.2,.3,.28),S_(-1.45,.24,.22)],6,'hull','panel','panel');
+      tube(m,s*.72,-.04,[S_(.3,.31,.29),S_(.0,.31,.29)],6,'trim');lit(m,[s*.72,.25,-1.2],s>0?1:2)}
+    lit(m,[0,.35,-.3],3);
+  }},
+  hauler:{name:'Hauler',desc:'Tall humped back with a sensor rack.',price:1200,b(m){
+    loft(m,[J1,S_(.45,.55,.55,.25),S_(-.7,.62,.58,.25),J2],6,'hull',0,0,'panel');
+    box(m,-.2,.2,.8,.92,-.95,.2,'trim');box(m,-.05,.05,.92,1.15,-.75,-.5,'hull');
+    for(const s of [-1,1])box(m,s*.56-.04,s*.56+.04,.0,.3,-.8,.2,'trim');
+    lit(m,[0,1.17,-.62],3);
+  }},
+},
+wing:{
+  swept:{name:'Swept',desc:'Swept wings, tip fins and twin canted tails. Standard issue.',price:0,b(m){
+    for(const s of [-1,1]){
+      const P=u=>W_(.2+2.7*u,.8-1.9*u,-1.5-.2*u,-.02-.18*u,.13-.09*u);
+      wingChain(m,s,[P(0),P(.55),P(.85),P(1)],['hull','trim','hull']);
+      plate(m,[[s*2.86,-.2,-.9],[s*2.91,-.2,-1.7],[s*3.01,-.75,-1.95],[s*2.96,-.75,-1.4]],[s*.03,0,0],'trim');
+      plate(m,[[s*.2,.22,-.4],[s*.8,1.35,-1.5],[s*.87,1.35,-2.0],[s*.27,.22,-1.45]],[s*.035,-.02,0],'trim');
+      lit(m,[s*2.98,-.76,-1.93]);lit(m,[s*.87,1.37,-2.01]);lit(m,[s*2.9,-.2,-.95],s>0?1:2);
+      m.guns.push([s*.75,-.05,.55]);
+    }
+  }},
+  delta:{name:'Delta',desc:'Broad delta wing and one tall tail.',price:800,b(m){
+    for(const s of [-1,1]){
+      plate(m,[[s*.2,.02,1.2],[s*1.4,-.03,-.3],[s*2.6,-.08,-1.6],[s*.2,.02,-1.6]],[0,.06,0],'hull');
+      plate(m,[[s*.7,-.0,-1.3],[s*2.3,-.06,-1.35],[s*2.6,-.08,-1.6],[s*.7,-.0,-1.6]],[0,.07,0],'trim');
+      lit(m,[s*2.62,-.08,-1.6],s>0?1:2);m.guns.push([s*.9,-.02,.45]);
+    }
+    plate(m,[[0,.22,-.2],[0,1.35,-1.35],[0,1.35,-1.85],[0,.22,-1.7]],[.04,0,0],'trim');lit(m,[0,1.37,-1.85]);
+  }},
+  forward:{name:'Forward',desc:'Forward-swept wings with canards.',price:1000,b(m){
+    for(const s of [-1,1]){
+      wingChain(m,s,[W_(.2,-.3,-1.5,-.05,.12),W_(2.2,.75,.15,-.12,.05),W_(2.55,1.05,.45,-.14,.04)],['hull','trim']);
+      wingSeg(m,s,W_(.2,1.0,.55,.03,.06),W_(1.0,.72,.48,.05,.04),'trim');
+      plate(m,[[s*.2,.22,-.45],[s*.72,1.0,-1.2],[s*.78,1.0,-1.6],[s*.25,.22,-1.5]],[s*.03,-.02,0],'trim');
+      lit(m,[s*2.57,-.14,.95],s>0?1:2);lit(m,[s*.78,1.02,-1.6]);m.guns.push([s*.95,-.06,.15]);
+    }
+  }},
+  gunpod:{name:'Gunpod',desc:'Twin heavy gun booms running out past the nose, glowing vents up front.',price:1500,b(m){
+    for(const s of [-1,1]){const x=s*1.2;
+      // long boom: slim body, chunky armored block on the front
+      prism(m,[{z:1.55,p:rect(x,-.04,.2,.17)},{z:-1.5,p:rect(x,-.04,.2,.17)},{z:-1.75,p:rect(x,-.04,.15,.12)}],'hull','hull','panel');
+      prism(m,[{z:2.75,p:rect(x,-.02,.28,.21)},{z:1.4,p:rect(x,-.02,.31,.25)},{z:1.15,p:rect(x,-.02,.24,.2)}],'panel');
+      box(m,x-.33,x+.33,.12,.2,1.45,2.35,'trim');                       // armor band on the block
+      box(m,x-.06,x+.06,.13,.19,-1.3,1.15,'trim');                      // stripe down the boom
+      // glowing vents in the front face (they pulse with the exhaust color)
+      box(m,x-s*.2,x-s*.04,-.14,.04,2.75,2.79,'engine');box(m,x+s*.04,x+s*.2,-.14,-.02,2.75,2.79,'engine');
+      // forward-raked blade under the front block
+      plate(m,[[x,-.2,2.7],[x,-.68,2.3],[x,-.68,1.75],[x,-.2,1.5]],[.04,0,0],'trim');
+      // pylon to the hull, then short stub wings and a tail blade off the back of the boom
+      wingSeg(m,s,W_(.2,-.1,-1.2,0,.12),W_(1.0,-.2,-1.25,0,.1),'panel');
+      wingChain(m,s,[W_(1.4,-.55,-1.4,-.02,.08),W_(2.1,-.95,-1.55,-.1,.05),W_(2.35,-1.15,-1.6,-.13,.04)],['hull','trim']);
+      plate(m,[[x,-.2,-.9],[x,-.62,-1.55],[x,-.62,-1.85],[x,-.2,-1.7]],[.035,0,0],'trim');
+      lit(m,[s*2.37,-.13,-1.6],s>0?1:2);lit(m,[x,.21,-1.4]);m.guns.push([x,-.05,2.8]);
+    }
+  }},
+  gull:{name:'Gull',desc:'Wings kinked up, then knifing down and back.',price:1100,b(m){
+    for(const s of [-1,1]){
+      wingChain(m,s,[W_(.2,.6,-1.2,.05,.13),W_(1.15,.2,-1.3,.34,.1),W_(2.3,-.7,-1.6,-.36,.06),W_(2.75,-1.05,-1.75,-.62,.04)],['hull','hull','trim']);
+      plate(m,[[s*1.15,.3,.1],[s*1.15,.75,-.65],[s*1.15,.75,-.95],[s*1.15,.3,-1.25]],[.035,0,0],'trim');
+      lit(m,[s*2.77,-.64,-1.75],s>0?1:2);lit(m,[s*1.15,.77,-.95]);m.guns.push([s*1.15,.33,.25]);
+    }
+  }},
+  cargo:{name:'Cargo',desc:'Boxy cargo pods on a wide crossbeam, clamp jaws up front.',price:1200,b(m){
+    box(m,-1.3,1.3,-.12,.26,-.95,.35,'hull');                          // crossbeam over the hull
+    box(m,-1.32,1.32,-.13,.28,-.6,-.3,'trim');                         // stripe band across it
+    for(const s of [-1,1]){const x=s*1.48,X=(a,b)=>[x+s*a,x+s*b].sort((p,q)=>p-q);
+      box(m,...X(-.42,.42),-.38,.34,-1.15,1.75,'hull');                // big side pod
+      box(m,...X(-.44,.44),-.39,.36,-.6,-.3,'trim');                   // stripe continues across the pod
+      box(m,...X(-.3,.3),-.26,.2,1.75,2.15,'panel');                   // recessed jaw
+      box(m,...X(-.38,.38),-.46,.3,2.15,2.27,'trim');                  // end plate
+      box(m,...X(-.32,.32),-.28,.24,-1.85,-1.15,'panel');              // rear block
+      wingSeg(m,s,W_(1.75,-1.2,-1.8,.0,.07),W_(2.4,-1.55,-1.85,.28,.04),'trim');   // rear canard, tipped up
+      // gun slot stripe on the outer face, with double barrels mounted on it
+      box(m,...X(.32,.43),-.19,.09,.3,1.6,'panel');
+      for(const y of [.01,-.11]){tube(m,x+s*.48,y,[S_(2.05,.045,.045),S_(.45,.055,.055)],6,'hull','panel','hull');m.guns.push([x+s*.48,y,2.07])}
+      lit(m,[s*2.42,.28,-1.85],s>0?1:2);lit(m,[x+s*.4,.3,2.28]);
+    }
+  }},
+  crescent:{name:'Crescent',desc:'Big wings that sweep back, then hook far forward like claws.',price:1400,b(m){
+    for(const s of [-1,1]){
+      wingChain(m,s,[W_(.2,.6,-1.3,0,.14),W_(1.7,-.5,-1.8,-.06,.1),W_(2.5,-.1,-1.25,-.02,.07),W_(2.9,1.55,.25,.05,.045)],['hull','hull','trim']);
+      plate(m,[[s*1.7,.0,-.6],[s*1.7,.7,-1.15],[s*1.7,.7,-1.6],[s*1.7,.0,-1.75]],[.035,0,0],'trim');
+      lit(m,[s*2.92,.05,1.57],s>0?1:2);lit(m,[s*1.7,.72,-1.6]);m.guns.push([s*2.92,.04,1.58]);
+    }
+  }},
+},
+eng:{
+  triple:{name:'Tri-Burn',desc:'Engine block, three nozzles over two. Standard issue.',price:0,b(m){
+    hexa(m,[[-.9,.28,-.8],[.9,.28,-.8],[.95,.3,-1.75],[-.95,.3,-1.75]],[[-.9,-.3,-.8],[.9,-.3,-.8],[.95,-.34,-1.75],[-.95,-.34,-1.75]],'panel');
+    for(const [x,y,r] of [[-.6,0,.26],[0,0,.28],[.6,0,.26],[-.32,-.25,.13],[.32,-.25,.13]])nozzle(m,x,y,-2.05,r);
+    for(const s of [-1,1])lit(m,[s*.93,.3,-1.75]);
+  }},
+  mono:{name:'Mono',desc:'One big bell nozzle in a round cowl.',price:700,b(m){
+    loft(m,[S_(-.7,.62,.45,.05),S_(-1.5,.74,.55,.05),S_(-1.85,.68,.5,.05)],8,'hull',0,0,'panel');
+    loft(m,[S_(-1.3,.77,.58,.05),S_(-1.55,.77,.58,.05)],8,'trim',0,0,'trim');
+    loft(m,[S_(-1.8,.48,.38),S_(-2.3,.62,.48),S_(-2.25,.44,.33)],8,'panel',0,.05,'engine');m.engines.push([0,.05,-2.3,.45]);
+    lit(m,[0,.62,-1.5],3);
+  }},
+  twin:{name:'Twin',desc:'Two round engines side by side.',price:800,b(m){
+    box(m,-.32,.32,-.18,.2,-1.75,-.8,'panel');
+    for(const s of [-1,1]){tube(m,s*.5,.02,[S_(-.6,.28,.28),S_(-1.0,.33,.33),S_(-1.95,.35,.35)],8,'hull','panel','panel');
+      tube(m,s*.5,.02,[S_(-1.25,.37,.37),S_(-1.45,.37,.37)],8,'trim');nozzle(m,s*.5,.02,-2.3,.29,8);lit(m,[s*.5,.39,-1.35])}
+  }},
+  quad:{name:'Quad',desc:'Square block with four nozzles.',price:900,b(m){
+    box(m,-.72,.72,-.5,.46,-1.75,-.75,'panel');box(m,-.76,.76,-.54,.5,-1.5,-1.3,'trim');
+    for(const x of [-.36,.36])for(const y of [.2,-.24])nozzle(m,x,y,-2.1,.22);
+    lit(m,[0,.48,-1.2],3);
+  }},
+  slot:{name:'Slot',desc:'Wide flat slab with a row of five nozzles.',price:1000,b(m){
+    hexa(m,[[-.9,.2,-.75],[.9,.2,-.75],[1.15,.15,-1.75],[-1.15,.15,-1.75]],[[-.9,-.18,-.75],[.9,-.18,-.75],[1.15,-.17,-1.75],[-1.15,-.17,-1.75]],'panel');
+    for(const s of [-1,1])plate(m,[[s*1.1,-.15,-.95],[s*1.14,-.55,-1.4],[s*1.15,-.55,-1.75],[s*1.15,-.15,-1.75]],[s*.03,0,0],'trim');
+    for(const x of [-.84,-.42,0,.42,.84])nozzle(m,x,-.01,-2.0,.12);
+    for(const s of [-1,1])lit(m,[s*1.15,.16,-1.75],s>0?1:2);
+  }},
+  seven:{name:'Seven Star',desc:'Seven separate thrusters in a ring.',price:1100,b(m){
+    const k=.9,Z=z=>-.7+(z+.7)*k,Sk=(z,rx,ry,yo=0)=>S_(Z(z),rx*k,ry*k,yo*k);   // everything 90% size, measured from the mount at z=-.7
+    loft(m,[Sk(-.7,.5,.4,.03),Sk(-1.2,.62,.55,.03),Sk(-1.45,.5,.45,.03)],7,'panel',0,0,'panel',Math.PI/2);
+    for(let i=0;i<7;i++){const a=Math.PI/2+i/7*PI2,x=Math.cos(a)*.55*k,y=(.03+Math.sin(a)*.5)*k;
+      tube(m,x,y,[Sk(-1.0,.16,.16),Sk(-1.85,.17,.17)],6,'hull','hull','hull');
+      tube(m,x,y,[Sk(-1.4,.19,.19),Sk(-1.55,.19,.19)],6,'trim');nozzle(m,x,y,Z(-2.15),.15*k,6)}
+    lit(m,[0,.73*k,Z(-1.48)],3);
+  }},
+  nacelle:{name:'Nacelle',desc:'Outboard engine pods on pylons.',price:1300,b(m){
+    loft(m,[S_(-.75,.42,.26,.05),S_(-1.5,.32,.2,.05)],6,'hull',0,0,'panel');nozzle(m,0,.05,-1.8,.17);
+    for(const s of [-1,1]){
+      wingSeg(m,s,W_(.2,-.5,-1.35,-.2,.08),W_(1.3,-.6,-1.35,-.25,.06),'panel');
+      tube(m,s*1.38,-.28,[S_(.15,.0,.0),S_(-.25,.25,.25),S_(-1.85,.28,.28)],8,'hull','hull','panel');
+      tube(m,s*1.38,-.28,[S_(-1.1,.3,.3),S_(-1.3,.3,.3)],8,'trim');
+      nozzle(m,s*1.38,-.28,-2.2,.25,8);lit(m,[s*1.38,.04,-1.3],s>0?1:2);
+    }
+  }},
+}};
+const SLOT_KEYS=[['nose','Nose','NOSES'],['hull','Hull','HULLS'],['wing','Wings','WINGS'],['eng','Engine','THRUSTERS']];
+const DEFAULT_SHIP={nose:'dart',hull:'standard',wing:'swept',eng:'triple'};
+// scale a model so it fits inside the reference ship's bounding box (length gets 20% slack: seen from behind it barely changes the on-screen size)
+function bbox(m){const b={x:0,y0:1e9,y1:-1e9,z0:1e9,z1:-1e9};for(const t of m.tris)for(const v of t.v){b.x=Math.max(b.x,Math.abs(v[0]));b.y0=Math.min(b.y0,v[1]);b.y1=Math.max(b.y1,v[1]);b.z0=Math.min(b.z0,v[2]);b.z1=Math.max(b.z1,v[2])}return b}
+function fitTo(m,ref){
+  const a=bbox(m),r=bbox(ref),k=1/Math.max(a.x/r.x,(a.y1-a.y0)/(r.y1-r.y0),(a.z1-a.z0)/(1.2*(r.z1-r.z0)));
+  const seen=new Set();for(const t of m.tris)for(const v of t.v)if(!seen.has(v)){seen.add(v);v[0]*=k;v[1]*=k;v[2]*=k}
+  for(const L of m.lights)L.p=scl(L.p,k);for(const e of m.engines){e[0]*=k;e[1]*=k;e[2]*=k;e[3]*=k}
+  if(m.guns)m.guns=m.guns.map(g=>scl(g,k));
+  return m;
+}
+const RAPTOR=buildFighter();
+const SHIP_CACHE={};
+const shipKey=c=>c.nose+'|'+c.hull+'|'+c.wing+'|'+c.eng;
+function buildShip(c){const k=shipKey(c);if(SHIP_CACHE[k])return SHIP_CACHE[k];
+  const m={tris:[],lights:[],engines:[],guns:[]};for(const [slot] of SLOT_KEYS)SHIP_PARTS[slot][c[slot]].b(m);
+  if(!m.guns.length)m.guns=[[-.55,.05,1.2],[.55,.05,1.2]];
+  return SHIP_CACHE[k]=fitTo(m,RAPTOR)}
+let SHIPCFG={...DEFAULT_SHIP},SHIP=buildShip(SHIPCFG);
+function applyPart(slot,k){if(!SHIP_PARTS[slot][k])return;SHIPCFG={...SHIPCFG,[slot]:k};SHIP=buildShip(SHIPCFG)}
+// formation slots relative to the lead ship; slot 0 is the player, the rest unlock later
+const SLOT_SCALE=[1,1,.9];   // Wing 2 sits on the camera side, so it's drawn 10% smaller to match
+const SLOTS=[[0,0,0],[-6.5,2.4,6],[6.5,2.0,6]];   // wingmen mirror each other, roughly level and slightly ahead   // lead + 2 wingmen max
+const FLEET=[{slot:0,ph:0}];
+// Speed scale: the ship cruises around 30 km/s (about 108,000 km/h), roughly 2x Voyager 1.
+const KMS_PER_UNIT=30/22;
+const KM_PER_CREDIT=777;             // 1 credit per 777 km: about 139 credits per hour idle at base cruise
+// ---------- fuel ----------
+// Tank holds 4 cells; each cell = 1/4 bar. A cell burns for 2 hours on the stock tank (8 h full tank),
+// and 3 / 4 / 6 hours with Fuel Tank Mk II / III / IV. A cell costs 20c.
+// Empty: engines cut, the ship coasts at ~4 km/s. Asteroids still come by, so you can always earn your way back.
+const FUEL_MAX=4,FUEL_PRICE=20,CELL_HOURS=[2,3,4,6],COAST=3;
+let FUEL=FUEL_MAX,THR=1,engLvl=4.6;
+const SHOP_TABS=[['fuel','Fuel'],['engine','Engines'],['fleet','Fleet'],['systems','Systems'],['p_nose','Noses'],['p_hull','Hulls'],['p_wing','Wings'],['p_eng','Thrusters'],['paint','Paint'],['exhaust','Exhaust'],['laser','Lasers']];
+let SHOP_TAB='fuel',SHOP_SEL=null;
+const COSMETIC_TABS=['p_nose','p_hull','p_wing','p_eng','paint','exhaust','laser'];
+const SHOP=[
+  {id:'fuel',cat:'fuel',name:'Fuel cell',desc:'Refills 1/4 of the tank.',price:FUEL_PRICE,repeat:true},
+  {id:'tank1',cat:'fuel',name:'Fuel Tank Mk II',desc:'Each cell lasts 3 hours instead of 2.',price:300},
+  {id:'tank2',cat:'fuel',name:'Fuel Tank Mk III',desc:'Each cell lasts 4 hours.',price:800,req:'tank1'},
+  {id:'tank3',cat:'fuel',name:'Fuel Tank Mk IV',desc:'Each cell lasts 6 hours.',price:2000,req:'tank2'},
+  {id:'optics',cat:'systems',name:'Targeting Optics',desc:'Locks on to asteroids in range (red crosshair) and fires automatically once they get closer.',price:5000},
+  {id:'skin_red',cat:'paint',kind:'skin',key:'red',name:'Crimson',desc:'White hull, red trim. Standard issue.',price:0,free:true},
+  {id:'skin_blue',cat:'paint',kind:'skin',key:'blue',name:'Midnight',desc:'Dark gunmetal blue, blue running lights.',price:250},
+  {id:'skin_arctic',cat:'paint',kind:'skin',key:'arctic',name:'Arctic',desc:'Ice white hull, cyan trim.',price:300},
+  {id:'skin_gunmetal',cat:'paint',kind:'skin',key:'gunmetal',name:'Gunmetal',desc:'Grey steel with orange hazard trim.',price:300},
+  {id:'skin_hornet',cat:'paint',kind:'skin',key:'hornet',name:'Hornet',desc:'Matte black with yellow stripes.',price:400},
+  {id:'skin_viper',cat:'paint',kind:'skin',key:'viper',name:'Viper',desc:'Dark green hull, lime trim.',price:400},
+  {id:'skin_royal',cat:'paint',kind:'skin',key:'royal',name:'Royal',desc:'Deep purple with gold trim.',price:600},
+  {id:'exh_flame',cat:'exhaust',kind:'exhaust',key:'flame',name:'Flame',desc:'Orange glow, fiery plume. Standard issue.',price:0,free:true},
+  {id:'exh_ion',cat:'exhaust',kind:'exhaust',key:'ion',name:'Ion',desc:'Blue glow, pale blue plume.',price:200},
+  {id:'exh_plasma',cat:'exhaust',kind:'exhaust',key:'plasma',name:'Plasma',desc:'Green glow and plume.',price:250},
+  {id:'exh_void',cat:'exhaust',kind:'exhaust',key:'void',name:'Void',desc:'Violet glow and plume.',price:250},
+  {id:'exh_whitehot',cat:'exhaust',kind:'exhaust',key:'whitehot',name:'White Hot',desc:'Blinding white core, steel-blue plume.',price:350},
+  {id:'las_red',cat:'laser',kind:'laser',key:'red',name:'Red',desc:'Standard issue.',price:0,free:true},
+  {id:'las_green',cat:'laser',kind:'laser',key:'green',name:'Green',desc:'Green bolts.',price:150},
+  {id:'las_blue',cat:'laser',kind:'laser',key:'blue',name:'Blue',desc:'Blue bolts.',price:150},
+  {id:'las_violet',cat:'laser',kind:'laser',key:'violet',name:'Violet',desc:'Violet bolts.',price:200},
+  {id:'las_gold',cat:'laser',kind:'laser',key:'gold',name:'Gold',desc:'Gold bolts.',price:300},
+  {id:'eng1',cat:'engine',name:'Engine Mk II',desc:'+15% cruise speed. Faster travel, faster credits.',price:400},
+  {id:'wing1',cat:'fleet',name:'Wingman',desc:'A second fighter joins your formation.',price:500},
+  {id:'eng2',cat:'engine',name:'Engine Mk III',desc:'Another +15% cruise speed.',price:1200,req:'eng1'},
+  {id:'wing2',cat:'fleet',name:'Second wingman',desc:'Completes the 3-ship formation.',price:1500,req:'wing1'},
+  {id:'eng3',cat:'engine',name:'Engine Mk IV',desc:'Another +15% cruise speed.',price:3000,req:'eng2'},
+];
+// ---------- generated cosmetics (the hand-tuned ones above stay as they are) ----------
+function hsl(h,S,L){h=((h%360)+360)%360;const k=n=>(n+h/30)%12,a=S*Math.min(L,1-L),f=n=>L-a*Math.max(-1,Math.min(k(n)-3,9-k(n),1));
+  return '#'+[f(0),f(8),f(4)].map(v=>Math.round(v*255).toString(16).padStart(2,'0')).join('')}
+const steps=(h,S,l0,l1,n=6)=>Array.from({length:n},(_,i)=>hsl(h,S,l0+(l1-l0)*i/(n-1)));
+// paint: hull hue/sat/lightness range, trim hue/sat, optional canopy and light hues
+const mkPaint=(hh,hs,hl0,hl1,th,ts,gh=210,lh=th)=>({hull:steps(hh,hs,hl0,hl1),panel:steps(th,ts,.05,.62),trim:steps(th,ts,.05,.62),
+  glass:steps(gh,.6,.04,.75,5),light:[hsl(lh,.7,.15),hsl(lh,1,.6),hsl(lh,1,.9)]});
+// exhaust: glow hue, plume fades from the core hue toward h2
+const mkExh=(h,h2=h,S=1)=>({eng:[hsl(h,.85*S,.38),hsl(h,S,.55),hsl(h,S,.75),hsl(h,S,.93)],
+  exh:['#ffffff',hsl(h,S,.92),hsl(h,S,.75),hsl((h*2+h2)/3,.9*S,.58),hsl((h+h2*2)/3,.85*S,.42),hsl(h2,.8*S,.25),hsl(h2,.7*S,.1)]});
+const mkLaser=(h,S=1)=>[hsl(h,S,.55),hsl(h,S,.82),'#ffffff'];
+const MORE_PAINT=[
+  ['ember','Ember','Charcoal hull, ember orange trim.',350,mkPaint(20,.08,.04,.42,18,.95)],
+  ['sakura','Sakura','Pearl white hull, cherry blossom pink.',450,mkPaint(340,.25,.08,.97,335,.8)],
+  ['ocean','Ocean','Navy hull, teal trim.',350,mkPaint(222,.5,.04,.5,180,.85)],
+  ['forest','Forest','Olive drab with bark brown.',300,mkPaint(80,.3,.05,.55,28,.5)],
+  ['tangerine','Tangerine','White hull, bright orange trim.',350,mkPaint(30,.15,.08,.97,28,1)],
+  ['cobalt','Cobalt','White hull, deep cobalt trim.',350,mkPaint(215,.15,.08,.97,220,.9)],
+  ['obsidian','Obsidian','Glossy black, blood red trim.',500,mkPaint(0,.05,.02,.3,355,.95,0)],
+  ['bubblegum','Bubblegum','Pink hull, cyan trim.',450,mkPaint(325,.7,.08,.85,185,.9)],
+  ['copper','Copper','Polished copper with dark bronze.',550,mkPaint(22,.6,.06,.72,30,.45)],
+  ['storm','Storm','Slate blue hull, electric yellow trim.',450,mkPaint(215,.2,.05,.62,55,1)],
+  ['ghost','Ghost','Pale grey hull, lavender trim.',500,mkPaint(260,.08,.1,.95,265,.6)],
+  ['lava','Lava','Black rock hull, glowing magma trim.',700,mkPaint(10,.15,.03,.32,15,1,15)],
+  ['neon','Neon','Black hull, hot magenta trim.',650,mkPaint(280,.15,.03,.35,305,1,280)],
+  ['carbon','Carbon','Carbon black, silver trim.',800,mkPaint(220,.06,.02,.28,210,.06)],
+];
+const MORE_EXH=[
+  ['crimson','Crimson','Deep red glow and plume.',250,mkExh(358)],
+  ['spectral','Spectral','Ghostly grey-green.',400,mkExh(140,160,.3)],
+  ['goldfx','Gold','Gold glow and plume.',350,mkExh(45)],
+  ['lime','Lime','Bright lime plume.',250,mkExh(85)],
+  ['teal','Teal','Teal glow and plume.',250,mkExh(172)],
+  ['cyan','Cyan','Electric cyan plume.',300,mkExh(188)],
+  ['azure','Azure','Sky blue glow and plume.',250,mkExh(205)],
+  ['indigo','Indigo','Deep indigo plume.',300,mkExh(242)],
+  ['magenta','Magenta','Hot magenta plume.',300,mkExh(300)],
+  ['pink','Pink','Soft pink plume.',250,mkExh(330)],
+  ['amber','Amber','Warm amber glow.',250,mkExh(36)],
+  ['aurora','Aurora','Green core fading to cyan.',500,mkExh(130,195)],
+  ['inferno','Inferno','Yellow core burning down to red.',450,mkExh(52,0)],
+  ['toxic','Toxic','Sickly yellow-green.',300,mkExh(68,110)],
+  ['nebula','Nebula','Violet core fading to blue.',500,mkExh(280,220)],
+  ['frost','Frost','Pale ice blue, low saturation.',350,mkExh(200,200,.55)],
+];
+const MORE_LAS=[
+  ['orange','Orange','Orange bolts.',150,mkLaser(28)],
+  ['yellow','Yellow','Yellow bolts.',150,mkLaser(55)],
+  ['lime','Lime','Lime bolts.',150,mkLaser(90)],
+  ['emerald','Emerald','Emerald bolts.',200,mkLaser(145)],
+  ['teal','Teal','Teal bolts.',150,mkLaser(172)],
+  ['cyan','Cyan','Cyan bolts.',150,mkLaser(188)],
+  ['sky','Sky','Sky blue bolts.',150,mkLaser(205)],
+  ['indigo','Indigo','Indigo bolts.',200,mkLaser(245)],
+  ['magenta','Magenta','Magenta bolts.',200,mkLaser(300)],
+  ['pink','Pink','Pink bolts.',150,mkLaser(330)],
+  ['void','Void','Dark violet bolts with a white core.',400,['#3a0a7a','#9a5aff','#ffffff']],
+  ['crimson','Crimson','Deep crimson bolts.',200,mkLaser(0,.85)],
+  ['amber','Amber','Amber bolts.',150,mkLaser(40)],
+  ['ice','Ice','Pale icy bolts.',250,mkLaser(195,.5)],
+  ['white','White','Pure white bolts.',300,['#c8ccd8','#eef0ff','#ffffff']],
+  ['plasma','Plasma','Purple-pink plasma bolts.',350,['#c02aff','#ff8ad8','#ffffff']],
+];
+for(const [k,n,d,pr,def] of MORE_PAINT){SKINS[k]=def;SHOP.push({id:'skin_'+k,cat:'paint',kind:'skin',key:k,name:n,desc:d,price:pr})}
+for(const [k,n,d,pr,def] of MORE_EXH){EXHAUSTS[k]=def;SHOP.push({id:'exh_'+k,cat:'exhaust',kind:'exhaust',key:k,name:n,desc:d,price:pr})}
+// ship parts: one shop item per part, kind = slot so equip/preview work like the other cosmetics
+for(const [slot] of SLOT_KEYS)for(const [k,P] of Object.entries(SHIP_PARTS[slot]))
+  SHOP.push({id:'part_'+slot+'_'+k,cat:'p_'+slot,kind:slot,key:k,name:P.name,desc:P.desc,price:P.price,free:!P.price});
+for(const [k,n,d,pr,def] of MORE_LAS){LASERS[k]=def;SHOP.push({id:'las_'+k,cat:'laser',kind:'laser',key:k,name:n,desc:d,price:pr})}
+let DIST=0,CREDITS=0,OWNED={},SAVED={wing:0,skin:'red',exhaust:null,laser:'red',ship:null};
+try{const j=JSON.parse(localStorage.getItem('drift.save')||'null');
+  if(j){DIST=j.dist||0;CREDITS=j.credits||0;FUEL=j.fuel??FUEL_MAX;THR=FUEL>0?1:0;OWNED=j.owned||{};SAVED={wing:j.wing||0,skin:j.skin||'red',exhaust:j.exhaust||null,laser:j.laser||'red',ship:typeof j.ship==='object'?j.ship:null,loadouts:Array.isArray(j.loadouts)?j.loadouts:null}}
+  else DIST=+localStorage.getItem('drift.dist')||0}catch(e){}
+const tankTier=()=>(OWNED.tank1?1:0)+(OWNED.tank2?1:0)+(OWNED.tank3?1:0);
+const cellHours=()=>CELL_HOURS[tankTier()];
+const engTier=()=>(OWNED.eng1?1:0)+(OWNED.eng2?1:0)+(OWNED.eng3?1:0);
+const wingOwned=()=>(OWNED.wing1?1:0)+(OWNED.wing2?1:0);
+const owns=it=>it.free||OWNED[it.id];
+const skinsOwned=()=>SHOP.filter(it=>it.kind==='skin'&&owns(it)).map(it=>it.key);
+// Each of the 3 fighters (lead + 2 wingmen) has its own loadout. Owned items work on any fighter;
+// Customize picks which fighter you're editing (EDIT), and the shop equips to that one too.
+const SLOT_NAMES=['Lead','Wing 1','Wing 2'];
+const LOAD_KINDS=['nose','hull','wing','eng','skin','exhaust','laser'];
+const defLoad=()=>({...DEFAULT_SHIP,skin:'red',exhaust:'flame',laser:'red'});
+let LOADOUTS=[defLoad(),defLoad(),defLoad()],EDIT=0;
+const cur=()=>LOADOUTS[EDIT];
+const PAL_CACHE={};
+function paletteFor(c){const k=c.skin+'|'+c.exhaust+'|'+c.laser;if(PAL_CACHE[k])return PAL_CACHE[k];
+  const S=SKINS[c.skin],E=EXHAUSTS[c.exhaust];
+  return PAL_CACHE[k]={MATS:{rock:ROCKC,gold:GOLDC,hull:ramp(S.hull),panel:ramp(S.panel),trim:ramp(S.trim),glass:ramp(S.glass)},LIGHTC:ramp(S.light),
+    ENGC:ramp([shade(E.eng[0],.12),shade(E.eng[0],.25),shade(E.eng[0],.48),...E.eng]),EXH:ramp(E.exh),BOLT:ramp(LASERS[c.laser])}}
+// the lead ship's loadout also drives the global ship/palette (guns, laser color, debris fire)
+function syncLead(){const L=LOADOUTS[0];SHIPCFG={nose:L.nose,hull:L.hull,wing:L.wing,eng:L.eng};SHIP=buildShip(SHIPCFG);applySkin(L.skin);applyExhaust(L.exhaust);applyLaser(L.laser)}
+// keep only what's owned; anything else falls back to base
+function cleanLoad(o,base){const r={...base};if(o)for(const k of LOAD_KINDS){const it=SHOP.find(x=>x.kind===k&&x.key===o[k]);if(it&&owns(it))r[k]=o[k]}return r}
+const EQUIP=Object.fromEntries(LOAD_KINDS.map(k=>[k,v=>{cur()[k]=v;syncLead()}]));
+const equipped=it=>cur()[it.kind]===it.key;
+// the old Midnight paint came with a blue plume; owners keep it as the Ion exhaust
+if(OWNED.skin_blue&&!('exh_ion' in OWNED))OWNED.exh_ion=true;
+// the 7 whole ships were replaced by modular parts: refund anything bought under the old system
+{const OLD={ship_lance:1200,ship_talon:1500,ship_manta:1800,ship_wasp:2000,ship_mule:2500,ship_trident:3500};
+ for(const [id,pr] of Object.entries(OLD))if(OWNED[id]){CREDITS+=pr;delete OWNED[id]}}
+// renamed parts: Stack -> Seven Star, Ring -> Cargo
+for(const [o,n] of [['part_eng_stack','part_eng_seven'],['part_wing_ring','part_wing_cargo']])if(OWNED[o]){OWNED[n]=true;delete OWNED[o]}
+if(SAVED.ship){if(SAVED.ship.eng==='stack')SAVED.ship.eng='seven';if(SAVED.ship.wing==='ring')SAVED.ship.wing='cargo'}
+function save(){try{localStorage.setItem('drift.save',JSON.stringify({dist:DIST,credits:CREDITS,fuel:FUEL,exhaust:EXHAUST,laser:LASER,ship:SHIPCFG,loadouts:LOADOUTS,owned:OWNED,wing:FLEET.length-1,skin:SKIN}))}catch(e){}}
+let scan=0,STARS=[],PARTS=[],T=0,V=22,paused=false,cov,showCov=false;
+const FAR=420,NEAR=1.5,STALE=300;   // STALE: seconds a pixel may go unlit
 
+// The lead ship roams a slow Lissajous path, but only inside the bottom-left quadrant.
+// Its path is defined in screen space, then projected back into the world at a depth that
+// keeps the whole ship (wings and fins) inside the quadrant on any screen shape.
+const TAU=Math.PI*2, HALF_W=3.9, HALF_H=2.9, SIZE=1.5;
+// measured on-screen extents of the ship around its anchor point, left/right/up/down (units at depth 1)
+const EXT={l:4.3,r:2.8,u:1.5,d:3.2};
+function wander(t){
+  const m=H*.03;
+  const fit=Math.max((EXT.l+EXT.r)*F/(W/2-2*m),(EXT.u+EXT.d)*F/(H/2-2*m)); // closest depth that still fits the quadrant
+  const d0=Math.max(fit,Math.max(HALF_W*F/(W*.15),HALF_H*F/(H*.15))/SIZE);
+  const d=d0*(1+.08*(1+Math.sin(t*TAU/131+2)));
+  const L=EXT.l*F/d,R=EXT.r*F/d,U=EXT.u*F/d,D=EXT.d*F/d;
+  const u=.5+.5*Math.sin(t*TAU/97)*.95,v=.5+.5*Math.sin(t*TAU/71+1)*.95;
+  const sx=m+L+u*Math.max(0,W/2-L-R-2*m),sy=H/2+m+U+v*Math.max(0,H/2-U-D-2*m);
+  return add(CAM.pos,add(scl(CAM.f,d),add(scl(CAM.r,(sx-W/2)*d/F),scl(CAM.u,-(sy-H/2)*d/F))));
+}
+function pose(s,t){
+  const o=SLOTS[s.slot],q=t+s.ph,w=wander(t),a=wander(t-.5),b=wander(t+.5);
+  const vx=b[0]-a[0],vy=b[1]-a[1];
+  const pos=[w[0]+o[0]+Math.sin(q*.61)*.08,w[1]+o[1]+Math.sin(q*.7)*.08,w[2]+o[2]];
+  return {pos,R:euler(vx*.12,-vy*.15+Math.sin(q*.5)*.03,-vx*.6+Math.sin(q*.9)*.02)};
+}
 
+// Stars live in camera space. Filling the view frustum evenly (not a tube) gives an even
+// on-screen density with no clump at the center. New stars spawn at whichever of a few
+// random screen spots has gone longest without being lit, so coverage stays even.
+function spawnStar(cz){
+  let bx=0,by=0,bt=Infinity;
+  for(let i=0;i<8;i++){const sx=Math.random()*W,sy=Math.random()*H,t=cov[(sy|0)*W+(sx|0)];if(t<bt){bt=t;bx=sx;by=sy}}
+  return {x:(bx-W/2)*cz/F,y:-(by-H/2)*cz/F,z:cz};
+}
+// On resize, keep the stars that exist (their 3D positions stay valid) and only top up or trim the count,
+// so the field doesn't get reshuffled every time the window changes size.
+function fillStars(){const n=Math.round(W*H/400);while(STARS.length<n)STARS.push(spawnStar(FAR*Math.cbrt(Math.random())+NEAR));STARS.length=n}
 
+function resize(){
+  const iw=innerWidth,ih=innerHeight;
+  SCALE=Math.max(2,Math.round(ih/200));H=Math.ceil(ih/SCALE);W=Math.ceil(iw/SCALE);
+  cv.width=W;cv.height=H;cv.style.width=W*SCALE+'px';cv.style.height=H*SCALE+'px';
+  img=ctx.createImageData(W,H);buf=new Uint32Array(img.data.buffer);zb=new Float32Array(W*H);F=H*1.15;
+  cov=new Float32Array(W*H).fill(T);scan=0;setCam();fillStars();   // a new size starts with a fresh coverage clock
+}
 
+// ---------- asteroids ----------
+// Rare fly-bys (one every 40-90 s). Click one and the lead ship fires; a hit pays far more than idling.
+let ROCKS=[],BOLTS=[],DEBRIS=[],rockT=rand(20,40);
+function buildRock(mat='rock'){
+  const g=(1+Math.sqrt(5))/2;
+  let vs=[[-1,g,0],[1,g,0],[-1,-g,0],[1,-g,0],[0,-1,g],[0,1,g],[0,-1,-g],[0,1,-g],[g,0,-1],[g,0,1],[-g,0,-1],[-g,0,1]];
+  const fs=[[0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],[1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],[3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],[4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1]];
+  const sq=rand(.65,1);vs=vs.map(v=>{const n=norm(v),r=rand(.72,1.12);return [n[0]*r,n[1]*r*sq,n[2]*r]});
+  const m={tris:[]};for(const f of fs)tri(m,vs[f[0]],vs[f[1]],vs[f[2]],mat,[0,0,0]);return m;
+}
+function axisRot(ax,a){const [x,y,z]=ax,c=Math.cos(a),s=Math.sin(a),t=1-c;
+  return [t*x*x+c,t*x*y-s*z,t*x*z+s*y,t*x*y+s*z,t*y*y+c,t*y*z-s*x,t*x*z-s*y,t*y*z+s*x,t*z*z+c]}
+const GOLD_CHANCE=1/77,GOLD_REWARD=121;
+function spawnRock(forceGold){
+  // enter somewhere outside the ship's bottom-left quadrant
+  // start near the middle so it drifts across a good part of the screen, heading away from the ship's corner
+  let u,v;do{u=Math.random();v=Math.random()}while(u<.5&&v>.5);
+  const cz=260,sx=W/2+(u-.5)*W*.4,sy=H/2+(v-.5)*H*.4,size=rand(1.5,3.5);
+  const pos=add(CAM.pos,add(scl(CAM.f,cz),add(scl(CAM.r,(sx-W/2)*cz/F),scl(CAM.u,-(sy-H/2)*cz/F))));
+  const gold=forceGold||Math.random()<GOLD_CHANCE;
+  ROCKS.push({pos,size,gold,mesh:buildRock(gold?'gold':'rock'),ax:norm([rand(-1,1),rand(-1,1),rand(-1,1)]),ang:0,spin:rand(.4,1.4),hit:false,
+    reward:gold?GOLD_REWARD:Math.round(size*6+rand(0,6))});
+}
+function rockScreen(r){const p=proj(r.pos);if(!p)return null;return {x:p.x,y:p.y,r:r.size*F*p.w*1.05,w:p.w}}
+function rockAt(gx,gy){
+  let best=null,bd=1e9;
+  for(const r of ROCKS){if(r.hit)continue;const s=rockScreen(r);if(!s)continue;
+    const d=Math.hypot(gx-s.x,gy-s.y);if(d<Math.max(s.r+4,10)&&d<bd){bd=d;best=r}}
+  return best;
+}
+// Free fire: click empty space and the lead ship shoots toward that spot (short cooldown so it can't be spammed).
+let lastShot=-1;const COOLDOWN=.15;
+function shooter(){const f=FLEET[(Math.random()*FLEET.length)|0],LO=LOADOUTS[f.slot],SC=SLOT_SCALE[f.slot];
+  return {p:pose(f,T),guns:buildShip(LO).guns.map(g=>scl(g,SC)),col:paletteFor(LO).BOLT}}
+function freeShot(gx,gy){
+  if(T-lastShot<COOLDOWN)return;lastShot=T;const cz=180,S=shooter(),p=S.p;
+  const to=add(CAM.pos,add(scl(CAM.f,cz),add(scl(CAM.r,(gx-W/2)*cz/F),scl(CAM.u,-(gy-H/2)*cz/F))));
+  for(const g of S.guns)BOLTS.push({from:add(mulR(p.R,g),p.pos),to,t:0,dur:.35,col:S.col});
+}
+function shoot(r){
+  lastShot=T;
+  r.hit=true;const S=shooter(),p=S.p;
+  for(const g of S.guns)BOLTS.push({from:add(mulR(p.R,g),p.pos),rock:r,t:0,dur:.28,col:S.col});
+}
+function explode(r){
+  ROCKS=ROCKS.filter(x=>x!==r);CREDITS+=r.reward;
+  for(let i=0;i<60+r.size*30;i++){const d=norm([rand(-1,1),rand(-1,1),rand(-1,1)]),sp=rand(2,9)*r.size*.5;
+    DEBRIS.push({p:[...r.pos],v:scl(d,sp),a:0,L:rand(.5,1.2)*(r.gold?1.4:1),fire:Math.random()<.45,gold:r.gold})}
+  const s=rockScreen(r);if(s){const rc=cv.getBoundingClientRect(),el=document.createElement('div');
+    el.className=r.gold?'pop gold':'pop';el.textContent='+\u00a2'+r.reward;el.style.left=rc.left+s.x*SCALE+'px';el.style.top=rc.top+s.y*SCALE+'px';
+    document.body.appendChild(el);setTimeout(()=>el.remove(),1400)}
+  save();
+}
+function updateRocks(dt){
+  rockT-=dt;if(rockT<=0){spawnRock();rockT=rand(40,90)}
+  for(const r of ROCKS){r.pos[2]-=V*.55*dt;r.ang+=r.spin*dt}
+  if(OWNED.optics)for(const r of ROCKS){if(r.hit)continue;const s=rockScreen(r);
+    const on=s&&s.x>0&&s.y>0&&s.x<W&&s.y<H,cz=s?1/s.w:1e9;
+    if(on&&cz<LOCK_RANGE){r.lockT=(r.lockT||0)+dt;
+      const edge=s.x<W*.06||s.x>W*.94||s.y<H*.08||s.y>H*.92;   // about to leave the screen: take the shot now
+      if((cz<FIRE_RANGE||edge)&&r.lockT>.6)shoot(r)}else r.lockT=0}
+  ROCKS=ROCKS.filter(r=>{const s=rockScreen(r);return s&&1/s.w>4&&s.x>-s.r-20&&s.x<W+s.r+20&&s.y>-s.r-20&&s.y<H+s.r+20});
+  for(const b of BOLTS){b.t+=dt;if(b.t>=b.dur&&!b.done){b.done=true;if(b.rock&&ROCKS.includes(b.rock))explode(b.rock)}}
+  BOLTS=BOLTS.filter(b=>b.t<b.dur+.05);
+  for(const q of DEBRIS){q.a+=dt;q.p[0]+=q.v[0]*dt;q.p[1]+=q.v[1]*dt;q.p[2]+=(q.v[2]-V*.55)*dt}
+  DEBRIS=DEBRIS.filter(q=>q.a<q.L);
+}
+// red lock-on brackets that close in over the first half second, then hold and blink
+function drawCrosshair(r){
+  const s=rockScreen(r);if(!s)return;
+  const k=Math.min(1,r.lockT/.5),h=Math.round(Math.max(5,s.r+3)+(1-k)*8),L=Math.max(2,Math.round(h*.45));
+  const col=k<1||(T*4%1)<.7?XHAIR:XHAIR2,cx=Math.round(s.x),cy=Math.round(s.y);
+  const px=(x,y)=>{if(x>=0&&y>=0&&x<W&&y<H)buf[y*W+x]=col};
+  for(const [sx,sy] of [[-1,-1],[1,-1],[-1,1],[1,1]])for(let i=0;i<L;i++){px(cx+sx*h-sx*i,cy+sy*h);px(cx+sx*h,cy+sy*h-sy*i)}
+}
+function renderRocks(){
+  for(const r of ROCKS){drawMesh(r.mesh,r.pos,axisRot(r.ax,r.ang),r.size);
+    if(r.lockT>0&&!r.hit)drawCrosshair(r);
+    if(!r.gold)continue;   // glints: a few pixels flash white on and around a gold asteroid
+    const sc=rockScreen(r);if(!sc)continue;const n=2+(sc.r/4|0);
+    for(let i=0;i<n;i++){const ph=(T*2.3+i*.618+r.size*7)%1;if(ph>.35)continue;
+      const a=i*2.4+r.ang,d=sc.r*(.3+.8*((i*.37)%1)),x=sc.x+Math.cos(a)*d,y=sc.y+Math.sin(a)*d,c=GOLDC[5];
+      plot(x,y,sc.w*1.5,c);if(ph<.15&&sc.r>3){plot(x+1,y,sc.w*1.5,GOLDC[4]);plot(x-1,y,sc.w*1.5,GOLDC[4]);plot(x,y+1,sc.w*1.5,GOLDC[4]);plot(x,y-1,sc.w*1.5,GOLDC[4])}}}
+}
+function renderFx(){
+  for(const q of DEBRIS){const p=proj(q.p);if(!p)continue;const f=q.a/q.L,th=BAY[((p.x|0)&3)|(((p.y|0)&3)<<2)];
+    const col=q.gold&&!q.fire?GOLDC[clamp(Math.floor((1-f)*6+th*.8),2,5)]:q.fire?EXH[clamp(Math.floor(f*EXH.length+th*.8),0,EXH.length-1)]:ROCKC[clamp(Math.floor((1-f)*5+th*.8),1,5)];
+    const sz=Math.max(1,Math.round(.05*F*p.w));for(let y=0;y<sz;y++)for(let x=0;x<sz;x++)plot(p.x+x,p.y+y,p.w,col)}
+  for(const b of BOLTS){if(b.t>b.dur)continue;
+    const to=b.rock?b.rock.pos:b.to,f0=Math.max(0,b.t/b.dur-.25),f1=Math.min(1,b.t/b.dur);
+    const A=proj(add(b.from,scl(sub(to,b.from),f0))),B=proj(add(b.from,scl(sub(to,b.from),f1)));if(!A||!B)continue;
+    const dx=B.x-A.x,dy=B.y-A.y,n=Math.ceil(Math.max(Math.abs(dx),Math.abs(dy),1));
+    const BC=b.col||BOLT;
+    for(let i=0;i<=n;i++){const t=i/n,x=A.x+dx*t,y=A.y+dy*t,col=BC[t>.8?2:t>.4?1:0];
+      if(x>=0&&y>=0&&x<W&&y<H){buf[(y|0)*W+(x|0)]=col;if(t>.5&&x+1<W)buf[(y|0)*W+(x|0)+1]=BC[0]}}}
+}
 
+function update(dt){
+  T+=dt;
+  if(FUEL>0)FUEL=Math.max(0,FUEL-dt/(cellHours()*3600));
+  THR+=((FUEL>0?1:0)-THR)*Math.min(1,dt*.35);                 // engines spool down/up over a few seconds
+  const cruise=(22+Math.sin(T*.03)*5)*(1+.15*engTier());V=COAST+(cruise-COAST)*THR;
+  // engine glow: full burn at THR=1, a dim ember when empty, with the odd sputter
+  engLvl=THR*4.6+(THR<.2&&Math.random()<.03?2.5:0);const km=V*KMS_PER_UNIT*dt;DIST+=km;CREDITS+=km/KM_PER_CREDIT;
+  engFlick=Math.sin(T*47)*.35+(Math.random()-.5)*.5;
+  const mx=DIRC[0]*V*dt,my=DIRC[1]*V*dt,mz=DIRC[2]*V*dt;
+  for(let i=0;i<STARS.length;i++){const s=STARS[i];s.x-=mx;s.y-=my;s.z-=mz;
+    const sx=W/2+s.x*F/s.z,sy=H/2-s.y*F/s.z;
+    if(s.z<NEAR||sx<-2||sy<-2||sx>W+2||sy>H+2)STARS[i]=spawnStar(FAR)}
+  // safety net: sweep the screen and drop a star onto any pixel that is close to going stale
+  for(let n=0;n<1500;n++){scan=(scan+1)%cov.length;
+    if(T-cov[scan]>STALE-45){const cz=rand(60,FAR);
+      STARS[(Math.random()*STARS.length)|0]={x:((scan%W)+.5-W/2)*cz/F,y:-(((scan/W)|0)+.5-H/2)*cz/F,z:cz};cov[scan]=T-STALE+60;break}}
+  for(const s of FLEET){
+    const p=pose(s,T),back=mulR(p.R,[0,0,-1]),LO=LOADOUTS[s.slot],X=paletteFor(LO).EXH,SC=SLOT_SCALE[s.slot];
+    for(const e of buildShip(LO).engines){
+      const w=add(scl(mulR(p.R,[e[0],e[1],e[2]]),SC),p.pos);let n=(dt*70*e[3]*SC*4*(.03+.97*THR)+Math.random())|0;
+      while(n--){const sp=rand(6,9)*(.3+.7*THR),j=e[3]*.6*SC;
+        PARTS.push({p:[w[0]+rand(-j,j),w[1]+rand(-j,j),w[2]],v:[back[0]*sp+rand(-.4,.4),back[1]*sp+rand(-.4,.4),back[2]*sp],a:0,L:rand(.12,.3),c:X})}
+    }
+  }
+  for(const q of PARTS){q.a+=dt;q.p[0]+=q.v[0]*dt;q.p[1]+=q.v[1]*dt;q.p[2]+=q.v[2]*dt}
+  PARTS=PARTS.filter(q=>q.a<q.L);
+  updateRocks(dt);
+}
 
+function render(){
+  buf.fill(BLACK);zb.fill(0);
+  const poses=FLEET.map(s=>pose(s,T));
+  poses.forEach((p,i)=>{const LO=LOADOUTS[FLEET[i].slot];({MATS,ENGC}=paletteFor(LO));drawMesh(buildShip(LO),p.pos,p.R,SLOT_SCALE[FLEET[i].slot])});
+  ({MATS,ENGC}=paletteFor(LOADOUTS[0]));
+  renderRocks();
+  for(const q of PARTS){const p=proj(q.p);if(!p)continue;
+    const f=q.a/q.L,th=BAY[((p.x|0)&3)|(((p.y|0)&3)<<2)];
+    const X=q.c||EXH,col=X[clamp(Math.floor(f*X.length+th*.8),0,X.length-1)];
+    const sz=Math.max(1,Math.round(.045*F*p.w));
+    for(let yy=0;yy<sz;yy++)for(let xx=0;xx<sz;xx++)plot(p.x+xx,p.y+yy,p.w,col)}
+  // stars: single white pixels, 2x2 when close
+  for(const s of STARS){
+    const w=1/s.z,sx=W/2+s.x*F*w,sy=H/2-s.y*F*w;
+    const col=STARC[s.z>300?0:s.z>170?1:2];
+    plot(sx,sy,w,col);if(s.z<55){plot(sx+1,sy,w,col);plot(sx,sy+1,w,col);plot(sx+1,sy+1,w,col)}
+  }
+  renderFx();
+  poses.forEach((p,i)=>{const LO=LOADOUTS[FLEET[i].slot],LC=paletteFor(LO).LIGHTC,SC=SLOT_SCALE[FLEET[i].slot];
+   for(const L of buildShip(LO).lights){
+    const on=L.blink===0||((T+L.blink*.4)%1.8)<.15;
+    const s=proj(add(scl(mulR(p.R,L.p),SC),p.pos));if(!s)continue;
+    plot(s.x,s.y,s.w*1.02,LC[on?2:0]);
+    if(on&&L.blink)for(const [ox,oy] of [[1,0],[-1,0],[0,1],[0,-1]])plot(s.x+ox,s.y+oy,s.w*1.02,LC[1]);
+  }});
+  // coverage: remember when each pixel was last lit
+  let stale=0;
+  for(let i=0;i<buf.length;i++){if(buf[i]!==BLACK)cov[i]=T;else if(cov[i]<0||T-cov[i]>STALE){stale++;if(showCov)buf[i]=0xff000060}}
+  if(showCov)hint.textContent=`red = unlit ${STALE/60}+ min: ${stale}/${buf.length} px (${(100*stale/buf.length).toFixed(2)}%)`;
+  ctx.putImageData(img,0,0);
+}
 
+let last=performance.now(),acc=0;
+function frame(now){
+  requestAnimationFrame(frame);
+  const dt=Math.min(.1,(now-last)/1000);acc+=dt;last=now;
+  if(acc<1/30-.002)return;             // 30 fps cap keeps it light for a screensaver
+  const pdt=acc;if(!paused)update(acc);acc=0;render();hud(now);previewTick(pdt);
+}
+const hint=document.getElementById('hint');
+addEventListener('resize',resize);resize();
+requestAnimationFrame(frame);
 
+// ---------- controls ----------
+const $=id=>document.getElementById(id);
+function fullscreen(){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen().catch(()=>{})}
+function setMenu(open){document.body.classList.toggle('open',open);$('burger').setAttribute('aria-expanded',open)}
+function syncMenu(){
+  $('v-n').textContent=(FLEET.length-1)+'/'+wingOwned();
+  $('v-cr').textContent='\u00a2'+nf.format(Math.floor(CREDITS));
+  document.querySelector('[data-k="n"]').disabled=!wingOwned();
+  if($('menu').classList.contains('shop'))renderShop();
+  if($('menu').classList.contains('cust'))renderCust();
+  $('v-p').textContent=paused?'Resume':'Pause';
+  document.querySelector('[data-k="c"]').classList.toggle('on',showCov);
+  document.querySelector('[data-k=" "]').classList.toggle('on',paused);
+  $('hint').style.display=showCov?'block':'none';
+}
+function action(k){
+  if(k==='f')fullscreen();
+  else if(k===' ')paused=!paused;
+  else if(k==='s'){setMenu(true);$('menu').classList.remove('shop');$('menu').classList.add('cust');renderCust.k=null}
+  else if(k==='b'){setMenu(true);$('menu').classList.remove('cust');$('menu').classList.add('shop')}
+  else if(k==='back')$('menu').classList.remove('shop','cust');
+  else if(k==='$')CREDITS+=1000;   // dev: free credits for testing the shop
+  else if(k==='g')spawnRock(true);  // dev: spawn a gold asteroid
+  else if(k==='e')FUEL=Math.min(FUEL,.001);  // dev: nearly empty the tank (~7 s left)
+  else if(k==='c')showCov=!showCov;
+  else if(k==='n'){if(FLEET.length<=wingOwned())addWing();else FLEET.length=1}
+  else if(k==='m')setMenu(!document.body.classList.contains('open'));
+  else if(k==='escape'){const m=$('menu');if(m.classList.contains('shop')||m.classList.contains('cust'))m.classList.remove('shop','cust');else setMenu(false)}
+  else return false;
+  syncMenu();return true;
+}
+addEventListener('keydown',e=>{if(action(e.key.toLowerCase()))e.preventDefault()});
+$('burger').addEventListener('click',()=>action('m'));
+$('menu').addEventListener('click',e=>{const b=e.target.closest('button[data-k]');if(b){action(b.dataset.k);b.blur();return}
+  const f=e.target.closest('button[data-fighter]');if(f){EDIT=+f.dataset.fighter;renderCust.k=renderShop.k=null;syncMenu();f.blur();return}
+  const q=e.target.closest('button[data-equip]');if(q){const it=SHOP.find(x=>x.id===q.dataset.equip);EQUIP[it.kind](it.key);save();renderCust.k=renderShop.k=null;syncMenu();q.blur();return}
+  const t=e.target.closest('button[data-tab]');if(t){SHOP_TAB=t.dataset.tab;SHOP_SEL=null;renderShop.k=null;renderShop();return}
+  const u=e.target.closest('button[data-buy]');if(u){const it=SHOP.find(x=>x.id===u.dataset.buy);if(it&&it.kind)SHOP_SEL=it.id;buy(u.dataset.buy);return}
+  const c=e.target.closest('.item.pick');if(c){SHOP_SEL=c.dataset.id;renderShop.k=null;renderShop()}});
+function addWing(){FLEET.push({slot:FLEET.length,ph:rand(0,50)})}
+function buy(id){
+  const it=SHOP.find(x=>x.id===id);
+  if(it&&it.repeat){if(FUEL>FUEL_MAX-1+1e-6||CREDITS<it.price)return;CREDITS-=it.price;FUEL=Math.min(FUEL_MAX,FUEL+1);save();syncMenu();return}
+  if(it&&it.kind&&owns(it)){EQUIP[it.kind](it.key);save();renderShop.k=null;syncMenu();return}   // owned cosmetic: equip it
+  if(!it||OWNED[id]||(it.req&&!OWNED[it.req])||CREDITS<it.price)return;
+  CREDITS-=it.price;OWNED[id]=true;
+  if(id.startsWith('wing'))while(FLEET.length<=wingOwned())addWing();
+  if(it.kind)EQUIP[it.kind](it.key);   // new cosmetics equip right away
+  renderShop.k=null;
+  save();syncMenu();
+}
+function renderShop(){
+  $('s-cr').textContent=nf.format(Math.floor(CREDITS));$('s-for').textContent='Equips to: '+SLOT_NAMES[EDIT];
+  const key=SHOP.map(it=>(OWNED[it.id]?'o':'')+(CREDITS<it.price?'p':'')).join()+JSON.stringify(cur())+EDIT+SHOP_SEL+(FUEL>FUEL_MAX-1?'F':'')+SHOP_TAB;if(key===renderShop.k)return;renderShop.k=key;
+  $('tabs').innerHTML=SHOP_TABS.map(([id,n])=>`<button role="tab" data-tab="${id}" aria-selected="${id===SHOP_TAB}">${n}</button>`).join('');
+  $('items').innerHTML=SHOP.filter(it=>it.cat===SHOP_TAB).sort((a,b)=>a.price-b.price).map(it=>{
+    const own=owns(it),lock=it.req&&!OWNED[it.req],poor=CREDITS<it.price,full=it.repeat&&FUEL>FUEL_MAX-1;
+    const cos=!!it.kind,eq=cos&&own&&equipped(it);
+    const label=cos&&own?(eq?'Equipped':'Equip'):own?'Owned':full?'Tank full':lock?'Locked':'\u00a2'+nf.format(it.price);
+    const dis=cos&&own?eq:own||lock||poor||full;
+    return `<div class="item${own&&!cos?' owned':''}${eq?' eq':''}${cos?' pick':''}${SHOP_SEL===it.id?' sel':''}" data-id="${it.id}"><div class="nm">${swatch(it)}${it.name}</div><div class="ds">${it.desc}${it.repeat?' Lasts '+cellHours()+' hours.':''}${lock?' Requires '+SHOP.find(x=>x.id===it.req).name+'.':''}</div>`+
+      `<button data-buy="${it.id}"${dis?' disabled':''}>${label}</button></div>`}).join('');
+}
+// Customize view: everything you own, grouped, one click to equip
+function renderCust(){
+  const key=JSON.stringify(cur())+EDIT+wingOwned()+SHOP.filter(owns).length;if(key===renderCust.k)return;renderCust.k=key;
+  const pick=`<h3>FIGHTER</h3><div class="fsel">`+SLOT_NAMES.map((n,i)=>{const lock=i>wingOwned();
+    return `<button data-fighter="${i}" aria-pressed="${i===EDIT}"${lock?' disabled title="Buy this wingman in the shop"':''}>${n}</button>`}).join('')+`</div>`+
+    (wingOwned()<2?`<div class="fnote">${wingOwned()?'Wing 2 locked: buy it in Fleet':'Wingmen locked: buy them in Fleet'}</div>`:'');
+  $('cust').innerHTML=pick+[...SLOT_KEYS.map(([k,,t])=>[k,t]),['skin','PAINT'],['exhaust','EXHAUST'],['laser','LASERS']].map(([kind,title])=>
+    `<h3>${title}</h3>`+SHOP.filter(it=>it.kind===kind&&owns(it)).map(it=>
+      `<button data-equip="${it.id}" aria-pressed="${equipped(it)}">${swatch(it)}${it.name}</button>`).join('')).join('');
+}
+function swatch(it){
+  if(!['skin','exhaust','laser'].includes(it.kind))return '';
+  const c=it.kind==='skin'?[SKINS[it.key].hull[4],SKINS[it.key].panel[4],SKINS[it.key].light[1]]:it.kind==='exhaust'?[EXHAUSTS[it.key].eng[1],EXHAUSTS[it.key].exh[2],EXHAUSTS[it.key].exh[4]]:[LASERS[it.key][0],LASERS[it.key][1]];
+  return `<span class="sw">${c.map(x=>`<i style="background:${x}"></i>`).join('')}</span>`;
+}
+function toGame(e){const rc=cv.getBoundingClientRect();return [(e.clientX-rc.left)/SCALE,(e.clientY-rc.top)/SCALE]}
+cv.addEventListener('click',e=>{
+  if(document.body.classList.contains('open')){setMenu(false);return}
+  if(paused)return;const g=toGame(e),r=rockAt(...g);if(r)shoot(r);else freeShot(...g);
+});
+cv.style.cursor='crosshair';
+let idleT;function wake(){document.body.classList.remove('idle');clearTimeout(idleT);idleT=setTimeout(()=>document.body.classList.add('idle'),2500)}
+addEventListener('mousemove',wake);wake();
+const nf=new Intl.NumberFormat('en-US');
+if(skinsOwned().includes(SAVED.skin))applySkin(SAVED.skin);
+{const ex=SAVED.exhaust||(SAVED.skin==='blue'&&OWNED.exh_ion?'ion':'flame');const it=SHOP.find(x=>x.kind==='exhaust'&&x.key===ex);if(it&&owns(it))applyExhaust(ex)}
+{const it=SHOP.find(x=>x.kind==='laser'&&x.key===SAVED.laser);if(it&&owns(it))applyLaser(SAVED.laser)}
+if(SAVED.ship)for(const [slot] of SLOT_KEYS){const it=SHOP.find(x=>x.kind===slot&&x.key===SAVED.ship[slot]);if(it&&owns(it))applyPart(slot,it.key)}
+// lead comes from the saved lead settings above; wingmen from their own saved loadouts, or a copy of the lead (older saves)
+{const lead={...SHIPCFG,skin:SKIN,exhaust:EXHAUST,laser:LASER},sl=SAVED.loadouts||[];
+ LOADOUTS=[cleanLoad(sl[0]||lead,lead),cleanLoad(sl[1]||lead,lead),cleanLoad(sl[2]||lead,lead)];syncLead()}
+while(FLEET.length<=Math.min(SAVED.wing,wingOwned()))addWing();
+syncMenu();
 
+// ---------- shop preview ----------
+// A turntable view of your ship with the selected shop item swapped in (a ship part, paint, exhaust or laser).
+// It reuses the main rasterizer by briefly pointing its globals at a small preview buffer.
+const PV={W:170,H:120,t:0,rot:0,playing:true,ff:false,rw:false,shot:0,parts:[],bolts:[],cache:{}};
+{const c=$('pv-cv');c.width=PV.W;c.height=PV.H;PV.ctx=c.getContext('2d');PV.img=PV.ctx.createImageData(PV.W,PV.H);
+ PV.buf=new Uint32Array(PV.img.data.buffer);PV.zb=new Float32Array(PV.W*PV.H)}
+function pvPalette(c){
+  const k=c.skin+'|'+c.exhaust+'|'+c.laser;if(PV.cache[k])return PV.cache[k];
+  const S=SKINS[c.skin],E=EXHAUSTS[c.exhaust];
+  return PV.cache[k]={MATS:{rock:ROCKC,gold:GOLDC,hull:ramp(S.hull),panel:ramp(S.panel),trim:ramp(S.trim),glass:ramp(S.glass)},LIGHTC:ramp(S.light),
+    ENGC:ramp([shade(E.eng[0],.12),shade(E.eng[0],.25),shade(E.eng[0],.48),...E.eng]),EXH:ramp(E.exh),BOLT:ramp(LASERS[c.laser])};
+}
+function pvSync(){document.querySelector('[data-pv="play"]').setAttribute('aria-pressed',PV.playing);document.querySelector('[data-pv="pause"]').setAttribute('aria-pressed',!PV.playing)}
+$('preview').addEventListener('click',e=>{const b=e.target.closest('[data-pv]');if(!b)return;
+  if(b.dataset.pv==='play')PV.playing=true;else if(b.dataset.pv==='pause')PV.playing=false;pvSync()});
+// hold-to-spin buttons: fast forward and rewind
+for(const k of ['ff','rw']){const b=document.querySelector(`[data-pv="${k}"]`),on=v=>e=>{PV[k]=v;b.setAttribute('aria-pressed',v);if(v)b.setPointerCapture?.(e.pointerId)};
+ b.addEventListener('pointerdown',on(true));for(const ev of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(ev,on(false))}
+function previewTick(dt){
+  const on=document.body.classList.contains('open')&&$('menu').classList.contains('shop')&&COSMETIC_TABS.includes(SHOP_TAB);
+  document.body.classList.toggle('pv',on);if(!on)return;
+  PV.t+=Math.min(dt,.1);
+  // turntable: Play turns it slowly, Pause freezes the pose, holding Fast forward / Rewind spins it quickly either way
+  PV.rot+=Math.min(dt,.1)*((PV.playing?1:0)+(PV.ff?6:0)-(PV.rw?7:0));   // rewind outruns play so it always turns backwards
+  const c={...cur()},sel=SHOP.find(x=>x.id===SHOP_SEL);
+  if(sel&&sel.kind)c[sel.kind]=sel.key;
+  // label
+  if(sel&&sel.kind){const own=owns(sel);$('pv-nm').textContent=sel.name;
+    const pr=$('pv-pr');pr.className=!own&&CREDITS<sel.price?'poor':'';
+    pr.textContent=own?(equipped(sel)?'Equipped':'Owned'):CREDITS<sel.price?`¢${nf.format(sel.price)} (need ¢${nf.format(Math.ceil(sel.price-CREDITS))} more)`:`¢${nf.format(sel.price)}`;}
+  else{$('pv-nm').textContent=SLOT_NAMES[EDIT]+' loadout';$('pv-pr').textContent='Click an item to preview it';$('pv-pr').className=''}
+  // swap the renderer over to the preview buffer
+  const sv={W,H,F,buf,zb,MATS,ENGC,EXH,LIGHTC,BOLT,engLvl,THR,engFlick,cp:CAM.pos,cf:CAM.f,cr:CAM.r,cu:CAM.u};
+  const P=pvPalette(c),M=buildShip(c);
+  W=PV.W;H=PV.H;F=H*1.4;buf=PV.buf;zb=PV.zb;({MATS,ENGC,EXH,LIGHTC,BOLT}=P);engLvl=4.6;THR=1;engFlick=Math.sin(PV.t*47)*.35+(Math.random()-.5)*.5;
+  CAM.pos=[0,2.8,-8.6];CAM.f=norm(sub([0,0,0],CAM.pos));CAM.r=norm(cross([0,1,0],CAM.f));CAM.u=cross(CAM.f,CAM.r);
+  try{
+    buf.fill(BLACK);zb.fill(0);
+    for(let i=0;i<30;i++){const x=(i*73)%W,y=(i*41+((PV.t*6*(1+i%3))|0))%H;buf[y*W+x]=STARC[i%3]}   // a few drifting background stars
+    const R=euler(PV.rot*.6,Math.sin(PV.rot*.4)*.08,Math.sin(PV.rot*.7)*.15),pos=[0,0,0];
+    drawMesh(M,pos,R);
+    const back=mulR(R,[0,0,-1]);
+    for(const e of M.engines){const w=add(mulR(R,[e[0],e[1],e[2]]),pos);let n=(dt*70*e[3]*4+Math.random())|0;
+      while(n--){const sp=rand(5,8),j=e[3]*.6;PV.parts.push({p:[w[0]+rand(-j,j),w[1]+rand(-j,j),w[2]+rand(-j,j)],v:scl(back,sp),a:0,L:rand(.12,.3)})}}
+    for(const q of PV.parts){q.a+=dt;q.p=add(q.p,scl(q.v,dt))}
+    PV.parts=PV.parts.filter(q=>q.a<q.L);
+    for(const q of PV.parts){const p=proj(q.p);if(!p)continue;const f=q.a/q.L,th=BAY[((p.x|0)&3)|(((p.y|0)&3)<<2)];
+      const col=EXH[clamp(Math.floor(f*EXH.length+th*.8),0,EXH.length-1)],sz=Math.max(1,Math.round(.045*F*p.w));
+      for(let yy=0;yy<sz;yy++)for(let xx=0;xx<sz;xx++)plot(p.x+xx,p.y+yy,p.w,col)}
+    // fire a pair of bolts every 1.4 s so laser colors show
+    PV.shot-=dt;if(PV.shot<=0){PV.shot=1.4;for(const g of M.guns)PV.bolts.push({from:mulR(R,g),to:mulR(R,[g[0],g[1],30]),t:0})}
+    for(const b of PV.bolts){b.t+=dt;const f0=Math.max(0,b.t/.45-.25),f1=Math.min(1,b.t/.45);
+      const A=proj(add(b.from,scl(sub(b.to,b.from),f0))),B=proj(add(b.from,scl(sub(b.to,b.from),f1)));if(!A||!B)continue;
+      const dx=B.x-A.x,dy=B.y-A.y,n=Math.ceil(Math.max(Math.abs(dx),Math.abs(dy),1));
+      for(let i=0;i<=n;i++){const t=i/n;plot(A.x+dx*t,A.y+dy*t,Math.max(A.w,B.w),BOLT[t>.8?2:t>.4?1:0])}}
+    PV.bolts=PV.bolts.filter(b=>b.t<.45);
+    for(const L of M.lights){const on=L.blink===0||((PV.t+L.blink*.4)%1.8)<.15;const sp=proj(add(mulR(R,L.p),pos));if(sp)plot(sp.x,sp.y,sp.w*1.02,LIGHTC[on?2:0])}
+    PV.ctx.putImageData(PV.img,0,0);
+  }finally{({W,H,F,buf,zb,MATS,ENGC,EXH,LIGHTC,BOLT,engLvl,THR,engFlick}=sv);CAM.pos=sv.cp;CAM.f=sv.cf;CAM.r=sv.cr;CAM.u=sv.cu}
+}
+
+// ---------- HUD ----------
+// The readout drifts a few pixels over several minutes so its text never sits on the exact same pixels (OLED).
+let hudT=0,saveT=0;
+function hud(now){
+  if(now-hudT<250)return;hudT=now;
+  $('h-spd').textContent=(V*KMS_PER_UNIT).toFixed(1);
+  $('h-dst').textContent=nf.format(Math.floor(DIST));
+  $('h-cr').textContent=nf.format(Math.floor(CREDITS));
+  const fe=$('fuel'),cells=fe.querySelectorAll('i'),low=FUEL<1;
+  cells.forEach((c,i)=>{const f=clamp(FUEL-i,0,1)*100,col=low?'#d04030':'#c8a040';c.style.background=`linear-gradient(90deg,${col} ${f}%,#16161c ${f}%)`});
+  fe.classList.toggle('low',low);fe.classList.toggle('empty',FUEL<=0);
+  $('f-st').textContent=FUEL<=0?'EMPTY':Math.ceil(FUEL/FUEL_MAX*100)+'%';
+  if(document.body.classList.contains('open'))syncMenu();
+  const x=Math.sin(now/1e3*TAU/211)*10,y=Math.sin(now/1e3*TAU/157)*5;
+  $('hud').style.transform=`translate(calc(-50% + ${x.toFixed(1)}px),${y.toFixed(1)}px)`;
+  $('fuel').style.transform=`translate(calc(-50% + ${(-x).toFixed(1)}px),${(-y).toFixed(1)}px)`;
+  if(now-saveT>5000){saveT=now;save()}
+}
+addEventListener('pagehide',save);
+</script>
+</body></html>
