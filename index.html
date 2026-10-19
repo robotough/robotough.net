@@ -1,6 +1,7 @@
 <!doctype html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>robotough.net</title>
+<link rel="icon" type="image/png" href="images/robotough_star_icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
 html,body{margin:0;height:100%;background:#000;overflow:hidden}
@@ -582,8 +583,8 @@ const SHOP=[
   {id:'tank3',cat:'fuel',name:'Fuel Tank Mk IV',desc:'Each cell lasts 6 hours.',price:2000,req:'tank2'},
   {id:'optics',cat:'systems',name:'Targeting Optics',desc:'Locks on to asteroids in range (red crosshair) and fires automatically once they get closer.',price:5000},
   {id:'skin_red',cat:'paint',kind:'skin',key:'red',name:'Crimson',desc:'White hull, red trim. Standard issue.',price:0,free:true},
-  {id:'skin_blue',cat:'paint',kind:'skin',key:'blue',name:'Midnight',desc:'Dark gunmetal blue, blue running lights.',price:250},
-  {id:'skin_arctic',cat:'paint',kind:'skin',key:'arctic',name:'Arctic',desc:'Ice white hull, cyan trim.',price:300},
+  {id:'skin_blue',cat:'paint',kind:'skin',key:'blue',name:'Midnight',desc:'Dark gunmetal blue, blue running lights.',price:350,ord:1},
+  {id:'skin_arctic',cat:'paint',kind:'skin',key:'arctic',name:'Arctic',desc:'Ice white hull, cyan trim.',price:300,ord:1},
   {id:'skin_gunmetal',cat:'paint',kind:'skin',key:'gunmetal',name:'Gunmetal',desc:'Grey steel with orange hazard trim.',price:300},
   {id:'skin_hornet',cat:'paint',kind:'skin',key:'hornet',name:'Hornet',desc:'Matte black with yellow stripes.',price:400},
   {id:'skin_viper',cat:'paint',kind:'skin',key:'viper',name:'Viper',desc:'Dark green hull, lime trim.',price:400},
@@ -619,9 +620,9 @@ const MORE_PAINT=[
   ['ember','Ember','Charcoal hull, ember orange trim.',350,mkPaint(20,.08,.04,.42,18,.95)],
   ['sakura','Sakura','Pearl white hull, cherry blossom pink.',450,mkPaint(340,.25,.08,.97,335,.8)],
   ['ocean','Ocean','Navy hull, teal trim.',350,mkPaint(222,.5,.04,.5,180,.85)],
-  ['forest','Forest','Olive drab with bark brown.',300,mkPaint(80,.3,.05,.55,28,.5)],
+  ['clover','Clover','White hull, clover green trim.',250,mkPaint(140,.08,.08,.97,138,.85)],
   ['tangerine','Tangerine','White hull, bright orange trim.',350,mkPaint(30,.15,.08,.97,28,1)],
-  ['cobalt','Cobalt','White hull, deep cobalt trim.',350,mkPaint(215,.15,.08,.97,220,.9)],
+  ['cobalt','Cobalt','White hull, deep cobalt trim.',250,mkPaint(215,.15,.08,.97,220,.9)],
   ['obsidian','Obsidian','Glossy black, blood red trim.',500,mkPaint(0,.05,.02,.3,355,.95,0)],
   ['bubblegum','Bubblegum','Pink hull, cyan trim.',450,mkPaint(325,.7,.08,.85,185,.9)],
   ['copper','Copper','Polished copper with dark bronze.',550,mkPaint(22,.6,.06,.72,30,.45)],
@@ -667,7 +668,7 @@ const MORE_LAS=[
   ['white','White','Pure white bolts.',300,['#c8ccd8','#eef0ff','#ffffff']],
   ['plasma','Plasma','Purple-pink plasma bolts.',350,['#c02aff','#ff8ad8','#ffffff']],
 ];
-for(const [k,n,d,pr,def] of MORE_PAINT){SKINS[k]=def;SHOP.push({id:'skin_'+k,cat:'paint',kind:'skin',key:k,name:n,desc:d,price:pr})}
+for(const [k,n,d,pr,def] of MORE_PAINT){SKINS[k]=def;SHOP.push({id:'skin_'+k,cat:'paint',kind:'skin',key:k,name:n,desc:d,price:pr,ord:k==='clover'?1:0})}
 for(const [k,n,d,pr,def] of MORE_EXH){EXHAUSTS[k]=def;SHOP.push({id:'exh_'+k,cat:'exhaust',kind:'exhaust',key:k,name:n,desc:d,price:pr})}
 // ship parts: one shop item per part, kind = slot so equip/preview work like the other cosmetics
 for(const [slot] of SLOT_KEYS)for(const [k,P] of Object.entries(SHIP_PARTS[slot]))
@@ -706,12 +707,17 @@ if(OWNED.skin_blue&&!('exh_ion' in OWNED))OWNED.exh_ion=true;
 // the 7 whole ships were replaced by modular parts: refund anything bought under the old system
 {const OLD={ship_lance:1200,ship_talon:1500,ship_manta:1800,ship_wasp:2000,ship_mule:2500,ship_trident:3500};
  for(const [id,pr] of Object.entries(OLD))if(OWNED[id]){CREDITS+=pr;delete OWNED[id]}}
+// Forest paint became Clover
+if(OWNED.skin_forest){OWNED.skin_clover=true;delete OWNED.skin_forest}
+if(SAVED.skin==='forest')SAVED.skin='clover';
+if(SAVED.loadouts)for(const l of SAVED.loadouts)if(l&&l.skin==='forest')l.skin='clover';
 // renamed parts: Stack -> Seven Star, Ring -> Cargo
 for(const [o,n] of [['part_eng_stack','part_eng_seven'],['part_wing_ring','part_wing_cargo']])if(OWNED[o]){OWNED[n]=true;delete OWNED[o]}
 if(SAVED.ship){if(SAVED.ship.eng==='stack')SAVED.ship.eng='seven';if(SAVED.ship.wing==='ring')SAVED.ship.wing='cargo'}
 function save(){try{localStorage.setItem('drift.save',JSON.stringify({dist:DIST,credits:CREDITS,fuel:FUEL,exhaust:EXHAUST,laser:LASER,ship:SHIPCFG,loadouts:LOADOUTS,owned:OWNED,wing:FLEET.length-1,skin:SKIN}))}catch(e){}}
 let scan=0,STARS=[],PARTS=[],T=0,V=22,paused=false,cov,showCov=false;
-const FAR=420,NEAR=1.5,STALE=300;   // STALE: seconds a pixel may go unlit
+const FAR=420,NEAR=1.5,STALE=300;
+const COVC=Uint32Array.from({length:64},(_,k)=>(0xff000000|(30+((225*k/63)|0)))>>>0);   // coverage-map reds, dark to bright   // STALE: seconds a pixel may go unlit
 
 // The lead ship roams a slow Lissajous path, but only inside the bottom-left quadrant.
 // Its path is defined in screen space, then projected back into the world at a depth that
@@ -909,8 +915,12 @@ function render(){
   }});
   // coverage: remember when each pixel was last lit
   let stale=0;
-  for(let i=0;i<buf.length;i++){if(buf[i]!==BLACK)cov[i]=T;else if(cov[i]<0||T-cov[i]>STALE){stale++;if(showCov)buf[i]=0xff000060}}
-  if(showCov)hint.textContent=`red = unlit ${STALE/60}+ min: ${stale}/${buf.length} px (${(100*stale/buf.length).toFixed(2)}%)`;
+  // coverage map: a heat map of how long each dark pixel has gone unlit (dark red = recent, bright red = near the limit, yellow = over it)
+  let oldest=0;
+  for(let i=0;i<buf.length;i++){if(buf[i]!==BLACK){cov[i]=T;continue}
+    const age=cov[i]<0?STALE*2:T-cov[i];if(age>STALE)stale++;if(age>oldest)oldest=age;
+    if(showCov&&age>3)buf[i]=age>STALE?0xff00e0ff:COVC[Math.min(63,(age/STALE*64)|0)]}
+  if(showCov)hint.textContent=`Coverage: longest unlit ${Math.floor(oldest/60)}:${String(Math.floor(oldest%60)).padStart(2,'0')} of ${STALE/60}:00 · over limit ${(100*stale/buf.length).toFixed(2)}%`;
   ctx.putImageData(img,0,0);
 }
 
@@ -980,7 +990,7 @@ function renderShop(){
   $('s-cr').textContent=nf.format(Math.floor(CREDITS));$('s-for').textContent='Equips to: '+SLOT_NAMES[EDIT];
   const key=SHOP.map(it=>(OWNED[it.id]?'o':'')+(CREDITS<it.price?'p':'')).join()+JSON.stringify(cur())+EDIT+SHOP_SEL+(FUEL>FUEL_MAX-1?'F':'')+SHOP_TAB;if(key===renderShop.k)return;renderShop.k=key;
   $('tabs').innerHTML=SHOP_TABS.map(([id,n])=>`<button role="tab" data-tab="${id}" aria-selected="${id===SHOP_TAB}">${n}</button>`).join('');
-  $('items').innerHTML=SHOP.filter(it=>it.cat===SHOP_TAB).sort((a,b)=>a.price-b.price).map(it=>{
+  $('items').innerHTML=SHOP.filter(it=>it.cat===SHOP_TAB).sort((a,b)=>a.price-b.price||(a.ord||0)-(b.ord||0)).map(it=>{   // ord breaks price ties
     const own=owns(it),lock=it.req&&!OWNED[it.req],poor=CREDITS<it.price,full=it.repeat&&FUEL>FUEL_MAX-1;
     const cos=!!it.kind,eq=cos&&own&&equipped(it);
     const label=cos&&own?(eq?'Equipped':'Equip'):own?'Owned':full?'Tank full':lock?'Locked':'\u00a2'+nf.format(it.price);
