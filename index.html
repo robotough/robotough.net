@@ -986,11 +986,12 @@ function buy(id){
   renderShop.k=null;
   save();syncMenu();
 }
+const shopOrder=(a,b)=>a.price-b.price||(a.ord||0)-(b.ord||0);   // by price, ord breaks ties
 function renderShop(){
   $('s-cr').textContent=nf.format(Math.floor(CREDITS));$('s-for').textContent='Equips to: '+SLOT_NAMES[EDIT];
   const key=SHOP.map(it=>(OWNED[it.id]?'o':'')+(CREDITS<it.price?'p':'')).join()+JSON.stringify(cur())+EDIT+SHOP_SEL+(FUEL>FUEL_MAX-1?'F':'')+SHOP_TAB;if(key===renderShop.k)return;renderShop.k=key;
   $('tabs').innerHTML=SHOP_TABS.map(([id,n])=>`<button role="tab" data-tab="${id}" aria-selected="${id===SHOP_TAB}">${n}</button>`).join('');
-  $('items').innerHTML=SHOP.filter(it=>it.cat===SHOP_TAB).sort((a,b)=>a.price-b.price||(a.ord||0)-(b.ord||0)).map(it=>{   // ord breaks price ties
+  $('items').innerHTML=SHOP.filter(it=>it.cat===SHOP_TAB).sort(shopOrder).map(it=>{
     const own=owns(it),lock=it.req&&!OWNED[it.req],poor=CREDITS<it.price,full=it.repeat&&FUEL>FUEL_MAX-1;
     const cos=!!it.kind,eq=cos&&own&&equipped(it);
     const label=cos&&own?(eq?'Equipped':'Equip'):own?'Owned':full?'Tank full':lock?'Locked':'\u00a2'+nf.format(it.price);
@@ -1005,7 +1006,7 @@ function renderCust(){
     return `<button data-fighter="${i}" aria-pressed="${i===EDIT}"${lock?' disabled title="Buy this wingman in the shop"':''}>${n}</button>`}).join('')+`</div>`+
     (wingOwned()<2?`<div class="fnote">${wingOwned()?'Wing 2 locked: buy it in Fleet':'Wingmen locked: buy them in Fleet'}</div>`:'');
   $('cust').innerHTML=pick+[...SLOT_KEYS.map(([k,,t])=>[k,t]),['skin','PAINT'],['exhaust','EXHAUST'],['laser','LASERS']].map(([kind,title])=>
-    `<h3>${title}</h3>`+SHOP.filter(it=>it.kind===kind&&owns(it)).map(it=>
+    `<h3>${title}</h3>`+SHOP.filter(it=>it.kind===kind&&owns(it)).sort(shopOrder).map(it=>
       `<button data-equip="${it.id}" aria-pressed="${equipped(it)}">${swatch(it)}${it.name}</button>`).join('')).join('');
 }
 function swatch(it){
