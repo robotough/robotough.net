@@ -776,9 +776,9 @@ function axisRot(ax,a){const [x,y,z]=ax,c=Math.cos(a),s=Math.sin(a),t=1-c;
   return [t*x*x+c,t*x*y-s*z,t*x*z+s*y,t*x*y+s*z,t*y*y+c,t*y*z-s*x,t*x*z-s*y,t*y*z+s*x,t*z*z+c]}
 const GOLD_CHANCE=1/77,GOLD_REWARD=121;
 function spawnRock(forceGold){
-  // spawn anywhere across the top half of the screen. Rocks drift outward from the vanishing point (upper right),
+  // spawn in the top-right quadrant. Rocks drift outward from the vanishing point (upper right),
   // so ones that start below it come down toward the lead's corner and ones above it drift up and away.
-  const cz=260,sx=W*rand(.1,.9),sy=H*rand(.06,.46),size=rand(1.5,3.5);
+  const cz=260,sx=W*rand(.53,.92),sy=H*rand(.06,.46),size=rand(1.5,3.5);
   const pos=add(CAM.pos,add(scl(CAM.f,cz),add(scl(CAM.r,(sx-W/2)*cz/F),scl(CAM.u,-(sy-H/2)*cz/F))));
   const gold=forceGold||Math.random()<GOLD_CHANCE;
   ROCKS.push({pos,size,gold,mesh:buildRock(gold?'gold':'rock'),ax:norm([rand(-1,1),rand(-1,1),rand(-1,1)]),ang:0,spin:rand(.4,1.4),hit:false,
