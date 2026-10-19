@@ -234,7 +234,7 @@ let MATS,ENGC,LIGHTC,EXH,SKIN,EXHAUST='flame',LASER='red',BOLT;
 const ROCKC=ramp(['#1e1814','#3e332c','#66564a','#948068','#c2aa8c','#e8d4b4']);
 const GOLDC=ramp(['#2a1a04','#5a3a08','#9a6a10','#d8a020','#ffd24a','#fff4c0']);
 const XHAIR=hex('#ff2a2a'),XHAIR2=hex('#8a1010');
-const LOCK_RANGE=180,FIRE_RANGE=120;   // Targeting Optics: lock-on and auto-fire distances
+const LOCK_RANGE=180,FIRE_RANGE=120,LOCK_LINE=.4,FIRE_LINE=.5;   // Targeting Optics: lock-on and auto-fire distances
 function applySkin(k){const S=SKINS[k];SKIN=k;MATS={rock:ROCKC,gold:GOLDC,hull:ramp(S.hull),panel:ramp(S.panel),trim:ramp(S.trim),glass:ramp(S.glass)};LIGHTC=ramp(S.light)}
 function applyExhaust(k){const E=EXHAUSTS[k];EXHAUST=k;ENGC=ramp([shade(E.eng[0],.12),shade(E.eng[0],.25),shade(E.eng[0],.48),...E.eng]);EXH=ramp(E.exh)}
 function applyLaser(k){LASER=k;BOLT=ramp(LASERS[k])}
@@ -776,10 +776,9 @@ function axisRot(ax,a){const [x,y,z]=ax,c=Math.cos(a),s=Math.sin(a),t=1-c;
   return [t*x*x+c,t*x*y-s*z,t*x*z+s*y,t*x*y+s*z,t*y*y+c,t*y*z-s*x,t*x*z-s*y,t*y*z+s*x,t*z*z+c]}
 const GOLD_CHANCE=1/77,GOLD_REWARD=121;
 function spawnRock(forceGold){
-  // enter somewhere outside the ship's bottom-left quadrant
-  // start near the middle so it drifts across a good part of the screen, heading away from the ship's corner
-  let u,v;do{u=Math.random();v=Math.random()}while(u<.5&&v>.5);
-  const cz=260,sx=W/2+(u-.5)*W*.4,sy=H/2+(v-.5)*H*.4,size=rand(1.5,3.5);
+  // spawn anywhere across the top half of the screen. Rocks drift outward from the vanishing point (upper right),
+  // so ones that start below it come down toward the lead's corner and ones above it drift up and away.
+  const cz=260,sx=W*rand(.1,.9),sy=H*rand(.06,.46),size=rand(1.5,3.5);
   const pos=add(CAM.pos,add(scl(CAM.f,cz),add(scl(CAM.r,(sx-W/2)*cz/F),scl(CAM.u,-(sy-H/2)*cz/F))));
   const gold=forceGold||Math.random()<GOLD_CHANCE;
   ROCKS.push({pos,size,gold,mesh:buildRock(gold?'gold':'rock'),ax:norm([rand(-1,1),rand(-1,1),rand(-1,1)]),ang:0,spin:rand(.4,1.4),hit:false,
@@ -818,11 +817,15 @@ function explode(r){
 function updateRocks(dt){
   rockT-=dt;if(rockT<=0){spawnRock();rockT=rand(40,90)}
   for(const r of ROCKS){r.pos[2]-=V*.55*dt;r.ang+=r.spin*dt}
+  // Targeting Optics: lock on when in range, or at the latest once the rock's lowest pixel reaches LOCK_LINE (40% down).
+  // Fire when it's close or about to leave the screen, and always once its lowest pixel reaches FIRE_LINE (the midline),
+  // which is above the highest point the lead can reach.
   if(OWNED.optics)for(const r of ROCKS){if(r.hit)continue;const s=rockScreen(r);
-    const on=s&&s.x>0&&s.y>0&&s.x<W&&s.y<H,cz=s?1/s.w:1e9;
-    if(on&&cz<LOCK_RANGE){r.lockT=(r.lockT||0)+dt;
+    const on=s&&s.x>0&&s.y>0&&s.x<W&&s.y<H,cz=s?1/s.w:1e9;if(!on){r.lockT=0;continue}
+    const low=s.y+s.r;
+    if(r.lockT>0||cz<LOCK_RANGE||low>=H*LOCK_LINE){r.lockT=(r.lockT||0)+dt;
       const edge=s.x<W*.06||s.x>W*.94||s.y<H*.08||s.y>H*.92;   // about to leave the screen: take the shot now
-      if((cz<FIRE_RANGE||edge)&&r.lockT>.6)shoot(r)}else r.lockT=0}
+      if(low>=H*FIRE_LINE||((cz<FIRE_RANGE||edge)&&r.lockT>.6))shoot(r)}}
   ROCKS=ROCKS.filter(r=>{const s=rockScreen(r);return s&&1/s.w>4&&s.x>-s.r-20&&s.x<W+s.r+20&&s.y>-s.r-20&&s.y<H+s.r+20});
   for(const b of BOLTS){b.t+=dt;if(b.t>=b.dur&&!b.done){b.done=true;if(b.rock&&ROCKS.includes(b.rock))explode(b.rock)}}
   BOLTS=BOLTS.filter(b=>b.t<b.dur+.05);
