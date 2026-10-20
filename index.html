@@ -1055,18 +1055,19 @@ $('preview').addEventListener('click',e=>{const b=e.target.closest('[data-pv]');
 for(const k of ['ff','rw']){const b=document.querySelector(`[data-pv="${k}"]`),on=v=>e=>{PV[k]=v;b.setAttribute('aria-pressed',v);if(v)b.setPointerCapture?.(e.pointerId)};
  b.addEventListener('pointerdown',on(true));for(const ev of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(ev,on(false))}
 function previewTick(dt){
-  const on=document.body.classList.contains('open')&&$('menu').classList.contains('shop')&&COSMETIC_TABS.includes(SHOP_TAB);
+  const open=document.body.classList.contains('open'),inCust=open&&$('menu').classList.contains('cust');
+  const on=inCust||(open&&$('menu').classList.contains('shop')&&COSMETIC_TABS.includes(SHOP_TAB));
   document.body.classList.toggle('pv',on);if(!on)return;
   PV.t+=Math.min(dt,.1);
   // turntable: Play turns it slowly, Pause freezes the pose, holding Fast forward / Rewind spins it quickly either way
   PV.rot+=Math.min(dt,.1)*((PV.playing?1:0)+(PV.ff?6:0)-(PV.rw?7:0));   // rewind outruns play so it always turns backwards
-  const c={...cur()},sel=SHOP.find(x=>x.id===SHOP_SEL);
+  const c={...cur()},sel=inCust?null:SHOP.find(x=>x.id===SHOP_SEL);
   if(sel&&sel.kind)c[sel.kind]=sel.key;
   // label
   if(sel&&sel.kind){const own=owns(sel);$('pv-nm').textContent=sel.name;
     const pr=$('pv-pr');pr.className=!own&&CREDITS<sel.price?'poor':'';
     pr.textContent=own?(equipped(sel)?'Equipped':'Owned'):CREDITS<sel.price?`¢${nf.format(sel.price)} (need ¢${nf.format(Math.ceil(sel.price-CREDITS))} more)`:`¢${nf.format(sel.price)}`;}
-  else{$('pv-nm').textContent=SLOT_NAMES[EDIT]+' loadout';$('pv-pr').textContent='Click an item to preview it';$('pv-pr').className=''}
+  else{$('pv-nm').textContent=SLOT_NAMES[EDIT]+' loadout';$('pv-pr').textContent=inCust?'Click an item to equip it':'Click an item to preview it';$('pv-pr').className=''}
   // swap the renderer over to the preview buffer
   const sv={W,H,F,buf,zb,MATS,ENGC,EXH,LIGHTC,BOLT,engLvl,THR,engFlick,cp:CAM.pos,cf:CAM.f,cr:CAM.r,cu:CAM.u};
   const P=pvPalette(c),M=buildShip(c);
