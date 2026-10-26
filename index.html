@@ -73,6 +73,12 @@ body.pv #preview{display:block}
 .pv-ctl button:hover{border-color:#ff4a3a}
 .pv-ctl button[aria-pressed="true"]{border-color:#e6e6e6;background:#1c1016}
 .pv-ctl svg{width:14px;height:12px;fill:#ddd;shape-rendering:crispEdges}
+.pv-nav{display:flex;align-items:center;gap:6px;margin:0 0 8px}
+.pv-nav span{flex:1;text-align:center;font-size:9px;color:#fff;letter-spacing:.04em}
+.pv-nav button{width:44px;height:26px;display:flex;align-items:center;justify-content:center;background:#12121a;border:2px solid #2a2a33;cursor:pointer;padding:0}
+.pv-nav button:hover{border-color:#ff4a3a}
+.pv-nav button:disabled{opacity:.3;cursor:default;border-color:#2a2a33}
+.pv-nav svg{width:14px;height:12px;fill:#ddd;shape-rendering:crispEdges}
 #pv-pr.poor{color:#d04030}
 @media (max-width:660px){body.pv #preview{display:none}}
 .sw{display:inline-flex;gap:2px;margin-right:8px;vertical-align:middle}
@@ -310,7 +316,7 @@ button.bk kbd{color:#ddd!important;border-color:#555!important}
 </nav>
 <div id="hint"></div>
 <div id="visit" role="dialog" aria-label="Docked at planet"><div id="v-body"></div><div class="vx"><button data-vclose>Leave<kbd>Esc</kbd></button></div></div>
-<div id="preview" aria-live="polite"><canvas id="pv-cv"></canvas><div class="pv-ctl">
+<div id="preview" aria-live="polite"><div class="pv-nav"><button data-pvf="-1" aria-label="Previous fleet member"><svg viewBox="0 0 14 12"><polygon points="10,0 3,6 10,12"/></svg></button><span id="pv-fl">Lead</span><button data-pvf="1" aria-label="Next fleet member"><svg viewBox="0 0 14 12"><polygon points="4,0 11,6 4,12"/></svg></button></div><canvas id="pv-cv"></canvas><div class="pv-ctl">
   <button data-pv="play" aria-label="Play" aria-pressed="true"><svg viewBox="0 0 14 12"><polygon points="3,0 12,6 3,12"/></svg></button>
   <button data-pv="pause" aria-label="Pause" aria-pressed="false"><svg viewBox="0 0 14 12"><rect x="3" y="1" width="3" height="10"/><rect x="8" y="1" width="3" height="10"/></svg></button>
   <button data-pv="rw" aria-label="Rewind (hold)"><svg viewBox="0 0 14 12"><polygon points="7,0 0,6 7,12"/><polygon points="14,0 7,6 14,12"/></svg></button>
@@ -322,7 +328,7 @@ button.bk kbd{color:#ddd!important;border-color:#555!important}
 <script>
 'use strict';
 const cv=document.getElementById('c'),ctx=cv.getContext('2d');
-let W,H,SCALE,F,img,buf,zb;
+let W,H,SCALE,F,img,buf,zb,shipm;
 const rand=(a,b)=>a+Math.random()*(b-a);
 const clamp=(v,a,b)=>v<a?a:v>b?b:v;
 function hex(h){const n=parseInt(h.slice(1),16);return (0xff000000|((n&255)<<16)|(n&0xff00)|(n>>16&255))>>>0}
@@ -480,6 +486,32 @@ function hoop(m,z,r,ry,depth,th,n,mat,cy=0,rot=0){
     hexa(m,[P(a0,r,z+depth/2),P(a1,r,z+depth/2),P(a1,r,z-depth/2),P(a0,r,z-depth/2)],
            [P(a0,r-th,z+depth/2),P(a1,r-th,z+depth/2),P(a1,r-th,z-depth/2),P(a0,r-th,z-depth/2)],mat)}}
 
+// ---------- extra geometry helpers (beams, arcs, rotated sub-parts) ----------
+// square-section beam from a to b, width wa at a tapering to wb at b (height = width * hk)
+function beam(m,a,b,wa,wb,mat,hk=1){
+  const d=norm(sub(b,a));let up=Math.abs(d[1])>.95?[1,0,0]:[0,1,0];
+  const r=norm(cross(d,up)),u=cross(r,d);
+  const C=(p,w)=>{const h=w*hk/2,x=w/2;return [add(add(p,scl(r,x)),scl(u,h)),add(add(p,scl(r,-x)),scl(u,h)),add(add(p,scl(r,-x)),scl(u,-h)),add(add(p,scl(r,x)),scl(u,-h))]};
+  const A=C(a,wa),B=C(b,wb),ref=scl(add(a,b),.5);
+  for(let k=0;k<4;k++){const k2=(k+1)%4;quad(m,A[k],A[k2],B[k2],B[k],mat,ref)}
+  quad(m,A[0],A[1],A[2],A[3],mat,add(a,scl(d,1)));quad(m,B[0],B[1],B[2],B[3],mat,sub(b,scl(d,1)));
+}
+// chain of beams through points, widths per point, mats per gap
+function beamChain(m,pts,ws,mats,hk=1){for(let i=0;i<pts.length-1;i++)beam(m,pts[i],pts[i+1],ws[i],ws[i+1],mats[i%mats.length],hk)}
+// partial ring (arc) around the z axis, angles in radians
+function arc(m,z,r,ry,depth,th,a0,a1,n,mat,cy=0){
+  for(let k=0;k<n;k++){const b0=a0+(a1-a0)*k/n,b1=a0+(a1-a0)*(k+1)/n;
+    const P=(a,rr,zz)=>[Math.cos(a)*rr,cy+Math.sin(a)*rr*ry/r,zz];
+    hexa(m,[P(b0,r,z+depth/2),P(b1,r,z+depth/2),P(b1,r,z-depth/2),P(b0,r,z-depth/2)],
+           [P(b0,r-th,z+depth/2),P(b1,r-th,z+depth/2),P(b1,r-th,z-depth/2),P(b0,r-th,z-depth/2)],mat)}}
+const D2R=Math.PI/180;
+// build into a temp mesh, rotate by R and move to pos, then merge
+function xform(m,fn,R,pos){const t={tris:[],lights:[],engines:[],guns:[]};fn(t);
+  const P=v=>add(mulR(R,v),pos);
+  for(const q of t.tris)m.tris.push({v:q.v.map(P),n:mulR(R,q.n),mat:q.mat});
+  for(const L of t.lights)m.lights.push({p:P(L.p),blink:L.blink});
+  for(const e of t.engines){const p=P([e[0],e[1],e[2]]);m.engines.push([p[0],p[1],p[2],e[3]])}
+  for(const g of t.guns)m.guns.push(P(g));}
 const SHIP_PARTS={
 nose:{
   dart:{name:'Dart',desc:'Faceted fighter nose with a bubble canopy. Standard issue.',price:0,b(m){
@@ -526,6 +558,67 @@ nose:{
     loft(m,[S_(2.15,0,0),S_(1.8,.11,.12),S_(1.0,.14,.13),S_(.6,0,0)],6,'glass',0,.3);
     lit(m,[0,-.08,3.0],3);
   }},
+  hammer:{name:'Hammer',desc:'Wide hammerhead crossbar with the cockpit tucked behind it.',price:900,b(m){
+    loft(m,[S_(2.55,.2,.13,.02),S_(1.8,.34,.22,.03),J1],6,'hull',0,0,'panel');
+    prism(m,[{z:3.05,p:rect(0,.0,.95,.06)},{z:2.6,p:rect(0,.0,1.12,.13)},{z:2.2,p:rect(0,.01,.85,.1)}],'hull','trim','panel');
+    for(const s of [-1,1]){box(m,s*1.12-.06,s*1.12+.06,-.3,.16,2.25,2.95,'trim');lit(m,[s*1.13,-.31,2.95],s>0?1:2)}
+    box(m,-.5,.5,.12,.15,2.35,2.9,'trim');
+    loft(m,[S_(1.95,0,0),S_(1.55,.15,.1),S_(.95,.18,.12),S_(.55,0,0)],6,'glass',0,.24);
+  }},
+  shard:{name:'Shard',desc:'Faceted crystal spike with a glowing collar. No canopy.',price:1200,b(m){
+    const dm=(w,t,b,yo=0)=>[[0,t+yo],[w,yo],[0,-b+yo],[-w,yo]];
+    prism(m,[{z:3.7,p:dm(.03,.02,.02,.0)},{z:2.25,p:dm(.42,.34,.3,.02)},{z:1.25,p:dm(.44,.32,.24,.04)}],'hull','hull','panel');
+    loft(m,[S_(1.4,.36,.22,.04),J1],6,'hull',0,0,'panel');
+    const sep=(rx,ry,yo)=>Array.from({length:7},(_,k)=>{const a=Math.PI/2+k/7*PI2;return [Math.cos(a)*rx,yo+Math.sin(a)*ry]});
+    prism(m,[{z:2.96,p:sep(.3,.25,.01)},{z:2.86,p:sep(.3,.25,.01)}],'engine');prism(m,[{z:2.39,p:sep(.49,.41,.02)},{z:2.29,p:sep(.49,.41,.02)}],'trim');
+    for(const s of [-1,1])plate(m,[[s*.4,.02,2.15],[s*.78,-.04,1.25],[s*.8,-.05,.85],[s*.42,.03,1.15]],[0,.025,0],'trim');
+    lit(m,[0,.02,3.72],3);
+  }},
+  orb:{name:'Orb',desc:'Round glass cockpit held in a collar and yoke.',price:1300,b(m){
+    loft(m,[S_(1.9,.16,.12,.06),S_(1.45,.27,.19,.05),J1],6,'hull',0,0,'panel');
+    loft(m,[S_(2.74,0,0),S_(2.62,.3,.3),S_(2.4,.48,.48),S_(2.04,.48,.48),S_(1.82,.3,.3),S_(1.7,0,0)],8,'glass',0,.12);
+    hoop(m,2.22,.54,.54,.13,.07,8,'trim',.12,PI2/16);
+    for(const s of [-1,1])beamChain(m,[[s*.52,.12,2.2],[s*.5,.05,1.75],[s*.32,.02,1.25]],[.09,.1,.12],['hull']);
+    beam(m,[0,.64,2.22],[0,.3,1.4],.07,.1,'trim');
+    lit(m,[0,.67,2.22],3);
+  }},
+  visor:{name:'Visor',desc:'Boxy shuttle cab with a wraparound visor strip.',price:800,b(m){
+    const sec=(k,yo=0)=>[[-.3*k,-.22+yo],[.3*k,-.22+yo],[.46*k,-.05+yo],[.42*k,.24+yo],[-.42*k,.24+yo],[-.46*k,-.05+yo]];
+    prism(m,[{z:2.6,p:sec(.95,.02)},{z:2.45,p:sec(1,.02)},{z:1.25,p:sec(1,.04)}],'hull','panel','panel');
+    loft(m,[S_(1.35,.38,.24,.04),J1],6,'hull',0,0,'panel');
+    box(m,-.45,.45,.05,.18,2.25,2.63,'glass');
+    for(const s of [-1,1]){box(m,s*.455-.02,s*.455+.02,.05,.18,1.55,2.3,'glass');lit(m,[s*.3,-.12,2.62],0)}
+    box(m,-.4,.4,-.3,-.2,2.45,2.68,'trim');box(m,-.35,.35,.26,.29,1.3,2.3,'trim');
+  }},
+  offset:{name:'Offset',desc:'Asymmetric nose: cockpit pod on one side, long sensor boom on the other.',price:1100,b(m){
+    loft(m,[S_(2.25,.22,.15,.02),S_(1.6,.37,.23,.03),J1],6,'hull',0,0,'panel');
+    loft(m,[S_(2.72,0,0),S_(2.68,.13,.11),S_(2.56,.23,.19),S_(2.32,.29,.24),S_(1.75,.3,.25),S_(.85,.27,.21)],8,'hull',-.42,.14,'panel');
+    loft(m,[S_(2.3,0,0),S_(2.05,.17,.12),S_(1.35,.2,.14),S_(.9,0,0)],6,'glass',-.42,.36);
+    box(m,.12,.44,-.14,.1,1.4,2.4,'trim');
+    tube(m,.28,-.02,[S_(3.9,.03,.03),S_(2.4,.08,.08)],6,'hull','hull','hull');
+    plate(m,[[.42,.08,2.2],[.42,.42,1.75],[.42,.42,1.45],[.42,.08,1.5]],[.03,0,0],'trim');
+    for(const z of [3.3,2.85])tube(m,.28,-.02,[S_(z,.1,.1),S_(z-.08,.1,.1)],6,'trim');
+    lit(m,[.28,-.02,3.92],3);lit(m,[.43,.44,1.45],0);
+  }},
+  cannon:{name:'Cannon',desc:'Heavy nose gun with a shroud and muzzle brake.',price:1400,b(m){
+    loft(m,[S_(2.3,.24,.17,.02),S_(1.7,.37,.23,.03),J1],6,'hull',0,0,'panel');
+    tube(m,0,-.05,[S_(2.95,.19,.19),S_(2.15,.22,.22)],6,'hull','panel','hull');
+    tube(m,0,-.05,[S_(3.45,.09,.09),S_(2.9,.1,.1)],6,'trim','panel','trim');
+    tube(m,0,-.05,[S_(3.62,.15,.15),S_(3.42,.15,.15)],6,'hull','panel','hull');
+    box(m,-.2,.2,.12,.2,2.3,2.9,'trim');
+    loft(m,[S_(1.8,0,0),S_(1.45,.15,.1),S_(.9,.18,.12),S_(.5,0,0)],6,'glass',0,.27);
+    m.guns.push([0,-.05,3.64]);
+  }},
+  splitter:{name:'Splitter',desc:'Prow split into upper and lower blades, with a glowing slot between.',price:1200,b(m){
+    const U=(k,dy)=>[[-.26*k,.05],[.26*k,.05],[.2*k,.05+.2*k],[0,.05+.28*k],[-.2*k,.05+.2*k]].map(([x,y])=>[x,y+dy]);
+    const D=(k,dy)=>[[-.26*k,-.05],[-.2*k,-.05-.16*k],[0,-.05-.22*k],[.2*k,-.05-.16*k],[.26*k,-.05]].map(([x,y])=>[x,y+dy]);
+    prism(m,[{z:3.35,p:U(.12,0)},{z:2.4,p:U(.9,0)},{z:1.2,p:U(1.25,.02)}],'hull','hull','panel');
+    prism(m,[{z:3.2,p:D(.12,0)},{z:2.4,p:D(.9,0)},{z:1.2,p:D(1.25,.02)}],'trim','trim','panel');
+    box(m,-.16,.16,-.05,.06,1.4,2.95,'engine');
+    loft(m,[S_(1.35,.36,.24,.04),J1],6,'hull',0,0,'panel');
+    loft(m,[S_(1.75,0,0),S_(1.45,.14,.09),S_(.9,.17,.11),S_(.5,0,0)],6,'glass',0,.4);
+    for(const s of [-1,1])lit(m,[s*.27,.05,2.4],s>0?1:2);
+  }},
 },
 hull:{
   standard:{name:'Standard',desc:'Angular fuselage with side intakes. Standard issue.',price:0,b(m){
@@ -569,6 +662,57 @@ hull:{
     box(m,-.2,.2,.8,.92,-.95,.2,'trim');box(m,-.05,.05,.92,1.15,-.75,-.5,'hull');
     for(const s of [-1,1])box(m,s*.56-.04,s*.56+.04,.0,.3,-.8,.2,'trim');
     lit(m,[0,1.17,-.62],3);
+  }},
+  ribcage:{name:'Ribcage',desc:'Lean core under a row of bony rib arches.',price:1100,b(m){
+    loft(m,[J1,S_(0,.44,.26,.05),J2],6,'panel',0,0,'panel');
+    [.75,.38,0,-.38,-.75].forEach((z,i)=>arc(m,z,.66-i*.0,.46,.1,.08,-25*D2R,205*D2R,9,i%2?'hull':'trim',.03));
+    box(m,-.05,.05,.43,.53,-1.0,1.0,'hull');
+    lit(m,[0,.55,-.9],3);
+  }},
+  container:{name:'Container',desc:'Racked cargo crates bolted over the core.',price:1000,b(m){
+    loft(m,[J1,S_(0,.5,.28,.06),J2],6,'hull',0,0,'panel');
+    const Z=[[.95,.45],[.35,-.15],[-.25,-.8]];
+    Z.forEach(([z0,z1],j)=>{for(const s of [-1,1])box(m,s>0?.04:-.44,s>0?.44:-.04,.26,.64,z1,z0,(j+(s>0))%2?'trim':'hull')});
+    for(const s of [-1,1])box(m,s*.48-.03,s*.48+.03,.2,.7,-.9,1.0,'panel');
+    box(m,-.5,.5,.66,.71,.0,.1,'panel');
+    lit(m,[0,.73,-.85],3);
+  }},
+  prism:{name:'Prism',desc:'Triangular wedge fuselage with a sharp dorsal ridge.',price:900,b(m){
+    loft(m,[J1,S_(0,.42,.26,.05),J2],6,'panel',0,0,'panel');
+    const T=(w,t,b)=>[[0,t],[w,b],[-w,b]];
+    prism(m,[{z:1.35,p:T(.42,.36,-.22)},{z:.7,p:T(.82,.72,-.3)},{z:-.2,p:T(.9,.78,-.32)},{z:-.95,p:T(.8,.68,-.32)}],'hull','trim','panel');
+    for(const s of [-1,1])plate(m,[[s*.22,.53,.9],[s*.6,.12,.3],[s*.58,.1,-.6],[s*.2,.5,-.8]],[s*.02,.02,0],'trim');
+    lit(m,[0,.8,.1],3);
+  }},
+  vertebra:{name:'Vertebra',desc:'Segmented core in armored collars, each with a back-swept spine.',price:1200,b(m){
+    loft(m,[J1,S_(0,.42,.26,.05),J2],6,'panel',0,0,'panel');
+    [.75,.25,-.25,-.75].forEach((z,i)=>{const r=.56-Math.abs(z)*.06;
+      tube(m,0,.05,[S_(z+.14,r,r*.62),S_(z-.14,r,r*.62)],6,'hull','trim','trim');
+      plate(m,[[0,.3,z+.1],[0,.62,z-.2],[0,.62,z-.32],[0,.3,z-.12]],[.03,0,0],'trim')});
+    lit(m,[0,.63,-1.07],3);
+  }},
+  reactor:{name:'Reactor',desc:'Exposed core glowing in your exhaust color, caged by heat fins.',price:1300,b(m){
+    loft(m,[J1,S_(.4,.5,.3,.05),S_(-.4,.5,.3,.05),J2],6,'hull',0,0,'panel');
+    tube(m,0,.05,[S_(.28,.55,.34),S_(-.28,.55,.34)],6,'engine','engine','engine');
+    for(let k=0;k<6;k++){const a=(k+.5)/6*PI2;box(m,Math.cos(a)*.58-.03,Math.cos(a)*.58+.03,.05+Math.sin(a)*.36-.03,.05+Math.sin(a)*.36+.03,-.36,.36,'trim')}
+    for(const s of [-1,1])for(const z of [.45,-.45])plate(m,[[s*.48,.24,z],[s*.92,.2,z-.08],[s*.92,-.16,z-.08],[s*.48,-.18,z]],[0,0,.03],'trim');
+    lit(m,[0,.4,-.6],3);
+  }},
+  tiered:{name:'Tiered',desc:'Stacked decks stepping up toward the tail.',price:1000,b(m){
+    loft(m,[J1,S_(0,.42,.26,.05),J2],6,'panel',0,0,'panel');
+    prism(m,[{z:1.05,p:rect(0,-.1,.42,.12)},{z:.65,p:rect(0,-.12,.64,.15)},{z:-.95,p:rect(0,-.12,.68,.15)}],'hull','panel','panel');
+    prism(m,[{z:.75,p:rect(0,.15,.34,.07)},{z:.45,p:rect(0,.18,.52,.12)},{z:-.9,p:rect(0,.18,.55,.12)}],'trim','panel','panel');
+    prism(m,[{z:.3,p:rect(0,.38,.2,.06)},{z:.05,p:rect(0,.42,.32,.1)},{z:-.85,p:rect(0,.42,.34,.1)}],'hull','panel','panel');
+    lit(m,[0,.53,-.85],3);
+  }},
+  turret:{name:'Turret',desc:'Dorsal twin-gun turret on an armored back.',price:1400,b(m){
+    loft(m,[J1,S_(0,.52,.3,.06),J2],6,'hull',0,0,'panel');
+    box(m,-.36,.36,.28,.42,-.75,.15,'trim');
+    prism(m,[{z:.25,p:[[-.2,.42],[.2,.42],[.3,.58],[.2,.76],[-.2,.76],[-.3,.58]]},{z:-.65,p:[[-.28,.42],[.28,.42],[.38,.58],[.28,.8],[-.28,.8],[-.38,.58]]}],'hull','panel','hull');
+    box(m,-.3,.3,.8,.84,-.55,-.1,'trim');
+    for(const s of [-1,1]){tube(m,s*.13,.6,[S_(1.15,.045,.045),S_(.2,.065,.065)],6,'panel','hull','hull');tube(m,s*.13,.6,[S_(1.2,.075,.075),S_(1.05,.075,.075)],6,'trim');m.guns.push([s*.13,.6,1.22])}
+    plate(m,[[0,-.25,.4],[0,-.55,-.3],[0,-.55,-.7],[0,-.25,-.9]],[.03,0,0],'trim');
+    lit(m,[0,.86,-.5],3);
   }},
 },
 wing:{
@@ -646,6 +790,73 @@ wing:{
       lit(m,[s*2.92,.05,1.57],s>0?1:2);lit(m,[s*1.7,.72,-1.6]);m.guns.push([s*2.92,.04,1.58]);
     }
   }},
+  panel:{name:'Panel',desc:'Tall hexagonal panels on short pylons, like a twin-ion fighter.',price:1200,b(m){
+    for(const s of [-1,1]){const x=s*1.55;
+      wingSeg(m,s,W_(.2,.2,-.9,.0,.12),W_(1.5,.1,-.8,.0,.1),'panel');
+      const X=y=>x-s*y*.3;
+      plate(m,[[X(0),0,1.05],[X(.88),.88,.4],[X(.88),.88,-.95],[X(0),0,-1.6]],[s*.035,0,0],'hull');
+      plate(m,[[X(0),0,1.05],[X(-.82),-.82,.4],[X(-.82),-.82,-.95],[X(0),0,-1.6]],[s*.035,0,0],'hull');
+      plate(m,[[X(-.07),-.07,.95],[X(.07),.07,.95],[X(.07),.07,-1.5],[X(-.07),-.07,-1.5]],[s*.06,0,0],'trim');
+      plate(m,[[X(.78),.78,.33],[X(.88),.88,.4],[X(.88),.88,-.95],[X(.78),.78,-.88]],[s*.06,0,0],'trim');
+      plate(m,[[X(-.72),-.72,.33],[X(-.82),-.82,.4],[X(-.82),-.82,-.95],[X(-.72),-.72,-.88]],[s*.06,0,0],'trim');
+      lit(m,[X(.89)+s*.07,.89,-.95]);lit(m,[X(-.83)+s*.07,-.83,-.95]);lit(m,[x+s*.07,0,1.05],s>0?1:2);
+      m.guns.push([s*.7,-.08,.3]);
+    }
+  }},
+  xfoil:{name:'X-Foil',desc:'Four split wings in an X, a cannon on every tip.',price:1300,b(m){
+    for(const s of [-1,1])for(const v of [1,-1]){
+      const y0=v>0?.1:-.05,y1=v>0?.75:-.6;
+      wingChain(m,s,[W_(.2,.35,-1.25,y0,.1),W_(1.5,.0,-1.3,y0+(y1-y0)*.55,.07),W_(2.45,-.3,-1.32,y1,.05)],[v>0?'hull':'trim','hull']);
+      tube(m,s*2.5,y1-.0,[S_(.95,.035,.035),S_(-.2,.06,.06),S_(-1.45,.07,.07)],6,'panel','hull','hull');
+      m.guns.push([s*2.5,y1,.97]);lit(m,[s*2.5,y1+.08,-1.45],s>0?1:2);
+    }
+  }},
+  sail:{name:'Sail',desc:'Fanned solar sails spread on radiating ribs.',price:1500,b(m){
+    for(const s of [-1,1]){const H=[s*.55,.1,-.45];
+      wingSeg(m,s,W_(.2,.1,-.9,.05,.1),W_(.6,-.1,-.8,.08,.08),'panel');
+      const T=[10,38,66,94].map((a,i)=>[H[0]+s*Math.cos(a*D2R)*2.35,.15+i*.1,H[2]-Math.sin(a*D2R)*2.35+.3]);
+      for(let i=0;i<3;i++)plate(m,[H,T[i],T[i+1],H],[0,.02,0],i%2?'trim':'panel');
+      for(const t of T){beam(m,H,t,.09,.04,'hull');lit(m,t,0)}
+      m.guns.push([s*.5,.0,.2]);
+    }
+  }},
+  ring:{name:'Ring',desc:'One big octagonal ring wing held on four struts.',price:1400,b(m){
+    hoop(m,-.75,2.5,1.0,.55,.13,8,'hull',.05,PI2/16);
+    hoop(m,-.75,2.38,.95,.62,.04,8,'trim',.05,PI2/16);
+    for(const s of [-1,1]){wingSeg(m,s,W_(.2,.0,-1.2,.1,.1),W_(2.32,-.5,-1.0,.1,.06),'hull');
+      lit(m,[s*2.52,.05,-.5],s>0?1:2);m.guns.push([s*2.45,.05,-.45])}
+    plate(m,[[0,.25,-.2],[0,.95,-.55],[0,.95,-.95],[0,.25,-1.3]],[.04,0,0],'trim');
+    plate(m,[[0,-.25,-.3],[0,-.85,-.55],[0,-.85,-.95],[0,-.25,-1.2]],[.04,0,0],'trim');
+    lit(m,[0,1.06,-.75],3);
+  }},
+  lander:{name:'Lander',desc:'Wings drop steeply from the spine and end in forward landing claws.',price:1200,b(m){
+    for(const s of [-1,1]){
+      wingChain(m,s,[W_(.2,.55,-1.25,.12,.13),W_(1.35,.05,-1.4,-.42,.09),W_(2.05,-.3,-1.5,-.78,.06)],['hull','trim']);
+      plate(m,[[s*2.07,-.78,-.25],[s*2.07,-.78,-1.5],[s*2.1,-1.12,-1.05],[s*2.1,-1.1,.35]],[s*.035,0,0],'trim');
+      plate(m,[[s*1.35,-.4,.05],[s*1.75,-.6,.45],[s*1.75,-.62,.25],[s*1.35,-.42,-.25]],[0,.03,0],'hull');
+      tube(m,s*1.0,-.42,[S_(.95,.04,.04),S_(-.1,.07,.07)],6,'panel','hull','hull');m.guns.push([s*1.0,-.42,.97]);
+      lit(m,[s*2.11,-1.13,.35],s>0?1:2);lit(m,[s*2.07,-.78,-1.5]);
+    }
+  }},
+  louver:{name:'Louver',desc:'Three thin staggered blades stacked like slats, tied by a strut.',price:1300,b(m){
+    for(const s of [-1,1]){
+      wingSeg(m,s,W_(.2,.45,-.85,.22,.06),W_(2.6,-.55,-1.1,.12,.04),'hull');
+      wingSeg(m,s,W_(.2,.15,-1.1,.0,.06),W_(2.25,-.8,-1.35,-.1,.04),'trim');
+      wingSeg(m,s,W_(.2,-.15,-1.35,-.22,.06),W_(1.9,-1.05,-1.6,-.34,.04),'hull');
+      plate(m,[[s*1.15,.2,-.1],[s*1.15,.2,-.75],[s*1.15,-.3,-1.25],[s*1.15,-.3,-.55]],[s*.03,0,0],'panel');
+      lit(m,[s*2.62,.12,-1.1],s>0?1:2);lit(m,[s*2.27,-.1,-1.35]);lit(m,[s*1.92,-.34,-1.6]);
+      m.guns.push([s*.7,.02,.0]);
+    }
+  }},
+  boxwing:{name:'Boxwing',desc:'Staggered biplane wings closed off by tip plates.',price:1100,b(m){
+    for(const s of [-1,1]){const x=s*2.05;
+      wingSeg(m,s,W_(.2,.15,-1.1,.38,.08),W_(2.05,-.45,-1.45,.6,.06),'hull');
+      wingSeg(m,s,W_(.2,.75,-.65,-.2,.09),W_(2.05,.15,-.95,-.42,.06),'hull');
+      plate(m,[[x,.6,-.42],[x,.6,-1.45],[x,-.42,-.95],[x,-.42,.15]],[s*.035,0,0],'trim');
+      plate(m,[[s*1.1,.5,-.25],[s*1.1,.5,-.9],[s*1.1,-.32,-.55],[s*1.1,-.32,.25]],[s*.03,0,0],'trim');
+      lit(m,[x+s*.05,.62,-1.45],s>0?1:2);lit(m,[x+s*.05,-.44,.15]);m.guns.push([x,.05,-.1]);
+    }
+  }},
 },
 eng:{
   triple:{name:'Tri-Burn',desc:'Engine block, three nozzles over two. Standard issue.',price:0,b(m){
@@ -692,6 +903,63 @@ eng:{
       nozzle(m,s*1.38,-.28,-2.2,.25,8);lit(m,[s*1.38,.04,-1.3],s>0?1:2);
     }
   }},
+  annulus:{name:'Annulus',desc:'Ring nozzle around a central aerospike.',price:1300,b(m){
+    loft(m,[S_(-.75,.55,.32,.05),S_(-1.35,.78,.58,.05),S_(-1.65,.76,.56,.05)],8,'hull',0,0,'panel');
+    hoop(m,-1.4,.82,.62,.12,.05,8,'trim',.05,PI2/16);
+    hoop(m,-1.7,.7,.51,.12,.15,16,'engine',.05);
+    loft(m,[S_(-1.6,.38,.3,.05),S_(-2.4,0,0,.05)],8,'trim',0,0,'trim');
+    for(let k=0;k<8;k++){const a=k/8*PI2;m.engines.push([Math.cos(a)*.62,.05+Math.sin(a)*.45,-1.78,.12])}
+    lit(m,[0,.64,-1.4],3);
+  }},
+  totem:{name:'Totem',desc:'Three nozzles stacked in a tall column, finned both sides.',price:900,b(m){
+    box(m,-.36,.36,-.62,.72,-1.8,-.8,'panel');box(m,-.39,.39,-.65,.75,-1.5,-1.32,'trim');
+    for(const y of [.43,.05,-.33])nozzle(m,0,y,-2.15,.2);
+    for(const s of [-1,1])plate(m,[[s*.38,.68,-.9],[s*.38,.92,-1.75],[s*.38,-.85,-1.85],[s*.38,-.6,-.95]],[s*.03,0,0],'trim');
+    lit(m,[0,.76,-1.4],3);
+  }},
+  canted:{name:'Canted',desc:'Two big boosters splayed outward, with a tail blade between them.',price:1100,b(m){
+    box(m,-.4,.4,-.22,.25,-1.6,-.75,'panel');
+    for(const s of [-1,1])xform(m,mm=>{
+      tube(mm,0,0,[S_(.25,.16,.16),S_(-.05,.29,.29),S_(-1.1,.31,.31)],8,'hull','hull','panel');
+      tube(mm,0,0,[S_(-.45,.34,.34),S_(-.65,.34,.34)],8,'trim');nozzle(mm,0,0,-1.45,.27,8);lit(mm,[0,.35,-.55])},
+      euler(-s*18*D2R,-5*D2R,0),[s*.62,.0,-.95]);
+    plate(m,[[0,.25,-.75],[0,.85,-1.3],[0,.85,-1.75],[0,.25,-1.6]],[.035,0,0],'trim');lit(m,[0,.87,-1.75],3);
+  }},
+  chevron:{name:'Chevron',desc:'Two linear burners in a chevron, glowing edge to edge.',price:1200,b(m){
+    for(const s of [-1,1]){
+      const sec=(k)=>s>0?[[0,.42*k+.05],[0,.18*k+.05],[.98,-.38],[.98,-.14]]:[[0,.18*k+.05],[0,.42*k+.05],[-.98,-.14],[-.98,-.38]];
+      prism(m,[{z:-.8,p:sec(1)},{z:-1.85,p:sec(1)}],'panel','panel','hull');
+      prism(m,[{z:-1.85,p:sec(.95).map(([x,y])=>[x*.97,y])},{z:-1.93,p:sec(.95).map(([x,y])=>[x*.97,y])}],'engine','engine','engine');
+      for(let i=0;i<5;i++){const t=(i+.5)/5;m.engines.push([s*.95*t,.3+(-.27-.3)*t,-1.95,.1])}
+      plate(m,[[s*1.0,-.12,-.9],[s*1.0,-.12,-1.85],[s*1.0,-.55,-1.95],[s*1.0,-.5,-1.2]],[s*.03,0,0],'trim');
+      lit(m,[s*1.02,-.12,-1.85],s>0?1:2);
+    }
+    box(m,-.12,.12,.12,.5,-1.85,-.8,'hull');
+  }},
+  longburn:{name:'Longburn',desc:'One long afterburner with cooling rings and petal flaps.',price:1000,b(m){
+    loft(m,[S_(-.75,.52,.32,.05),S_(-1.25,.4,.36,.05)],8,'hull',0,0,'panel');
+    tube(m,0,.05,[S_(-1.15,.3,.3),S_(-2.55,.25,.25)],8,'hull','hull','panel');
+    for(const z of [-1.45,-1.85,-2.25])tube(m,0,.05,[S_(z,.33,.33),S_(z-.1,.33,.33)],8,'trim');
+    for(let k=0;k<4;k++){const a=(k+.5)/4*PI2,c=Math.cos(a),sn=Math.sin(a);
+      beam(m,[c*.25,.05+sn*.25,-2.45],[c*.36,.05+sn*.36,-2.85],.16,.12,'trim',.25)}
+    nozzle(m,0,.05,-2.75,.2,8);
+    lit(m,[0,.4,-1.5],3);
+  }},
+  gill:{name:'Gill',desc:'Tapered organic tail that vents through glowing gill slits.',price:1200,b(m){
+    loft(m,[S_(-.75,.54,.3,.05),S_(-1.4,.46,.28,.05),S_(-2.1,.2,.14,.05),S_(-2.55,.05,.04,.05)],6,'hull',0,0,'engine');
+    for(const s of [-1,1])[-1.0,-1.3,-1.6].forEach((z,i)=>{const x=.5-i*.07;
+      box(m,s*x-.05,s*x+.05,-.17,.24,z-.05,z+.05,'engine');m.engines.push([s*(x+.03),.03,z,.07])});
+    m.engines.push([0,.05,-2.58,.06]);
+    for(const z of [-.9,-1.35,-1.8])plate(m,[[0,.3,z+.05],[0,.5,z-.2],[0,.5,z-.28],[0,.28,z-.1]],[.025,0,0],'trim');
+    lit(m,[0,.05,-2.57],3);
+  }},
+  cross:{name:'Cross',desc:'Four thruster pods on an X-shaped frame.',price:1300,b(m){
+    loft(m,[S_(-.75,.46,.3,.05),S_(-1.55,.3,.22,.05)],6,'panel',0,0,'panel');
+    for(const sx of [-1,1])for(const sy of [-1,1]){const x=sx*.95,y=.05+sy*.58;
+      beam(m,[sx*.25,.05+sy*.12,-1.15],[x,y,-1.3],.16,.12,'trim',.6);
+      tube(m,x,y,[S_(-.85,.12,.12),S_(-1.05,.18,.18),S_(-1.95,.18,.18)],8,'hull','hull','panel');
+      nozzle(m,x,y,-2.25,.16,8);lit(m,[x+sx*.19,y,-1.4],sx>0?1:2)}
+  }},
 }};
 const SLOT_KEYS=[['nose','Nose','NOSES'],['hull','Hull','HULLS'],['wing','Wings','WINGS'],['eng','Engine','THRUSTERS']];
 const DEFAULT_SHIP={nose:'dart',hull:'standard',wing:'swept',eng:'triple'};
@@ -699,14 +967,15 @@ const DEFAULT_SHIP={nose:'dart',hull:'standard',wing:'swept',eng:'triple'};
 const STAT_KEYS=[['A','Agility'],['S','Shields'],['D','Damage'],['T','Targeting'],['C','Cargo']];
 const ROLE_TAGS={interceptor:['Interceptor',{A:2}],gunship:['Gunship',{D:2}],guardian:['Guardian',{S:10}],marksman:['Marksman',{T:5}],hauler:['Hauler',{C:2}]};
 const PART_TAGS={
-  nose:{needle:'marksman',mandible:'gunship',chisel:'interceptor',beak:'marksman',bubble:'hauler',keel:'guardian'},
-  hull:{spine:'gunship',plated:'guardian',slab:'hauler',halo:'marksman',sidepod:'interceptor',hauler:'hauler'},
-  wing:{delta:'guardian',forward:'interceptor',gunpod:'gunship',gull:'marksman',cargo:'hauler',crescent:'interceptor'},
-  eng:{mono:'marksman',twin:'interceptor',quad:'hauler',slot:'guardian',seven:'gunship',nacelle:'interceptor'}};
+  nose:{needle:'marksman',mandible:'gunship',chisel:'interceptor',beak:'interceptor',bubble:'hauler',keel:'marksman',hammer:'guardian',shard:'interceptor',orb:'guardian',visor:'hauler',offset:'marksman',cannon:'gunship',splitter:'gunship'},
+  hull:{spine:'gunship',plated:'guardian',slab:'hauler',halo:'marksman',sidepod:'interceptor',hauler:'hauler',ribcage:'interceptor',container:'hauler',prism:'marksman',vertebra:'guardian',reactor:'gunship',tiered:'guardian',turret:'gunship'},
+  wing:{delta:'interceptor',forward:'interceptor',gunpod:'gunship',gull:'marksman',cargo:'hauler',crescent:'gunship',panel:'guardian',xfoil:'gunship',sail:'marksman',ring:'guardian',lander:'guardian',louver:'interceptor',boxwing:'hauler'},
+  eng:{mono:'marksman',twin:'guardian',quad:'hauler',slot:'guardian',seven:'gunship',nacelle:'interceptor',annulus:'marksman',totem:'hauler',canted:'guardian',chevron:'interceptor',longburn:'interceptor',gill:'gunship',cross:'gunship'}};
 const STAT_NAME={A:'Agility',S:'Shields',D:'Damage',T:'Targeting',C:'Cargo'};
 const bonusTxt=b=>Object.entries(b).map(([k,v])=>`+${v} ${STAT_NAME[k]}`).join(', ');
 const slbl=k=>`<i class="fl" data-stat="${k}">${STAT_NAME[k]}</i><i class="ab" data-stat="${k}">${k}</i>`;
-const tagTxt=(slot,k)=>{const t=PART_TAGS[slot][k];return t?`Role: ${ROLE_TAGS[t][0]}.<br>${bonusTxt(ROLE_TAGS[t][1])}`:'No role.'};
+const ROLE_STAT={interceptor:'A',gunship:'D',guardian:'S',marksman:'T',hauler:'C'};
+const tagTxt=(slot,k)=>{const t=PART_TAGS[slot][k];return t?`Role: ${ROLE_TAGS[t][0]}.<br>+10% to a ${STAT_NAME[ROLE_STAT[t]]} module`:'No role.'};
 function bbox(m){const b={x:0,y0:1e9,y1:-1e9,z0:1e9,z1:-1e9};for(const t of m.tris)for(const v of t.v){b.x=Math.max(b.x,Math.abs(v[0]));b.y0=Math.min(b.y0,v[1]);b.y1=Math.max(b.y1,v[1]);b.z0=Math.min(b.z0,v[2]);b.z1=Math.max(b.z1,v[2])}return b}
 const REF_BOX={x:3.0799999999999996,y0:-.75,y1:1.37,z0:-2.05,z1:3.3};   // size of the original fighter; every modular ship is scaled to fit it
 function fitTo(m){
@@ -724,8 +993,8 @@ function buildShip(c){const k=shipKey(c);if(SHIP_CACHE[k])return SHIP_CACHE[k];
   return SHIP_CACHE[k]=fitTo(m)}
 let SHIPCFG={...DEFAULT_SHIP},SHIP=buildShip(SHIPCFG);
 function applyPart(slot,k){if(!SHIP_PARTS[slot][k])return;SHIPCFG={...SHIPCFG,[slot]:k};SHIP=buildShip(SHIPCFG)}
-const SLOT_SCALE=[1,1,.9];   // Wing 2 is nearer the camera
-const SLOTS=[[0,0,0],[-6.5,2.4,6],[6.5,2.0,6]];   // formation offsets: lead, wing 1, wing 2
+const SLOT_SCALE=[1,1,.9];   // Right Wing is nearer the camera
+const SLOTS=[[0,0,0],[-6.5,2.4,6],[6.5,2.0,6]];   // formation offsets: lead, left wing, right wing
 const FLEET=[{slot:0,ph:0}];
 const KMS_PER_UNIT=30/22;   // base cruise reads ~30 km/s
 const KM_PER_CREDIT=777;
@@ -733,9 +1002,9 @@ const KM_PER_CREDIT=777;
 const SH_REGEN_SECS=300;   // empty to full shields while flying
 const FUEL_MAX=4,FUEL_PRICE=20,CELL_HOURS=[.5,1,2,4],COAST=3;
 let FUEL=FUEL_MAX,THR=1,engLvl=4.6;
-const SHOP_TABS=[['fuel','Fuel'],['engine','Agility'],['shields','Shields'],['damage','Damage'],['targeting','Targeting'],['fleet','Fleet'],['modules','Modules'],['cargo','Cargo'],['p_nose','Noses'],['p_hull','Hulls'],['p_wing','Wings'],['p_eng','Thrusters'],['paint','Paint'],['exhaust','Exhaust'],['laser','Lasers']];
+const SHOP_TABS=[['fuel','Fuel'],['fleet','Fleet'],['modules','Modules'],['cargo','Cargo'],['engine','Agility'],['shields','Shields'],['damage','Damage'],['targeting','Targeting'],['p_nose','Noses'],['p_hull','Hulls'],['p_wing','Wings'],['p_eng','Thrusters'],['paint','Paint'],['exhaust','Exhaust'],['laser','Lasers']];
 let SHOP_TAB='fuel',SHOP_SEL=null;
-const SHOP_SECTS=[['up','Ship upgrades',['fuel','engine','shields','damage','targeting','cargo','fleet','modules']],['cust','Customization',['p_nose','p_hull','p_wing','p_eng','paint','exhaust','laser']]];
+const SHOP_SECTS=[['up','Ship upgrades',['fuel','fleet','modules','cargo','engine','shields','damage','targeting']],['cust','Customization',['p_nose','p_hull','p_wing','p_eng','paint','exhaust','laser']]];
 const sectOf=tab=>SHOP_SECTS.find(x=>x[2].includes(tab))[0];
 const SECT_TAB={up:'fuel',cust:'p_nose'};
 function openSect(k){SECT_TAB[sectOf(SHOP_TAB)]=SHOP_TAB;SHOP_TAB=SECT_TAB[k];SHOP_SEL=null;renderShop.k=null}
@@ -745,12 +1014,12 @@ const SHOP=[
   {id:'tank1',cat:'fuel',name:'Fuel Tank Mk II',desc:'Each cell lasts 1 hour instead of 30 minutes. Full tank: 4 hours.',price:300},
   {id:'tank2',cat:'fuel',name:'Fuel Tank Mk III',desc:'Each cell lasts 2 hours. Full tank: 8 hours.',price:800,req:'tank1'},
   {id:'tank3',cat:'fuel',name:'Fuel Tank Mk IV',desc:'Each cell lasts 4 hours. Full tank: 16 hours.',price:2000,req:'tank2'},
-  {id:'hold1',cat:'cargo',name:'Cargo Bay Mk II',desc:'Bigger cargo bay on the lead ship.<br>+7 Cargo (hold of 14 crates).',price:1500},
-  {id:'hold2',cat:'cargo',name:'Cargo Bay Mk III',desc:'Bigger cargo bay on the lead ship.<br>+7 Cargo (hold of 21 crates).',price:4000,req:'hold1'},
-  {id:'hold3',cat:'cargo',name:'Cargo Bay Mk IV',desc:'Bigger cargo bay on the lead ship.<br>+7 Cargo (hold of 28 crates).',price:9000,req:'hold2'},
-  {id:'hold4',cat:'cargo',name:'Cargo Bay Mk V',desc:'Bigger cargo bay on the lead ship.<br>+7 Cargo (hold of 35 crates).',price:18000,req:'hold3'},
-  {id:'hold5',cat:'cargo',name:'Cargo Bay Mk VI',desc:'Bigger cargo bay on the lead ship.<br>+7 Cargo (hold of 42 crates).',price:35000,req:'hold4'},
-  {id:'hold6',cat:'cargo',name:'Cargo Bay Mk VII',desc:'Bigger cargo bay on the lead ship.<br>+7 Cargo (hold of 49 crates).',price:70000,req:'hold5'},
+  {id:'hold1',cat:'cargo',name:'Cargo Bay Mk II',desc:'Bigger cargo bay on every ship.<br>+7 Cargo (hold of 14 crates).',price:1500},
+  {id:'hold2',cat:'cargo',name:'Cargo Bay Mk III',desc:'Bigger cargo bay on every ship.<br>+7 Cargo (hold of 21 crates).',price:4000,req:'hold1'},
+  {id:'hold3',cat:'cargo',name:'Cargo Bay Mk IV',desc:'Bigger cargo bay on every ship.<br>+7 Cargo (hold of 28 crates).',price:9000,req:'hold2'},
+  {id:'hold4',cat:'cargo',name:'Cargo Bay Mk V',desc:'Bigger cargo bay on every ship.<br>+7 Cargo (hold of 35 crates).',price:18000,req:'hold3'},
+  {id:'hold5',cat:'cargo',name:'Cargo Bay Mk VI',desc:'Bigger cargo bay on every ship.<br>+7 Cargo (hold of 42 crates).',price:35000,req:'hold4'},
+  {id:'hold6',cat:'cargo',name:'Cargo Bay Mk VII',desc:'Bigger cargo bay on every ship.<br>+7 Cargo (hold of 49 crates).',price:70000,req:'hold5'},
   {id:'optics',cat:'modules',name:'Targeting Optics',desc:'Locks on to asteroids in range and fires automatically.<br>Ability module: equip it on a fighter in Fleet.',price:5000},
   {id:'ab_burner',cat:'modules',name:'Afterburner',desc:'Emergency thrust when you break away.<br>+20% run chance in fights.<br>Ability module: equip in Fleet.',price:5000},
   {id:'ab_drone',cat:'modules',name:'Repair Drone',desc:'Little bots patch your emitters on the fly.<br>Shields recharge twice as fast.<br>Ability module: equip in Fleet.',price:5000},
@@ -774,9 +1043,9 @@ const SHOP=[
   {id:'las_violet',cat:'laser',kind:'laser',key:'violet',name:'Violet',desc:'Violet bolts.',price:200},
   {id:'las_gold',cat:'laser',kind:'laser',key:'gold',name:'Gold',desc:'Gold bolts.',price:300},
   {id:'eng1',cat:'engine',name:'Agility Mk II',desc:'Faster cruising, better dodging and escapes.<br>+4 Agility on every fighter.',price:400},
-  {id:'wing1',cat:'fleet',name:'Wingman',desc:'A second fighter joins your formation.',price:500},
+  {id:'wing1',cat:'fleet',name:'Left Wingman',desc:'A fighter joins your formation on the left.',price:3500},
   {id:'eng2',cat:'engine',name:'Agility Mk III',desc:'Even faster, harder to hit, easier to escape.<br>+4 Agility on every fighter.',price:1200,req:'eng1'},
-  {id:'wing2',cat:'fleet',name:'Second wingman',desc:'Completes the 3-ship formation.',price:1500,req:'wing1'},
+  {id:'wing2',cat:'fleet',name:'Right Wingman',desc:'A fighter joins on the right, completing the 3-ship formation.',price:10000,req:'wing1'},
   {id:'eng3',cat:'engine',name:'Agility Mk IV',desc:'Top-end thrust and handling.<br>+4 Agility on every fighter.',price:3000,req:'eng2'},
   {id:'shd1',cat:'shields',name:'Shields Mk II',desc:'Stronger shield emitters.<br>+15 Shields on every fighter.',price:500},
   {id:'shd2',cat:'shields',name:'Shields Mk III',desc:'Layered shield emitters.<br>+25 Shields on every fighter.',price:1500,req:'shd1'},
@@ -859,13 +1128,17 @@ for(const [k,n,d,pr,def] of MORE_LAS){LASERS[k]=def;SHOP.push({id:'las_'+k,cat:'
 // starter cosmetics: a red, green and blue choice in each category (red is equipped by default)
 for(const id of ['skin_red','skin_clover','skin_cobalt','exh_flame','exh_ion','exh_plasma','las_red','las_green','las_blue']){const it=SHOP.find(x=>x.id===id);it.price=0;it.free=true}
 // ---------- modules: one stat module per stat + one ability (X) per fighter. Stat modules come from planets/loot, abilities from the shop ----------
-const MOD_STATS={A:['Gyro',[2,4,6,9,13]],S:['Shield Booster',[10,20,35,55,80]],D:['Cannon Mount',[1,2,4,6,9]],T:['Fire Computer',[3,5,8,11,15]],C:['Cargo Pod',[1,2,4,6,9]]};
+// stat range per rarity (Basic..Prototype); each module rolls a whole number in its range when found
+const MOD_STATS={A:['Control Vanes',[[2,3],[4,5],[6,7],[8,10],[12,14]]],S:['Shield Booster',[[8,12],[18,23],[32,38],[50,60],[75,85]]],D:['Cannon Mount',[[2,3],[3,4],[5,6],[7,8],[9,11]]],T:['Targeting Array',[[2,4],[5,6],[7,9],[10,12],[14,16]]],C:['Cargo Pod',[[2,3],[3,4],[5,6],[7,8],[9,11]]]};
 const MOD_TIER=['','Basic','Tuned','Advanced','Elite','Prototype'];
 const MOD_RANGE=[null,[120,220],[350,600],[900,1500],[2400,3800],[6000,9000]];   // planet price by rarity
 const MOD_SELL=.55;   // planets buy modules at 55% of their price x the color-wheel multiplier
 const modName=m=>`${MOD_TIER[m.r]} ${MOD_STATS[m.s][0]}`;
 const MOD_ROLE={A:'interceptor',S:'guardian',D:'gunship',T:'marksman',C:'hauler'};
-const modBonus=m=>MOD_STATS[m.s][1][m.r-1];
+const rollMod=(st,r)=>{const [a,b]=MOD_STATS[st][1][r-1];return a+Math.floor(Math.random()*(b-a+1))};
+const modBonus=m=>{const [a,b]=MOD_STATS[m.s][1][m.r-1];if(m.v==null)m.v=rollMod(m.s,m.r);else if(m.v<a||m.v>b)m.v=Math.min(b,Math.max(a,m.v));return m.v};   // older saves roll once on first look; a value outside its (re-tuned) range snaps into it
+const MATCH_PCT=.1;   // each part whose role matches the module's role adds 10% (4 parts = +40%)
+const matchCount=(slot,k)=>{const L=LOADOUTS[slot];return SLOT_KEYS.filter(([sl])=>PART_TAGS[sl][L[sl]]===MOD_ROLE[k]).length};
 let MODS=[],EQUIPM=[{},{},{}],MODU=1;
 let DIST=0,CREDITS=0,OWNED={},HOLD={},SH=null,SAVED={wing:0,skin:'red',exhaust:null,laser:'red',ship:null};
 try{const j=JSON.parse(localStorage.getItem('drift.save')||'null');
@@ -876,14 +1149,14 @@ const cellHours=()=>CELL_HOURS[tankTier()];
 const engTier=()=>(OWNED.eng1?1:0)+(OWNED.eng2?1:0)+(OWNED.eng3?1:0);
 const wingOwned=()=>(OWNED.wing1?1:0)+(OWNED.wing2?1:0);
 const owns=it=>it.free||OWNED[it.id];
-const baseHold=()=>7*(1+[1,2,3,4,5,6].filter(i=>OWNED['hold'+i]).length);   // lead only
+const baseHold=()=>7*(1+[1,2,3,4,5,6].filter(i=>OWNED['hold'+i]).length);   // every ship gets the full hold
 const tiers=(pre,n)=>{let t=0;for(let i=1;i<=n;i++)if(OWNED[pre+i])t=i;return t};
 const SHD_ADD=[0,15,40,80,140],DMG_ADD=[0,2,5,10,18];
 // base + shop upgrades; unless bare, + role tags, modules, and the part/module match bonus
-function shipStats(slot,bare){const L=LOADOUTS[slot],st={A:10+4*engTier(),S:20+SHD_ADD[tiers('shd',4)],D:4+DMG_ADD[tiers('dmg',4)],T:60+8*tiers('tgt',3),C:slot===0?baseHold():0};
-  if(!bare){for(const [sl] of SLOT_KEYS){const t=PART_TAGS[sl][L[sl]];if(t)for(const [k,v] of Object.entries(ROLE_TAGS[t][1]))st[k]+=v}
-    const E=EQUIPM[slot]||{};for(const [k] of STAT_KEYS){const m=E[k]&&MODS.find(x=>x.u===E[k]);if(m)st[k]+=modBonus(m)}
-    for(const [sl] of SLOT_KEYS){const t=PART_TAGS[sl][L[sl]];if(t&&matchRole(slot,t))for(const [k,v] of Object.entries(ROLE_TAGS[t][1]))st[k]+=v}}
+function shipStats(slot,bare){const L=LOADOUTS[slot],st={A:10+4*engTier(),S:20+SHD_ADD[tiers('shd',4)],D:4+DMG_ADD[tiers('dmg',4)],T:60+8*tiers('tgt',3),C:baseHold()};
+  if(!bare){
+    const E=EQUIPM[slot]||{};for(const [k] of STAT_KEYS){const m=E[k]&&MODS.find(x=>x.u===E[k]);if(m)st[k]+=Math.round(modBonus(m)*(1+MATCH_PCT*matchCount(slot,k)))}
+  }
   st.T=Math.min(95,st.T);return st}
 function matchRole(slot,t){const L=LOADOUTS[slot],E=EQUIPM[slot]||{},k=Object.keys(ROLE_TAGS[t][1])[0];
   return !!(E[k]&&MOD_ROLE[k]===t&&MODS.some(m=>m.u===E[k])&&SLOT_KEYS.some(([sl])=>PART_TAGS[sl][L[sl]]===t))}
@@ -898,7 +1171,7 @@ const holdCap=()=>fleetStats().C;
 const holdCount=()=>Object.values(HOLD).reduce((a,h)=>a+h.n,0);
 const skinsOwned=()=>SHOP.filter(it=>it.kind==='skin'&&owns(it)).map(it=>it.key);
 // per-fighter loadouts; EDIT is the fighter being edited in Customize/Modules/shop
-const SLOT_NAMES=['Lead','Wing 1','Wing 2'];
+const SLOT_NAMES=['Lead','Left Wing','Right Wing'];
 const LOAD_KINDS=['nose','hull','wing','eng','skin','exhaust','laser'];
 const defLoad=()=>({...DEFAULT_SHIP,skin:'red',exhaust:'flame',laser:'red'});
 let LOADOUTS=[defLoad(),defLoad(),defLoad()],EDIT=0;
@@ -960,7 +1233,7 @@ function resize(){
   const iw=innerWidth,ih=innerHeight;
   SCALE=Math.max(2,Math.round(ih/270));H=Math.ceil(ih/SCALE);W=Math.ceil(iw/SCALE);
   cv.width=W;cv.height=H;cv.style.width=W*SCALE+'px';cv.style.height=H*SCALE+'px';
-  img=ctx.createImageData(W,H);buf=new Uint32Array(img.data.buffer);zb=new Float32Array(W*H);F=H*1.15;
+  img=ctx.createImageData(W,H);buf=new Uint32Array(img.data.buffer);zb=new Float32Array(W*H);shipm=new Uint8Array(W*H);F=H*1.15;
   cov=new Float32Array(W*H).fill(T);scan=0;setCam();fillStars();
 }
 
@@ -1056,7 +1329,7 @@ function renderFx(){
     const dx=B.x-A.x,dy=B.y-A.y,n=Math.ceil(Math.max(Math.abs(dx),Math.abs(dy),1));
     const BC=b.col||BOLT;
     for(let i=0;i<=n;i++){const t=i/n,x=A.x+dx*t,y=A.y+dy*t,col=BC[t>.8?2:t>.4?1:0];
-      if(x>=0&&y>=0&&x<W&&y<H){buf[(y|0)*W+(x|0)]=col;if(t>.5&&x+1<W)buf[(y|0)*W+(x|0)+1]=BC[0]}}}
+      if(x>=0&&y>=0&&x<W&&y<H){const j=(y|0)*W+(x|0);if(!shipm[j])buf[j]=col;if(t>.5&&x+1<W&&!shipm[j+1])buf[j+1]=BC[0]}}}
 }
 
 // ---------- planets and cargo ----------
@@ -1315,7 +1588,7 @@ const RECHARGE_PRICE=1;   // per shield point
 // ---- modules at planets ----
 const modTxt=m=>`<span class="vn">${cdot(m.c)}<span style="color:${WHEELC[m.c]}">${modName(m)}</span>${rtag(m)}<span class="mdd">&middot; ${ROLE_TAGS[MOD_ROLE[m.s]][0]}: +${modBonus(m)} ${STAT_NAME[m.s]}</span></span>`;
 function rollModR(w){let x=Math.random(),r=1;for(;r<w.length;r++){x-=w[r-1];if(x<0)break}return r}
-function newMod(st,r,c=Math.random()*7|0){const m={u:MODU++,s:st,r,c};MODS.push(m);return m}   // c = wheel color
+function newMod(st,r,c=Math.random()*7|0){const m={u:MODU++,s:st,r,c,v:rollMod(st,r)};MODS.push(m);return m}   // c = wheel color
 function modSellPrice(p,m){return Math.max(1,Math.round(modPrice(p,m.s,m.r)*MOD_SELL*SELL_MUL[wheelDist(m.c,p.c)]*bonusFor(p,m.c)*(hasAbility('ab_trade')?1.1:1)*(1+lookBonus(p))))}
 // at most one module per planet; ringed planets always have one, 50% R:5
 function rollMods(p){p.mods=p.ringed||Math.random()<.5?[{c:p.c,s:pickOne(Object.keys(MOD_STATS)),r:p.ringed&&Math.random()<.5?5:rollModR([.5,.3,.15,.05])}]:[]}
@@ -1457,6 +1730,7 @@ function render(){
   buf.fill(BLACK);zb.fill(0);
   const poses=FLEET.map(s=>pose(s,T));
   poses.forEach((p,i)=>{const LO=LOADOUTS[FLEET[i].slot];({MATS,ENGC}=paletteFor(LO));drawMesh(buildShip(LO),p.pos,p.R,SLOT_SCALE[FLEET[i].slot])});
+  for(let i=0;i<zb.length;i++)shipm[i]=zb[i]>0?1:0;   // ship pixels: lasers draw under these
   ({MATS,ENGC}=paletteFor(LOADOUTS[0]));
   renderPlanets();
   renderRocks();
@@ -1597,12 +1871,12 @@ function renderShop(){
     return `<div class="item${own&&!cos?' owned':''}${eq?' eq':''}${cos?' pick':''}${SHOP_SEL===it.id?' sel':''}" data-id="${it.id}"><div class="nm">${swatch(it)}${it.name}</div><div class="ds">${it.desc}${it.repeat?' Lasts '+(cellHours()<1?cellHours()*60+' minutes':cellHours()+(cellHours()===1?' hour':' hours'))+'.':''}${lock?'<br>Requires '+SHOP.find(x=>x.id===it.req).name+'.':''}</div>`+
       `<button data-buy="${it.id}"${dis?' disabled':''}>${label}</button></div>`}).join('');
 }
-const fighterPick=()=>`<h3 class="fh">FIGHTER${wingOwned()<2?`<span class="fnote">${wingOwned()?'Wing 2 locked: buy it in Fleet':'Wingmen locked: buy them in Fleet'}</span>`:''}</h3><div class="fsel">`+SLOT_NAMES.map((n,i)=>{const lock=i>wingOwned();
+const fighterPick=()=>`<h3 class="fh">FIGHTER${wingOwned()<2?`<span class="fnote">${wingOwned()?'Right Wing locked: buy it in Fleet':'Wingmen locked: buy them in Fleet'}</span>`:''}</h3><div class="fsel">`+SLOT_NAMES.map((n,i)=>{const lock=i>wingOwned();
     return `<button data-fighter="${i}" aria-pressed="${i===EDIT}"${lock?' disabled title="Buy this wingman in the shop"':''}>${n}</button>`}).join('')+`</div>`+
     '';
 // custom dropdowns (Modules + Customize): line 1 = name, line 2 = rarity / class / stats
 const ddRoleTxt=(t,bonus)=>`${ROLE_TAGS[t][0]}: ${bonusTxt(bonus)}`;
-const ddPartTxt=(k,key)=>{const t=PART_TAGS[k][key];if(!t)return 'No role';const m=matchRole(EDIT,t)&&cur()[k]===key;return ddRoleTxt(t,ROLE_TAGS[t][1])+(m?` (+${Object.values(ROLE_TAGS[t][1])[0]} match)`:'')};
+const ddPartTxt=(k,key)=>{const t=PART_TAGS[k][key];if(!t)return 'No role';const m=matchRole(EDIT,t)&&cur()[k]===key;return `${ROLE_TAGS[t][0]}: +10% ${STAT_NAME[ROLE_STAT[t]]} module`+(m?' (matched)':'')};
 const ddLn=(n,sub,col)=>`<span class="n"${col?` style="color:${col}"`:''}>${n}</span>${sub?`<span class="s">${sub}</span>`:''}`;
 const ddRow=(label,attr,opts,match)=>{const c=opts.find(o=>o.sel)||opts[0];
   return `<div class="dcell"><span class="dl">${label}</span><div class="dd${match?' match':''}" ${attr} tabindex="0" data-v="${c.v}"><div class="dd-cur">${c.h}</div>`+
@@ -1718,7 +1992,9 @@ const PV={W:170,H:120,t:0,rot:0,playing:true,ff:false,rw:false,shot:0,parts:[],b
 {const c=$('pv-cv');c.width=PV.W;c.height=PV.H;PV.ctx=c.getContext('2d');PV.img=PV.ctx.createImageData(PV.W,PV.H);
  PV.buf=new Uint32Array(PV.img.data.buffer);PV.zb=new Float32Array(PV.W*PV.H)}
 function pvSync(){document.querySelector('[data-pv="play"]').setAttribute('aria-pressed',PV.playing);document.querySelector('[data-pv="pause"]').setAttribute('aria-pressed',!PV.playing)}
-$('preview').addEventListener('click',e=>{const b=e.target.closest('[data-pv]');if(!b)return;
+$('preview').addEventListener('click',e=>{const fb=e.target.closest('[data-pvf]');
+  if(fb){const n=wingOwned()+1;EDIT=(EDIT+(+fb.dataset.pvf)+n)%n;renderCust.k=renderShop.k=renderMods.k=null;syncMenu();fb.blur();return}   // cycle Lead > Left Wing > Right Wing (owned ships only)
+  const b=e.target.closest('[data-pv]');if(!b)return;
   if(b.dataset.pv==='play')PV.playing=true;else if(b.dataset.pv==='pause')PV.playing=false;pvSync()});
 for(const k of ['ff','rw']){const b=document.querySelector(`[data-pv="${k}"]`),on=v=>e=>{PV[k]=v;b.setAttribute('aria-pressed',v);if(v)b.setPointerCapture?.(e.pointerId)};
  b.addEventListener('pointerdown',on(true));for(const ev of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(ev,on(false))}
@@ -1727,6 +2003,7 @@ function previewTick(dt){
   const on=inCust||(open&&$('menu').classList.contains('shop')&&COSMETIC_TABS.includes(SHOP_TAB));
   document.body.classList.toggle('pv',on);if(!on)return;
   PV.t+=Math.min(dt,.1);
+  {const one=wingOwned()<1;$('pv-fl').textContent=SLOT_NAMES[EDIT];for(const b of document.querySelectorAll('[data-pvf]'))b.disabled=one}
   PV.rot+=Math.min(dt,.1)*((PV.playing?1:0)+(PV.ff?6:0)-(PV.rw?7:0));
   const c={...cur()},sel=inCust?null:SHOP.find(x=>x.id===SHOP_SEL);
   if(sel&&sel.kind)c[sel.kind]=sel.key;
@@ -1755,7 +2032,7 @@ function previewTick(dt){
     for(const b of PV.bolts){b.t+=dt;const f0=Math.max(0,b.t/.45-.25),f1=Math.min(1,b.t/.45);
       const A=proj(add(b.from,scl(sub(b.to,b.from),f0))),B=proj(add(b.from,scl(sub(b.to,b.from),f1)));if(!A||!B)continue;
       const dx=B.x-A.x,dy=B.y-A.y,n=Math.ceil(Math.max(Math.abs(dx),Math.abs(dy),1));
-      for(let i=0;i<=n;i++){const t=i/n;plot(A.x+dx*t,A.y+dy*t,Math.max(A.w,B.w),BOLT[t>.8?2:t>.4?1:0])}}
+      for(let i=0;i<=n;i++){const t=i/n,x=(A.x+dx*t)|0,y=(A.y+dy*t)|0;if(x>=0&&y>=0&&x<W&&y<H&&!zb[y*W+x])buf[y*W+x]=BOLT[t>.8?2:t>.4?1:0]}}   // under the ship
     PV.bolts=PV.bolts.filter(b=>b.t<.45);
     for(const L of M.lights){const on=L.blink===0||((PV.t+L.blink*.4)%1.8)<.15;const sp=proj(add(mulR(R,L.p),pos));if(sp)plot(sp.x,sp.y,sp.w*1.02,LIGHTC[on?2:0])}
     PV.ctx.putImageData(PV.img,0,0);
