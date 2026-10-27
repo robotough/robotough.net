@@ -5,7 +5,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
 html,body{margin:0;height:100%;background:#000;overflow:hidden}
-#c{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);image-rendering:pixelated;image-rendering:crisp-edges}
+#c{position:absolute;image-rendering:pixelated;image-rendering:crisp-edges}
 #hint{position:fixed;right:16px;bottom:14px;font:10px/1.6 'Press Start 2P',ui-monospace,Consolas,monospace;color:#888;pointer-events:none;display:none}
 body.idle{cursor:none}
 #burger{position:fixed;left:14px;top:14px;z-index:3;width:40px;height:40px;padding:10px 9px;background:#0b0b10cc;border:2px solid #2a2a33;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;transition:opacity .6s,left .25s}
@@ -340,7 +340,8 @@ body.dev #dev{display:grid}
   <div class="mf"><b>FUEL</b><span class="bar"><i></i><i></i><i></i><i></i></span><span id="m-fst">100%</span></div>
   <div class="mf"><b>SHLD</b><span class="hb" style="flex:1;width:auto"><i id="m-sh"></i></span><span id="m-sht">0/0</span></div></div>
   <div class="view" id="mainView">
-  <h2>SPACE GAME</h2>
+  <button data-k="escape" class="bk"><span><i class="bka">&larr;</i> Back</span><kbd>Esc</kbd></button>
+  <h2 style="margin-top:6px">SPACE GAME</h2>
   <div class="mgrid one">
   <button data-k="b"><span>Shop <span class="val" id="v-cr">&cent;0</span></span><kbd>B</kbd></button>
   <button data-k="n"><span>Fleet <span class="val" id="v-n">1/1</span></span><kbd>N</kbd></button>
@@ -352,6 +353,7 @@ body.dev #dev{display:grid}
   <div class="mgrid bottom">
   <button data-k="f"><span>Fullscreen</span><kbd>F</kbd></button>
   <button data-k="c"><span>Coverage map</span><kbd>C</kbd></button>
+  <button data-k="z"><span>Pixel scale <span class="val" id="v-sc">Auto</span></span><kbd>Z</kbd></button>
   </div>
   </div>
   <div class="view" id="custView">
@@ -410,7 +412,8 @@ body.dev #dev{display:grid}
 <script>
 'use strict';
 const cv=document.getElementById('c'),ctx=cv.getContext('2d');
-let W,H,SCALE,CSCALE,F,img,buf,zb,shipm;
+let W,H,SCALE,CSCALE,F,img,buf,zb,shipm,PSCALE=0;   // PSCALE: 0 = auto, else forced pixel scale (menu: Pixel scale / Z, -/= keys)
+try{PSCALE=+localStorage.getItem('drift.scale')||0}catch(e){}
 const rand=(a,b)=>a+Math.random()*(b-a);
 const clamp=(v,a,b)=>v<a?a:v>b?b:v;
 function hex(h){const n=parseInt(h.slice(1),16);return (0xff000000|((n&255)<<16)|(n&0xff00)|(n>>16&255))>>>0}
@@ -1358,8 +1361,9 @@ function fillStars(){const n=Math.round(W*H/400);while(STARS.length<n)STARS.push
 
 function resize(){
   const dpr=devicePixelRatio||1,iw=Math.round(innerWidth*dpr),ih=Math.round(innerHeight*dpr);
-  SCALE=Math.max(2,Math.round(ih/270));CSCALE=SCALE/dpr;H=Math.ceil(ih/SCALE);W=Math.ceil(iw/SCALE);
+  SCALE=PSCALE||Math.max(2,Math.round(ih/270));CSCALE=SCALE/dpr;H=Math.ceil(ih/SCALE);W=Math.ceil(iw/SCALE);
   cv.width=W;cv.height=H;cv.style.width=W*CSCALE+'px';cv.style.height=H*CSCALE+'px';
+  cv.style.left=Math.floor((innerWidth-W*CSCALE)/2)+'px';cv.style.top=Math.floor((innerHeight-H*CSCALE)/2)+'px';
   img=ctx.createImageData(W,H);buf=new Uint32Array(img.data.buffer);zb=new Float32Array(W*H);shipm=new Uint8Array(W*H);F=H*1.15;
   cov=new Float32Array(W*H).fill(T);scan=0;setCam();fillStars();
 }
@@ -1630,7 +1634,7 @@ function spawnPlanet(forceRing,forceC){
   const ex=vx+dx*t,ey=vy+dy*t;
   const to=add(CAM.pos,add(scl(CAM.f,cz1),add(scl(CAM.r,(ex-W/2)*cz1/F),scl(CAM.u,-(ey-H/2)*cz1/F))));
   const vel=scl(sub(to,pos),1/(pos[2]-to[2]));
-  const pl={pos,vel,zEnd:to[2]};const rate=edgeLam(pl)/rand(...PLANET_TIME)/22;   // 22 = base cruise
+  const rate=Math.max(1e-3,pos[2]-to[2])/rand(...PLANET_TIME)/22;   // spawn-to-edge path length; edgeLam can read 0 if the camera drifted off DIRC   // 22 = base cruise
   PLANETS.push({pos,vel,zEnd:to[2],rate,size,c,ringed,name:planetName(),mesh:buildPlanet(WHEEL[c][0],ringed),stock:stockFor(c,ringed),
     R0:mul3(axisRot([0,0,1],rand(-.5,.5)),axisRot([1,0,0],rand(.3,.55)*(Math.random()<.5?-1:1))),ang:rand(0,PI2),spin:rand(.05,.15)});
   rollMarket(PLANETS[PLANETS.length-1]);rollMods(PLANETS[PLANETS.length-1]);PLANETS[PLANETS.length-1].fence=Math.random()<FENCE_CHANCE;
@@ -2242,6 +2246,7 @@ function syncMenu(){
   $('v-h').textContent=holdCount()+'/'+holdCap();
   document.querySelector('[data-k="c"]').classList.toggle('on',showCov);
   $('hint').style.display=showCov?'block':'none';
+  $('v-sc').textContent=PSCALE?PSCALE+'x':'Auto ('+SCALE+'x)';
 }
 const VIEWS=['shop','cust','cargo','fleet','mods','contracts','db'];
 const subOfFleet=()=>{const m=$('menu');return m.classList.contains('cust')||m.classList.contains('mods')};   // Customize and Modules open from Fleet
@@ -2249,7 +2254,7 @@ function setView(v,open=true){if(open)setMenu(true);const m=$('menu');m.classLis
 // ---------- dev menu: ` opens/closes it; its shortcut keys only work while it's open. Set DEV_ON=false before release. ----------
 const DEV_ON=true;
 const DEV_KEYS=[[' ','Space','Pause / unpause'],['$','$','+1,000 credits'],['g','G','Spawn gold asteroid'],['p','P','Spawn planet'],['o','O','Spawn ringed planet'],
-  ['e','E','Drain fuel'],['k','K','Start fight (cycles)'],['j','J','Planet for contract'],['x','X','Re-roll encounter (docked)']];
+  ['e','E','Drain fuel'],['k','K','Start fight (cycles)'],['j','J','Planet for contract'],['x','X','Re-roll encounter (docked)'],['l','L','Unlock entire database']];
 const devOpen=()=>document.body.classList.contains('dev');
 function devAction(k){
   if(k===' ')paused=!paused;
@@ -2260,6 +2265,7 @@ function devAction(k){
   else if(k==='e')FUEL=Math.min(FUEL,.001);
   else if(k==='k')forceFight();
   else if(k==='j'){if(VISIT)return;const a=CON&&CON.active[0];PLANETS.length=0;spawnPlanet(false,a?a.c:undefined)}
+  else if(k==='l'){for(const it of [...CARGO,...XCARGO])SEEN[it.id]=1;save()}
   else if(k==='x'){if(!VISIT)return;FIGHT=null;VISIT.buyMul=undefined;VISIT.enc=startEnc(VISIT);renderVisit()}
   renderDev();syncMenu()}
 function renderDev(){const d=$('dev');if(!d||!devOpen())return;
@@ -2280,6 +2286,8 @@ function action(k){
   else if(k==='u'){setView('mods');renderMods.k=null}
   else if(k==='back'){if(subOfFleet())return action('n');setView(null)}
   else if(k==='c')showCov=!showCov;
+  else if(k==='z'||k==='-'||k==='='){const o=[0,2,3,4,5,6],i=o.indexOf(PSCALE);PSCALE=k==='z'?o[(i+1)%o.length]:k==='-'?Math.max(2,SCALE-1):Math.min(8,SCALE+1);
+    try{localStorage.setItem('drift.scale',PSCALE)}catch(e){}resize()}
   else if(k==='m')setMenu(!document.body.classList.contains('open'));
   else if(k==='escape'){const m=$('menu');if(subOfFleet())return action('n');if(VIEWS.some(v=>m.classList.contains(v)))setView(null,false);else setMenu(false)}
   else return false;
