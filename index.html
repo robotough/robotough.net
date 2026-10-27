@@ -2029,7 +2029,8 @@ function fitVisit(){const v=$('visit'),base=v.classList.contains('fight')?'trans
   if(h>avail)v.style.transform=base+`scale(${Math.max(.5,avail/h)})`}
 addEventListener('resize',()=>{if(VISIT)fitVisit()});
 function dock(p){if(!centerIn(p.pos))return;VISIT=p;
-  if(hasAura('hauler')&&!p.big){p.big=1;for(const e of p.stock)if(!CARGO_BY[e.id].ex){e.max+=AURA_STOCK;e.n+=AURA_STOCK}}   // Hauler aura: bigger markets, once per planetp.line=p.line||DOCK_LINES[(Math.random()*DOCK_LINES.length)|0];setMenu(false);
+  if(hasAura('hauler')&&!p.big){p.big=1;for(const e of p.stock)if(!CARGO_BY[e.id].ex){e.max+=AURA_STOCK;e.n+=AURA_STOCK}}   // Hauler aura: bigger markets, once per planet
+  p.line=p.line||DOCK_LINES[(Math.random()*DOCK_LINES.length)|0];setMenu(false);
   if(p.enc===undefined)p.enc=contractEnc(p)||(Math.random()<ENC_CHANCE?startEnc(p):null);
   const v=$('visit');v.style.borderColor=WHEELC[p.c];v.classList.add('on');renderVisit();renderDev()}
 function undock(){if(encPending())return;VISIT=null;$('visit').classList.remove('on');save();syncMenu();renderDev()}
