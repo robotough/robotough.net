@@ -97,7 +97,7 @@ body.pv #preview{display:block}
 .pv-ctl button:hover{border-color:#ff4a3a}
 .pv-ctl button[aria-pressed="true"]{border-color:#e6e6e6;background:#1c1016}
 .pv-ctl svg{width:14px;height:12px;fill:#ddd;shape-rendering:crispEdges}
-.pv-nav{display:flex;align-items:center;gap:6px;margin:0 0 8px}
+.pv-nav{display:flex;align-items:center;gap:6px;margin:10px 0 0}
 .pv-nav span{flex:1;text-align:center;font-size:9px;color:#fff;letter-spacing:.04em}
 .pv-nav button{width:44px;height:26px;display:flex;align-items:center;justify-content:center;background:#12121a;border:2px solid #2a2a33;cursor:pointer;padding:0}
 .pv-nav button:hover{border-color:#ff4a3a}
@@ -400,12 +400,12 @@ body.dev #dev{display:grid}
 <div id="hint"></div>
 <div id="dev"></div>
 <div id="visit" role="dialog" aria-label="Docked at planet"><div id="v-body"></div><div class="vx"><label class="vauto" id="v-auto"><input type="checkbox" data-vauto>Auto-fight <span></span></label><button data-vclose>Leave<kbd>Esc</kbd></button></div></div>
-<div id="preview" aria-live="polite"><div class="pv-nav"><button data-pvf="-1" aria-label="Previous fleet member"><svg viewBox="0 0 14 12"><polygon points="10,0 3,6 10,12"/></svg></button><span id="pv-fl">Lead</span><button data-pvf="1" aria-label="Next fleet member"><svg viewBox="0 0 14 12"><polygon points="4,0 11,6 4,12"/></svg></button></div><canvas id="pv-cv"></canvas><div class="pv-ctl">
+<div id="preview" aria-live="polite"><canvas id="pv-cv"></canvas><div class="pv-ctl">
   <button data-pv="play" aria-label="Play" aria-pressed="true"><svg viewBox="0 0 14 12"><polygon points="3,0 12,6 3,12"/></svg></button>
   <button data-pv="pause" aria-label="Pause" aria-pressed="false"><svg viewBox="0 0 14 12"><rect x="3" y="1" width="3" height="10"/><rect x="8" y="1" width="3" height="10"/></svg></button>
   <button data-pv="rw" aria-label="Rewind (hold)"><svg viewBox="0 0 14 12"><polygon points="7,0 0,6 7,12"/><polygon points="14,0 7,6 14,12"/></svg></button>
   <button data-pv="ff" aria-label="Fast forward (hold)"><svg viewBox="0 0 14 12"><polygon points="0,0 7,6 0,12"/><polygon points="7,0 14,6 7,12"/></svg></button>
-</div><div id="pv-nm"></div><div id="pv-pr"></div></div>
+</div><div id="pv-nm"></div><div id="pv-pr"></div><div class="pv-nav"><button data-pvf="-1" aria-label="Previous fleet member"><svg viewBox="0 0 14 12"><polygon points="10,0 3,6 10,12"/></svg></button><span id="pv-fl">Lead</span><button data-pvf="1" aria-label="Next fleet member"><svg viewBox="0 0 14 12"><polygon points="4,0 11,6 4,12"/></svg></button></div></div>
 <div id="tip" role="tooltip"></div>
 <div id="hud"><div class="cr"><b>CREDITS</b>&cent;<span id="h-cr">0</span></div><div><b>SPEED</b><span id="h-spd">0</span> km/s</div><div><b>DIST</b><span id="h-dst">0</span> km</div></div>
 <div id="fuel"><span>FUEL</span><span class="bar"><i></i><i></i><i></i><i></i></span><span class="st" id="f-st">100%</span></div>
