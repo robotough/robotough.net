@@ -1097,7 +1097,7 @@ const PART_TAGS={
 const STAT_NAME={A:'Agility',S:'Shields',D:'Damage',T:'Targeting',C:'Cargo'};
 const slbl=k=>`<i class="fl" data-stat="${k}">${STAT_NAME[k]}</i><i class="ab" data-stat="${k}">${k}</i>`;
 const ROLE_STAT={interceptor:'A',gunship:'D',guardian:'S',marksman:'T',hauler:'C'};
-const tagTxt=(slot,k)=>{const t=PART_TAGS[slot][k];return t?`Role: ${ROLE_TAGS[t][0]}.<br>+10% to a ${STAT_NAME[ROLE_STAT[t]]} module`+(ROLE_TAGS[t][1]?`<br>Full set of 4: ${ROLE_TAGS[t][1]} (fleet aura)`:''):'No role.'};
+const tagTxt=(slot,k)=>{const t=PART_TAGS[slot][k];return t?`Role: ${ROLE_TAGS[t][0]}.`:'No role.'};
 function bbox(m){const b={x:0,y0:1e9,y1:-1e9,z0:1e9,z1:-1e9};for(const t of m.tris)for(const v of t.v){b.x=Math.max(b.x,Math.abs(v[0]));b.y0=Math.min(b.y0,v[1]);b.y1=Math.max(b.y1,v[1]);b.z0=Math.min(b.z0,v[2]);b.z1=Math.max(b.z1,v[2])}return b}
 const REF_BOX={x:3.0799999999999996,y0:-.75,y1:1.37,z0:-2.05,z1:3.3};   // size of the original fighter; every modular ship is scaled to fit it
 function fitTo(m){
