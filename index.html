@@ -640,12 +640,18 @@ nose:{
     loft(m,[S_(2.15,0,0),S_(1.8,.11,.12),S_(1.0,.14,.13),S_(.6,0,0)],6,'glass',0,.3);
     lit(m,[0,-.08,3.0],3);
   }},
-  hammer:{name:'Hammer',desc:'Wide hammerhead crossbar with the cockpit tucked behind it.',price:900,b(m){
-    loft(m,[S_(2.55,.2,.13,.02),S_(1.8,.34,.22,.03),J1],6,'hull',0,0,'panel');
-    prism(m,[{z:3.05,p:rect(0,.0,.95,.06)},{z:2.6,p:rect(0,.0,1.12,.13)},{z:2.2,p:rect(0,.01,.85,.1)}],'hull','trim','panel');
-    for(const s of [-1,1]){box(m,s*1.12-.06,s*1.12+.06,-.3,.16,2.25,2.95,'trim');lit(m,[s*1.13,-.31,2.95],s>0?1:2)}
-    box(m,-.5,.5,.12,.15,2.35,2.9,'trim');
-    loft(m,[S_(1.95,0,0),S_(1.55,.15,.1),S_(.95,.18,.12),S_(.55,0,0)],6,'glass',0,.24);
+  hammer:{name:'Hammer',desc:'Long armored box prow with a blunt intake face and twin ram blades.',price:900,b(m){
+    const oc=(w,h,c,yo=0)=>[[-w+c,h+yo],[w-c,h+yo],[w,h-c+yo],[w,-h+c+yo],[w-c,-h+yo],[-w+c,-h+yo],[-w,-h+c+yo],[-w,h-c+yo]];   // chamfered box section
+    prism(m,[{z:1,p:oc(.4,.26,.08,.04)},{z:2.6,p:oc(.36,.24,.07,.03)},{z:3.05,p:oc(.34,.22,.07,.01)},{z:3.3,p:oc(.27,.15,.06,-.01)}],'hull','hull','panel');   // dark intake face
+    for(const y of [-.07,.0,.07])box(m,-.2,.2,y-.012,y+.012,3.29,3.33,'hull');   // intake slats
+    box(m,-.08,.08,.26,.32,1.3,2.5,'glass');                          // canopy strip along the spine
+    for(const s of [-1,1]){const X=(a,b)=>[s*a,s*b].sort((p,q)=>p-q);
+      box(m,...X(.08,.13),.25,.3,1.22,2.58,'trim');                    // canopy rails
+      box(m,...X(.35,.4),-.12,.13,1.55,2.95,'trim');                   // side armor band
+      beam(m,[s*.25,-.22,1.7],[s*.21,-.26,3.75],.1,.045,'trim',.45);   // ram blade
+      lit(m,[s*.21,-.26,3.77],s>0?1:2)}
+    box(m,-.2,.2,-.3,-.18,1.4,2.85,'panel');                          // chin block
+    beam(m,[.26,.22,2.7],[.26,.27,3.6],.03,.015,'trim');               // antenna
   }},
   shard:{name:'Shard',desc:'Faceted crystal spike with a glowing collar. No canopy.',price:1200,b(m){
     const dm=(w,t,b,yo=0)=>[[0,t+yo],[w,yo],[0,-b+yo],[-w,yo]];
@@ -872,17 +878,29 @@ wing:{
       lit(m,[s*2.92,.05,1.57],s>0?1:2);lit(m,[s*1.7,.72,-1.6]);m.guns.push([s*2.92,.04,1.58]);
     }
   }},
-  panel:{name:'Panel',desc:'Tall hexagonal panels on short pylons, like a twin-ion fighter.',price:1200,b(m){
-    for(const s of [-1,1]){const x=s*1.55;
-      wingSeg(m,s,W_(.2,.2,-.9,.0,.12),W_(1.5,.1,-.8,.0,.1),'panel');
-      const X=y=>x-s*y*.3;
-      plate(m,[[X(0),0,1.05],[X(.88),.88,.4],[X(.88),.88,-.95],[X(0),0,-1.6]],[s*.035,0,0],'hull');
-      plate(m,[[X(0),0,1.05],[X(-.82),-.82,.4],[X(-.82),-.82,-.95],[X(0),0,-1.6]],[s*.035,0,0],'hull');
-      plate(m,[[X(-.07),-.07,.95],[X(.07),.07,.95],[X(.07),.07,-1.5],[X(-.07),-.07,-1.5]],[s*.06,0,0],'trim');
-      plate(m,[[X(.78),.78,.33],[X(.88),.88,.4],[X(.88),.88,-.95],[X(.78),.78,-.88]],[s*.06,0,0],'trim');
-      plate(m,[[X(-.72),-.72,.33],[X(-.82),-.82,.4],[X(-.82),-.82,-.95],[X(-.72),-.72,-.88]],[s*.06,0,0],'trim');
-      lit(m,[X(.89)+s*.07,.89,-.95]);lit(m,[X(-.83)+s*.07,-.83,-.95]);lit(m,[x+s*.07,0,1.05],s>0?1:2);
-      m.guns.push([s*.7,-.08,.3]);
+  panel:{name:'Warden',desc:'Big tilted triangular pods on short pylons, with swept fins trailing off the back.',price:1200,b(m){
+    const TILT=15*D2R;   // pods tilt up this much from the hull's top plane, pivoting at the pylon
+    for(const s of [-1,1]){const X=(a,b)=>[s*a,s*b].sort((p,q)=>p-q);
+      box(m,...X(.35,1.0),.08,.36,-.95,.05,'trim');                    // short pylon (not tilted)
+      xform(m,m=>{   // built around the pivot at the pod's inner top corner, then tilted
+        const F=[[0,0],[s*1.15,0],[s*.4,-1.07]],cx=s*.52,cy=-.36;      // pod cross-section (x,y): inner top, outer top, bottom point
+        const sc=k=>F.map(([x,y])=>[cx+(x-cx)*k,cy+(y-cy)*k]);
+        prism(m,[{z:.75,p:F},{z:-.55,p:sc(.97)},{z:-1.35,p:sc(.8)}],'hull','panel','hull');   // triangular pod
+        prism(m,[{z:-1.33,p:sc(.4)},{z:-1.5,p:sc(.4)}],'panel','panel','engine');   // small triangular exhaust, glowing face at the back
+        {const L=sc(.48).map(([x,y])=>[x,y,-1.5]);for(let k=0;k<3;k++)beam(m,L[k],L[(k+1)%3],.05,.05,'trim')}   // lip round the exhaust
+        m.engines.push([cx,cy,-1.51,.13]);
+        const fr=F.map(([x,y])=>[x,y,.77]);for(let k=0;k<3;k++)beam(m,fr[k],fr[(k+1)%3],.09,.09,'trim');   // frame round the intake
+        prism(m,[{z:.86,p:sc(.62)},{z:.74,p:sc(.62)}],'dark','dark','dark');   // smaller dark face standing proud of the intake
+        box(m,...X(.4,.9),-.03,.03,-1.1,.3,'panel');                   // top panel strip
+        // swept fins off the back: a big one from the outer top edge, a smaller ventral one off the bottom point
+        const fin=(a,b,c,d)=>{const n=scl(norm(cross(sub(c,a),sub(b,a))),.03);plate(m,[a,b,c,d],n,'hull')};
+        fin([s*.85,.0,-.35],[s*1.05,-.04,-1.35],[s*2.0,.28,-2.2],[s*1.95,.3,-1.55]);
+        beam(m,[s*.85,.0,-.35],[s*1.95,.3,-1.55],.07,.05,'trim');
+        fin([s*.4,-1.02,-.5],[s*.37,-.94,-1.3],[s*.27,-1.17,-2.1],[s*.31,-1.17,-1.7]);
+        beam(m,[s*.4,-1.02,-.5],[s*.31,-1.17,-1.7],.06,.05,'trim');
+        tube(m,s*.4,-.87,[S_(1.25,.035,.035),S_(.75,.05,.05)],6,'panel','hull','hull');m.guns.push([s*.4,-.87,1.27]);
+        lit(m,[s*2.01,.29,-2.21],s>0?1:2);lit(m,[s*.27,-1.18,-2.11]);lit(m,[s*1.15,0,.78]);
+      },euler(0,0,s*TILT),[s*.95,.42,0]);
     }
   }},
   xfoil:{name:'X-Foil',desc:'Four split wings in an X, a cannon on every tip.',price:1300,b(m){
@@ -911,13 +929,24 @@ wing:{
     plate(m,[[0,-.25,-.3],[0,-.85,-.55],[0,-.85,-.95],[0,-.25,-1.2]],[.04,0,0],'trim');
     lit(m,[0,1.06,-.75],3);
   }},
-  lander:{name:'Lander',desc:'Wings drop steeply from the spine and end in forward landing claws.',price:1200,b(m){
-    for(const s of [-1,1]){
-      wingChain(m,s,[W_(.2,.55,-1.25,.12,.13),W_(1.35,.05,-1.4,-.42,.09),W_(2.05,-.3,-1.5,-.78,.06)],['hull','trim']);
-      plate(m,[[s*2.07,-.78,-.25],[s*2.07,-.78,-1.5],[s*2.1,-1.12,-1.05],[s*2.1,-1.1,.35]],[s*.035,0,0],'trim');
-      plate(m,[[s*1.35,-.4,.05],[s*1.75,-.6,.45],[s*1.75,-.62,.25],[s*1.35,-.42,-.25]],[0,.03,0],'hull');
-      tube(m,s*1.0,-.42,[S_(.95,.04,.04),S_(-.1,.07,.07)],6,'panel','hull','hull');m.guns.push([s*1.0,-.42,.97]);
-      lit(m,[s*2.11,-1.13,.35],s>0?1:2);lit(m,[s*2.07,-.78,-1.5]);
+  lander:{name:'Bulwark',desc:'Long armor blades held off the hull on thin arms, toed out and fanned.',price:1200,b(m){
+    const TOE=12*D2R;   // blades run along the ship, front end toed out by this much
+    for(const s of [-1,1]){const X=(a,b)=>[s*a,s*b].sort((p,q)=>p-q),hub=[s*.5,.2,-1.3];
+      box(m,...X(.3,.62),-.05,.42,-1.75,-.85,'trim');                  // hub on the hull flank
+      // [fan angle, inner dist, width, rear z, length, front rake]
+      for(const [el,r0,w,zr,len,rake] of [[40,.55,.85,-1.95,3.8,.55],[15,.55,.72,-1.9,3.4,.45]]){
+        const e=el*D2R,d=[s*Math.cos(e),Math.sin(e),0],ax=[d[0]*Math.tan(TOE),d[1]*Math.tan(TOE),1];   // ax: blade length axis, mostly +z
+        const P=(r,u)=>add(add(hub,scl(d,r)),add(scl(ax,u),[0,0,zr+1.3]));   // r = out from hub, u = along the blade
+        const IR=P(r0,0),IF=P(r0,len-rake),OF=P(r0+w,len),OR=P(r0+w,.35);   // inner rear, inner front, outer front, outer rear
+        const n=scl(norm(cross(d,ax)),.03);
+        plate(m,[IR,IF,OF,OR],n,'hull');                                // the blade
+        beam(m,OR,OF,.07,.06,'trim');                                   // outer edge strip
+        beam(m,IF,OF,.07,.07,'trim');                                   // raked front cap
+        beam(m,P(r0+w*.45,.5),P(r0+w*.45,len-rake*.6-.3),.05,.04,'panel',.6);   // panel line
+        for(const u of [.35,1.5])beam(m,add(hub,[0,0,u-.45]),P(r0+.02,u),.13,.1,'trim');   // thin arms
+        lit(m,OF,s>0?1:2);lit(m,OR);
+      }
+      tube(m,s*.46,.02,[S_(-.55,.035,.035),S_(-.9,.05,.05)],6,'panel','hull','hull');m.guns.push([s*.46,.02,-.53]);
     }
   }},
   louver:{name:'Louver',desc:'Three thin staggered blades stacked like slats, tied by a strut.',price:1300,b(m){
@@ -1435,6 +1464,7 @@ function renderFx(){
 const WHEEL=[['red','Red',2],['orange','Orange',28],['yellow','Yellow',52],['green','Green',125],['blue','Blue',215],['violet','Violet',272],['magenta','Magenta',318]];
 const WHEELC=WHEEL.map(([,,h])=>hsl(h,.85,.62));
 const XMATS={};
+XMATS.dark=ramp(['#0a0a0e','#111117','#18181f','#202029','#2a2a34','#363641']);   // fixed near-black for intakes, same on every paint
 WHEEL.forEach(([k,,h])=>{
   XMATS['pl_'+k]=ramp([.1,.2,.32,.46,.6,.76].map((L,i)=>hsl(h,.55+i*.06,L)));
   XMATS['pb_'+k]=ramp([.07,.14,.24,.35,.47,.6].map(L=>hsl(h+14,.45,L)));   // cloud bands
