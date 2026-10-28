@@ -1,0 +1,715 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ship Editor</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js"></script>
+<style>
+:root{--bg:#000;--pn:#0a0a0c;--pn2:#121216;--ln:#26262c;--ln2:#3a3a44;--tx:#d8d8de;--mut:#7c7c88;--acc:#ff4a3a;--sel:#3f8cff;--ok:#50e060;--warn:#ffd24a}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font:12px/1.45 Consolas,'Cascadia Mono',Menlo,monospace}
+.px{font-family:'Press Start 2P',monospace;font-size:9px;letter-spacing:.5px}
+button,select,input,textarea{font:inherit;color:var(--tx);background:var(--pn2);border:1px solid var(--ln2);border-radius:0}
+button{padding:5px 9px;cursor:pointer}button:hover{border-color:#777}button.on{border-color:var(--acc);color:#fff;background:#2a0c0a}
+button.pri{border-color:var(--acc);color:#fff}
+input,select{padding:4px 6px}input[type=color]{padding:0;width:26px;height:22px;border:1px solid var(--ln2);background:none;cursor:pointer}
+input[type=range]{padding:0;accent-color:var(--acc)}
+label{color:var(--mut)}
+#top{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--ln);flex-wrap:wrap}
+#top .title{color:#fff;margin-right:8px}
+#status{color:var(--mut);margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40vw}
+#status.dirty{color:var(--warn)}
+#app{display:grid;grid-template-columns:270px minmax(0,1fr) 340px;height:calc(100% - 45px)}
+.col{border-right:1px solid var(--ln);overflow:auto;padding:10px;display:flex;flex-direction:column;gap:10px;min-height:0}
+.col:last-child{border-right:0;border-left:1px solid var(--ln)}
+#mid{border-right:0;padding:10px;gap:8px}
+h3{margin:0;color:#fff}
+.row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.fld{display:grid;grid-template-columns:72px 1fr;gap:4px 8px;align-items:center}
+.fld input,.fld select,.fld textarea{width:100%}
+.list{border:1px solid var(--ln);max-height:260px;overflow:auto}
+.it{padding:4px 7px;cursor:pointer;display:flex;gap:6px;align-items:center;border-bottom:1px solid #15151a}
+.it:hover{background:#15151c}.it.on{background:#1b2236;color:#fff}
+.it .m{color:var(--mut);margin-left:auto;font-size:11px}
+.tag{font-size:10px;padding:0 4px;border:1px solid var(--ln2);color:var(--mut)}
+.new{color:var(--ok)}.chg{color:var(--warn)}
+#vp{position:relative;flex:1;min-height:200px;display:flex;align-items:center;justify-content:center;background:#000;border:1px solid var(--ln)}
+#cv{image-rendering:pixelated;cursor:crosshair;max-width:100%;max-height:100%}
+#hover{position:absolute;left:8px;top:6px;color:var(--mut);pointer-events:none}
+#drop{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--mut);text-align:center;padding:20px}
+.code{width:100%;min-height:220px;resize:vertical;white-space:pre;tab-size:2;background:#050507;border:1px solid var(--ln);color:#c8c8d0;padding:8px;line-height:1.5}
+#call{display:flex;flex-direction:column;gap:6px}
+.grp{border:1px solid var(--ln);background:#060608}
+.gh{padding:3px 8px;background:#111118;color:#fff;font-size:11px;border-bottom:1px solid var(--ln)}
+.fr{display:grid;grid-template-columns:92px 1fr 64px;gap:4px 8px;align-items:center;padding:3px 8px}
+.fr label{color:var(--tx);font-size:11px}.fr .mir{color:var(--mut);font-size:10px}
+.fr input[type=range]{width:100%;height:18px;cursor:ew-resize}
+.fr .nv{width:64px;padding:1px 4px;color:#ffb347}
+.fr .ex{grid-column:1/-1;color:var(--mut);font-size:10px;margin-top:-3px}.fr .ex code{color:#9a9aa6}
+.fr.hov{background:#14141e}.fr.hot{background:#21170a;box-shadow:inset 3px 0 0 #ffd24a}
+.fr.flash{animation:fl .9s}@keyframes fl{0%{background:#5a3a08}100%{background:#21170a}}
+#call .n{color:#ffb347;border-bottom:1px dashed #ffb347;cursor:ew-resize;user-select:none;padding:0 1px}
+#call .n:hover{background:#2a1a06}
+#call input.ni{width:64px;padding:0 3px;color:#ffb347}
+#call select{padding:0 2px;color:#8fd0ff}
+.err{color:#ff6a5a;white-space:pre-wrap}
+.hint{color:var(--mut);font-size:11px}
+.sw{display:flex;gap:3px;flex-wrap:wrap;align-items:center}
+.swr{display:grid;grid-template-columns:52px 1fr;gap:6px;align-items:center}
+.strip{display:inline-flex;height:10px}.strip i{width:7px;height:10px}
+.dot{width:9px;height:9px;display:inline-block;border:1px solid #000}
+.sl{display:grid;grid-template-columns:72px 1fr 44px 26px;gap:6px;align-items:center}
+.sl output{color:var(--mut);text-align:right}
+.counts{display:flex;gap:8px;flex-wrap:wrap;color:var(--mut);font-size:11px}
+.hide{display:none!important}
+button.rf{padding:2px 6px;font-size:11px}
+hr{border:0;border-top:1px solid var(--ln);margin:2px 0;width:100%}
+</style></head><body>
+<div id="top">
+  <span class="px title">SHIP EDITOR</span>
+  <button id="b-open">Open index.html</button><button id="b-reopen" class="hide">Reopen last</button>
+  <button id="b-save" class="pri" disabled>Save to file</button><button id="b-dl" disabled>Download copy</button>
+  <span style="width:10px"></span>
+  <button id="t-parts" class="px on">PARTS</button><button id="t-cos" class="px">COLORS</button>
+  <span id="status">No file loaded</span>
+  <input type="file" id="fi" accept=".html,.htm" class="hide">
+</div>
+<div id="app">
+  <!-- left -->
+  <div class="col" id="left">
+    <div id="L-parts">
+      <div class="row" id="slotbtns"></div>
+      <div class="row" id="rolefilter" style="margin-top:8px;gap:4px"></div>
+      <div class="list" id="partlist" style="margin-top:6px"></div>
+      <div class="row" style="margin-top:6px"><button id="p-new">New part</button><button id="p-dup">Duplicate</button><button id="p-copy" title="Copy this part's code to the clipboard">Copy code</button></div>
+      <hr style="margin:10px 0">
+      <div class="fld">
+        <label>Key</label><input id="p-key" disabled>
+        <label>Name</label><input id="p-name">
+        <label>Desc</label><textarea id="p-desc" rows="3"></textarea>
+        <label>Price</label><input id="p-price" type="number" step="50" min="0">
+        <label>Role</label><select id="p-role"></select>
+      </div>
+    </div>
+    <div id="L-cos" class="hide">
+      <div class="row" id="catbtns"></div>
+      <div class="counts" id="counts" style="margin-top:6px"></div>
+      <div class="list" id="coslist" style="margin-top:6px;max-height:420px"></div>
+      <div class="row" style="margin-top:6px"><button id="c-new">New</button><button id="c-dup">Duplicate</button></div>
+    </div>
+  </div>
+  <!-- middle -->
+  <div class="col" id="mid">
+    <div class="row">
+      <label>View</label><select id="v-mode"><option value="orbit">Orbit (drag)</option><option value="game">Game camera</option><option value="pv">Customize preview</option></select>
+      <button data-snap="front">Front</button><button data-snap="side">Side</button><button data-snap="top">Top</button><button data-snap="back">Back</button><button data-snap="three">3/4</button>
+      <label>Pixels</label><select id="v-res"><option value="1">Coarse</option><option value="2" selected>Medium</option><option value="3">Fine</option></select>
+    </div>
+    <div class="row">
+      <label><input type="checkbox" id="v-iso"> Isolate part</label>
+      <label><input type="checkbox" id="v-spin"> Spin</label>
+      <label><input type="checkbox" id="v-las" checked> Lasers</label>
+      <label><input type="checkbox" id="v-exh" checked> Exhaust</label>
+      <label><input type="checkbox" id="v-grid"> Joints</label>
+    </div>
+    <div id="vp"><canvas id="cv" width="340" height="240"></canvas><div id="hover"></div>
+      <div id="drop"><div class="px" style="color:#fff">OPEN INDEX.HTML</div><div>Use Open index.html above, or drop the file here.<br>The editor reads the game's own part and color code, so the preview matches the game.</div></div></div>
+    <div class="row" id="loadout"></div>
+  </div>
+  <!-- right -->
+  <div class="col" id="right">
+    <div id="R-parts">
+      <div class="row"><h3 class="px">SHAPES</h3><span class="hint">click the ship or a row</span></div>
+      <div class="list" id="shapelist" style="max-height:180px;margin-top:6px"></div>
+      <div class="row" style="margin-top:6px"><select id="addsel"></select><button id="addbtn">Add</button></div>
+      <div style="margin-top:10px" id="selbox">
+        <div class="row" style="justify-content:space-between"><b id="selname" style="color:#fff">No shape selected</b><span class="row"><button id="s-dup">Duplicate</button><button id="s-del">Delete</button></span></div>
+        <div id="call" style="margin-top:6px"></div>
+        <div class="hint" style="margin-top:4px">Yellow dots on the ship show what the highlighted slider moves. +z is forward, +y is up.</div>
+      </div>
+      <details style="margin-top:10px"><summary class="px" style="cursor:pointer;color:#fff">CODE</summary>
+      <textarea class="code" id="code" spellcheck="false" style="margin-top:6px"></textarea></details>
+      <div class="err" id="err"></div>
+    </div>
+    <div id="R-cos" class="hide">
+      <div class="fld">
+        <label>Key</label><input id="c-key" disabled>
+        <label>Name</label><input id="c-name">
+        <label>Desc</label><textarea id="c-desc" rows="2"></textarea>
+        <label>Price</label><input id="c-price" type="number" step="50" min="0">
+        <label>Planet</label><select id="c-wheel"></select>
+      </div>
+      <hr style="margin:10px 0">
+      <div class="row"><b style="color:#fff">Mode</b><button id="c-mgen">Generated</button><button id="c-mhex">Custom swatches</button></div>
+      <div id="genbox" style="margin-top:8px;display:flex;flex-direction:column;gap:6px"></div>
+      <div class="hint" id="modehint" style="margin-top:6px"></div>
+      <div id="swbox" style="margin-top:10px;display:flex;flex-direction:column;gap:6px"></div>
+    </div>
+  </div>
+</div>
+<script>
+// ===== core: parse index.html, build an engine from the game's own code, extract parts/cosmetics, write changes back =====
+const HELPERS=['loft','wingSeg','wingChain','nozzle','box','prism','tube','hoop','beam','beamChain','arc','plate','hexa','quad','tri','xform','lit'];
+const MAT_NAMES=['hull','panel','trim','glass','engine','dark'];
+const SLOTS=[['nose','Nose'],['hull','Hull'],['wing','Wings'],['eng','Engine']];
+const COS_CATS=[['paint','Paint','skin','SKINS','MORE_PAINT','mkPaint'],['exhaust','Exhaust','exhaust','EXHAUSTS','MORE_EXH','mkExh'],['laser','Lasers','laser','LASERS','MORE_LAS','mkLaser']];
+const NEED=new Set(['rand','clamp','hex','ramp','BLACK','BAY','sub','add','scl','dot','cross','norm','mulR','euler','quad','pal','SKINS','EXHAUSTS','LASERS','shade','MATS','ROCKC','GOLDC','STARC','LIGHT','AMB','CAM','DIRC','engFlick','W','PI2','J1','J2','S_','lit','W_','rect','D2R','SHIP_PARTS','SLOT_KEYS','DEFAULT_SHIP','PART_TAGS','ROLE_TAGS','REF_BOX','steps','mkPaint','mkExh','mkLaser','MORE_PAINT','MORE_EXH','MORE_LAS','WHEEL','WHEELC','XMATS','LOOK_COLOR','FUEL','FUEL_MAX','SHOP']);
+
+function parseJS(code){return acorn.parse(code,{ecmaVersion:'latest',sourceType:'script',allowReturnOutsideFunction:true})}
+function walk(n,fn,parent=null){if(!n||typeof n.type!=='string')return;fn(n,parent);
+  for(const k in n){if(k==='type'||k==='start'||k==='end')continue;const v=n[k];
+    if(Array.isArray(v))for(const c of v){if(c&&typeof c.type==='string')walk(c,fn,n)}
+    else if(v&&typeof v.type==='string')walk(v,fn,n)}}
+const declNames=d=>d.declarations.map(x=>x.id.type==='Identifier'?x.id.name:null).filter(Boolean);
+const keyName=p=>p.key.type==='Identifier'?p.key.name:p.key.value;
+const findDecl=(prog,name)=>{for(const s of prog.body)if(s.type==='VariableDeclaration')for(const d of s.declarations)if(d.id.name===name)return d.init;return null};
+const objProp=(obj,name)=>obj&&obj.properties.find(p=>p.type==='Property'&&keyName(p)===name);
+function numVal(n){if(n.type==='Literal'&&typeof n.value==='number')return n.value;if(n.type==='UnaryExpression'&&n.operator==='-'&&n.argument.type==='Literal'&&typeof n.argument.value==='number')return -n.argument.value;return null}
+const q=s=>"'"+String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n')+"'";
+function fmtNum(v){if(!isFinite(v))return '0';let s=(+v.toFixed(3)).toString();if(s.startsWith('0.'))s=s.slice(1);else if(s.startsWith('-0.'))s='-'+s.slice(2);return s==='-0'?'0':s}
+
+// ---- load: returns a project object
+function loadProject(SRC){
+  const a=SRC.indexOf('<script'+'>'),b=SRC.lastIndexOf('<\/script>');
+  if(a<0||b<0)throw new Error('No inline <script> found in this file.');
+  const OFF=a+8,code=SRC.slice(OFF,b),prog=parseJS(code);
+  // engine: every top-level function declaration, inert arrow consts, and the declarations the editor needs
+  const pieces=[],names=new Set();
+  for(const s of prog.body){const t=code.slice(s.start,s.end);
+    if(s.type==='FunctionDeclaration'){pieces.push(t);names.add(s.id.name);continue}
+    if(s.type==='VariableDeclaration'){const ns=declNames(s),inert=s.declarations.every(d=>d.init&&(d.init.type==='ArrowFunctionExpression'||d.init.type==='FunctionExpression'));
+      if(inert||ns.some(n=>NEED.has(n))){pieces.push(t);ns.forEach(n=>names.add(n))}continue}
+    if(s.type==='ExpressionStatement'&&(/^XMATS[.\[]/.test(t)||/^WHEEL\.forEach/.test(t)))pieces.push(t);
+  }
+  let eng=pieces.join('\n');
+  const patches=[
+    ['m.tris.push({v:[a,b,c],n,mat})','m.tris.push({v:[a,b,c],n,mat,id:CID})'],
+    ['m.tris.push({v:q.v.map(P),n:mulR(R,q.n),mat:q.mat})','m.tris.push({v:q.v.map(P),n:mulR(R,q.n),mat:q.mat,id:q.id})'],
+    ['m.lights.push({p,blink})','m.lights.push({p,blink,id:CID})'],
+    ['for(const t of m.tris){','for(const t of m.tris){DRID=t.id??-1;if(SKIP&&SKIP(DRID))continue;'],
+    ['zb[i]=z;','zb[i]=z;if(IDB)IDB[i]=DRID;'],
+  ];
+  const warn=[];for(const [x,y] of patches){if(eng.includes(x))eng=eng.replace(x,y);else warn.push('patch missed: '+x)}
+  names.delete('W');
+  const exp=[...names].filter(n=>/^[A-Za-z_$][\w$]*$/.test(n));
+  eng=`'use strict';let CID=-1,DRID=-1,IDB=null,SKIP=null;function __c(id,f,...a){const p=CID;CID=id;try{return f(...a)}finally{CID=p}}\n`+eng+
+    `\n;return {${exp.join(',')},__c,setRT(w,h,f,b,z,idb){W=w;H=h;F=f;buf=b;zb=z;IDB=idb},setPal(P){MATS=P.MATS;ENGC=P.ENGC;EXH=P.EXH;LIGHTC=P.LIGHTC;BOLT=P.BOLT},setFx(l,t,f){engLvl=l;THR=t;engFlick=f},setSkip(f){SKIP=f}}`;
+  const E=new Function(eng)();
+  for(const [,,,bn,mn] of COS_CATS)for(const [k,,,,def] of E[mn])E[bn][k]=def;   // the game registers these in a loop that also touches SHOP
+  const P={SRC,OFF,code,prog,E,warn,parts:{},cos:{},tags:{},look:null,dirtyTags:false,dirtyLook:false};
+  // parts
+  const SPn=findDecl(prog,'SHIP_PARTS');P.SPn=SPn;
+  for(const [slot] of SLOTS){P.parts[slot]=[];const so=objProp(SPn,slot).value;
+    for(const p of so.properties){const v=p.value,k=keyName(p),bp=objProp(v,'b'),body=bp.value.body;
+      const lit=n=>{const x=objProp(v,n);return x&&x.value.type==='Literal'?x.value:null};
+      P.parts[slot].push({slot,key:k,name:lit('name')?.value??k,desc:lit('desc')?.value??'',price:lit('price')?.value??0,
+        body:code.slice(body.start+1,body.end-1),orig:{name:lit('name'),desc:lit('desc'),price:lit('price'),body:[body.start+1,body.end-1]},
+        isNew:false,dirty:false})}
+    P.parts[slot].lastEnd=so.properties[so.properties.length-1].end}
+  P.tags=JSON.parse(JSON.stringify(E.PART_TAGS));P.TAGn=findDecl(prog,'PART_TAGS');
+  // cosmetics
+  const SHOPn=findDecl(prog,'SHOP'),shopObj={};
+  for(const el of SHOPn.elements){if(el.type!=='ObjectExpression')continue;const id=objProp(el,'id');if(id)shopObj[id.value.value]=el}
+  const ID_PRE={paint:'skin_',exhaust:'exh_',laser:'las_'};
+  P.look=JSON.parse(JSON.stringify(E.LOOK_COLOR));P.LOOKn=findDecl(prog,'LOOK_COLOR');
+  for(const [cat,,lk,baseName,moreName,gen] of COS_CATS){P.cos[cat]=[];
+    const base=findDecl(prog,baseName),more=findDecl(prog,moreName),defs=E[baseName];
+    for(const p of base.properties){const k=keyName(p),so=shopObj[ID_PRE[cat]+k];
+      const lit=n=>{const x=so&&objProp(so,n);return x&&x.value.type==='Literal'?x.value:null};
+      P.cos[cat].push({cat,key:k,name:lit('name')?.value??k,desc:lit('desc')?.value??'',price:lit('price')?.value??0,def:clone(defs[k]),od:clone(defs[k]),mode:'hex',gen:null,
+        src:'base',orig:{val:[p.value.start,p.value.end],name:lit('name'),desc:lit('desc'),price:lit('price')},dirty:false})}
+    for(const el of more.elements){const [kn,nn,dn,pn,dfn]=el.elements,k=kn.value;
+      let mode='hex',g=null;if(dfn.type==='CallExpression'&&dfn.callee.name===gen){const vs=dfn.arguments.map(numVal);if(vs.every(v=>v!==null)){mode='gen';g=vs}}
+      P.cos[cat].push({cat,key:k,name:nn.value,desc:dn.value,price:numVal(pn)??0,def:clone(defs[k]),mode,gen:g,src:'more',orig:{el:[el.start,el.end]},dirty:false})}
+    P.cos[cat].lastEnd=more.elements[more.elements.length-1].end;P.cos[cat].lk=lk;P.cos[cat].genName=gen}
+  return P}
+const clone=o=>JSON.parse(JSON.stringify(o));
+
+// ---- labels: what each argument of each geometry helper means
+const HP={
+  box:['m','Left x','Right x','Bottom y','Top y','Back z','Front z','Material'],
+  loft:['m','Rings','Sides','Material','X offset','Y offset','Cap material','Twist'],
+  tube:['m','X','Y','Rings','Sides','Material','Front cap','Back cap'],
+  wingSeg:['m','Side','Root','Tip','Material'],
+  wingChain:['m','Side','Points','Materials'],
+  prism:['m','Rings','Material','Front cap','Back cap'],
+  beam:['m','Start','End','Start width','End width','Material','Height ratio'],
+  beamChain:['m','Points','Widths','Materials','Height ratio'],
+  plate:['m','Corners','Thickness','Material'],
+  hexa:['m','Top corners','Bottom corners','Material'],
+  quad:['m','A','B','C','D','Material','Inside point'],tri:['m','A','B','C','Material','Inside point'],
+  nozzle:['m','X','Y','Z','Radius','Sides'],
+  hoop:['m','Z','Radius','Height radius','Depth','Thickness','Segments','Material','Center y','Rotation'],
+  arc:['m','Z','Radius','Height radius','Depth','Thickness','Start angle','End angle','Segments','Material','Center y'],
+  lit:['m','Position','Blink'],
+  xform:['m','Shapes','Rotation','Position'],
+  S_:['Z','Width','Height','Raise'],W_:['Span x','Front z','Back z','Height y','Thickness'],rect:['Center x','Center y','Half width','Half height'],
+  euler:['Yaw','Pitch','Roll']};
+const OBJ_KEYS={z:'Z',p:'Shape',rx:'Width',ry:'Height',yo:'Raise'};
+const ITEM={Rings:'Ring',Corners:'Corner','Top corners':'Top corner','Bottom corners':'Bottom corner',Points:'Point',Widths:'Width',Materials:'Material',Shape:'Point'};
+const INT_NAMES=new Set(['Sides','Segments','Blink']);
+const ANGLE_NAMES=new Set(['Twist','Rotation','Start angle','End angle','Yaw','Pitch','Roll']);
+const isNum=n=>numVal(n)!==null;
+function walkSkip(n,fn,parent=null){if(!n||typeof n.type!=='string')return;if(fn(n,parent)===false)return;
+  for(const k in n){if(k==='type'||k==='start'||k==='end')continue;const v=n[k];
+    if(Array.isArray(v))for(const c of v){if(c&&typeof c.type==='string')walkSkip(c,fn,n)}
+    else if(v&&typeof v.type==='string')walkSkip(v,fn,n)}}
+const isHelperCall=n=>n.type==='CallExpression'&&n.callee.type==='Identifier'&&HELPERS.includes(n.callee.name);
+// label every number inside one helper call (numbers inside nested helper calls belong to those calls)
+function labelCall(call,src,off){const out=[],strs=[];
+  const rec=(n,path,expr)=>{const v=numVal(n);out.push({s:n.start-off,e:n.end-off,v,path:path.length?path:['Value'],expr:expr?src.slice(expr.start,expr.end):null,
+    mirror:!!(expr&&expr.type==='BinaryExpression'&&expr.operator==='*'&&((expr.left.type==='Identifier'&&expr.left.name==='s'&&expr.right===n)||(expr.right.type==='Identifier'&&expr.right.name==='s'&&expr.left===n)))})};
+  const lab=(n,path)=>{if(!n)return;
+    if(isNum(n))return rec(n,path,null);
+    if(n.type==='Literal'&&typeof n.value==='string'){strs.push({s:n.start-off,e:n.end-off,v:n.value,label:path.join(' › ')||'Material'});return}
+    if(n.type==='CallExpression'&&n.callee.type==='Identifier'&&HP[n.callee.name]&&(n===call||!HELPERS.includes(n.callee.name))){const ps=HP[n.callee.name];
+      n.arguments.forEach((a,i)=>lab(a,n===call?[ps[i]||'Arg '+(i+1)]:path.concat(ps[i]||'Arg '+(i+1))));return}
+    if(isHelperCall(n))return;
+    if(n.type==='ArrayExpression'){const el=n.elements.filter(Boolean);
+      const point=(el.length===2||el.length===3)&&el.every(e=>e.type!=='ArrayExpression'&&e.type!=='ObjectExpression'&&!(e.type==='CallExpression'&&HP[e.callee.name]));
+      if(point){el.forEach((e,i)=>lab(e,path.concat(['X','Y','Z'][i])));return}
+      const last=path[path.length-1],it=ITEM[last]||'Item';
+      el.forEach((e,i)=>lab(e,path.slice(0,-1).concat(`${it} ${i+1}`)));return}
+    if(n.type==='ObjectExpression'){for(const p of n.properties)if(p.type==='Property')lab(p.value,path.concat(OBJ_KEYS[keyName(p)]||keyName(p)));return}
+    if(n.type==='ArrowFunctionExpression'||n.type==='FunctionExpression')return;
+    // any other expression: every number inside it is a term of that expression
+    walkSkip(n,c=>{if(c!==n&&isHelperCall(c))return false;if(c.type==='UnaryExpression'&&isNum(c)){rec(c,path,n);return false}
+      if(c.type==='Literal'&&typeof c.value==='number')rec(c,path,n)})};
+  lab(call,[]);out.sort((a,b)=>a.s-b.s);strs.sort((a,b)=>a.s-b.s);out.strs=strs;return out}
+// ---- compile a part body with every helper call tagged by id (slot*10000 + call index)
+function analyzeBody(body){
+  const pre='(function(m){',src=pre+body+'\n})',ast=parseJS(src),calls=[],parents=new Map();
+  walk(ast,(n,p)=>{parents.set(n,p);if(isHelperCall(n))calls.push(n)});
+  calls.sort((x,y)=>x.start-y.start);
+  const info=calls.map((n,i)=>{const L=labelCall(n,src,pre.length),strs=L.strs,nums=L.map(f=>{const name=f.path[f.path.length-1];
+      return {...f,group:f.path.slice(0,-1).join(' › '),name,int:INT_NAMES.has(name),angle:ANGLE_NAMES.has(name)}});
+    let st=null,p=parents.get(n);if(p&&p.type==='ExpressionStatement'){st=p;let pp=parents.get(p);
+      while(pp&&(pp.type==='ForOfStatement'||pp.type==='ForStatement'||pp.type==='ForInStatement')&&pp.body===st){st=pp;pp=parents.get(pp)}}
+    const mat=strs.find(s=>MAT_NAMES.includes(s.v));
+    return {i,name:n.callee.name,s:n.start-pre.length,e:n.end-pre.length,nums,strs,mat:mat?mat.v:'',stmt:st?[st.start-pre.length,st.end-pre.length]:null}});
+  return {calls,info,pre}}
+function compilePart(E,body,slotIdx){
+  const {calls,info,pre}=analyzeBody(body);let s=pre+body+'\n})';
+  for(const n of [...calls].reverse()){let k=n.callee.end;while(s[k]!=='(')k++;
+    s=s.slice(0,n.callee.start)+`__c(${slotIdx*10000+calls.indexOf(n)},${n.callee.name},`+s.slice(k+1)}
+  const fn=new Function('ENV','with(ENV){return '+s+'}')(E);
+  return {fn,info}}
+
+// ---- write back
+function cosDefText(c){const a=x=>'['+x.map(q).join(',')+']',d=c.def;
+  if(c.mode==='gen'&&c.gen)return `${{paint:'mkPaint',exhaust:'mkExh',laser:'mkLaser'}[c.cat]}(${c.gen.map(fmtNum).join(',')})`;
+  if(c.cat==='paint')return `{hull:${a(d.hull)},panel:${a(d.panel)},trim:${a(d.trim)},glass:${a(d.glass)},light:${a(d.light)}}`;
+  if(c.cat==='exhaust')return `{eng:${a(d.eng)},exh:${a(d.exh)}}`;
+  return a(d)}
+function buildSource(P){
+  const R=[],off=P.OFF,code=P.code;
+  const rep=(s,e,t)=>R.push([s+off,e+off,t]);
+  for(const [slot] of SLOTS){const news=[];
+    for(const p of P.parts[slot]){if(p.isNew){news.push(p);continue}if(!p.dirty)continue;
+      const o=p.orig;if(o.name&&p.name!==o.name.value)rep(o.name.start,o.name.end,q(p.name));
+      if(o.desc&&p.desc!==o.desc.value)rep(o.desc.start,o.desc.end,q(p.desc));
+      if(o.price&&p.price!==o.price.value)rep(o.price.start,o.price.end,String(p.price));
+      if(p.body!==code.slice(o.body[0],o.body[1]))rep(o.body[0],o.body[1],p.body)}
+    if(news.length)rep(P.parts[slot].lastEnd,P.parts[slot].lastEnd,news.map(p=>`,\n  ${p.key}:{name:${q(p.name)},desc:${q(p.desc)},price:${p.price|0},b(m){\n    ${p.body.trim()}\n  }}`).join(''))}
+  if(P.dirtyTags)rep(P.TAGn.start,P.TAGn.end,'{\n'+SLOTS.map(([s])=>`  ${s}:{${Object.entries(P.tags[s]||{}).map(([k,v])=>`${k}:${q(v)}`).join(',')}}`).join(',\n')+'}');
+  for(const [cat] of COS_CATS){const L=P.cos[cat],news=[];
+    for(const c of L){if(c.src==='new'){news.push(c);continue}if(!c.dirty)continue;
+      if(c.src==='more')rep(c.orig.el[0],c.orig.el[1],`[${q(c.key)},${q(c.name)},${q(c.desc)},${c.price|0},${cosDefText(c)}]`);
+      else{const o=c.orig;if(JSON.stringify(c.def)!==JSON.stringify(c.od))rep(o.val[0],o.val[1],cosDefText({...c,mode:'hex'}));
+        if(o.name&&c.name!==o.name.value)rep(o.name.start,o.name.end,q(c.name));
+        if(o.desc&&c.desc!==o.desc.value)rep(o.desc.start,o.desc.end,q(c.desc));
+        if(o.price&&c.price!==o.price.value)rep(o.price.start,o.price.end,String(c.price|0))}}
+    if(news.length)rep(L.lastEnd,L.lastEnd,news.map(c=>`,\n  [${q(c.key)},${q(c.name)},${q(c.desc)},${c.price|0},${cosDefText(c)}]`).join(''))}
+  if(P.dirtyLook)rep(P.LOOKn.start,P.LOOKn.end,'{\n'+COS_CATS.map(([cat,,lk])=>{const m=P.look[lk]||{},g=[0,1,2,3,4,5,6].map(w=>Object.entries(m).filter(([,v])=>v===w).map(([k,v])=>`${k}:${v}`).join(',')).filter(Boolean);
+    return `  ${lk}:{${g.join(', ')}}`}).join(',\n')+'}');
+  R.sort((x,y)=>y[0]-x[0]||y[1]-x[1]);let S=P.SRC;
+  for(let i=0;i<R.length;i++){if(i&&R[i][1]>R[i-1][0]&&R[i][0]!==R[i-1][0])throw new Error('Overlapping edits');S=S.slice(0,R[i][0])+R[i][2]+S.slice(R[i][1])}
+  return S}
+if(false&&typeof module!=='undefined')module.exports={loadProject,compilePart,analyzeBody,buildSource,fmtNum,SLOTS,COS_CATS,MAT_NAMES};
+
+</script>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+let P=null,FH=null,DIRTY=false,TAB='parts';
+const ROLES=['','interceptor','gunship','guardian','marksman','hauler'];
+let LO={nose:'dart',hull:'standard',wing:'swept',eng:'triple',skin:'red',exhaust:'flame',laser:'red'};
+let ROLEF='*',EDIT='nose',SEL=-1,HOV=-1,COSCAT='paint',COSKEY='red';
+const COMP={};
+const VIEW={mode:'orbit',yaw:2.8,pitch:.25,dist:9,spin:false,res:2,iso:false,las:true,exh:true,grid:false,rot:0};
+const slotIdx=s=>SLOTS.findIndex(x=>x[0]===s);
+const partOf=(s,k)=>P.parts[s].find(p=>p.key===k);
+const cosOf=(c,k)=>P.cos[c].find(x=>x.key===k);
+const lkOf=c=>COS_CATS.find(x=>x[0]===c)[2];
+
+// ---------------- file io ----------------
+const idb=(()=>{let db;const open=()=>db||(db=new Promise((r,j)=>{const q=indexedDB.open('ship-editor',1);q.onupgradeneeded=()=>q.result.createObjectStore('kv');q.onsuccess=()=>r(q.result);q.onerror=()=>j(q.error)}));
+  return {get:async k=>{try{const d=await open();return await new Promise(r=>{const q=d.transaction('kv').objectStore('kv').get(k);q.onsuccess=()=>r(q.result);q.onerror=()=>r(null)})}catch(e){return null}},
+          set:async(k,v)=>{try{const d=await open();d.transaction('kv','readwrite').objectStore('kv').put(v,k)}catch(e){}}}})();
+async function openFile(){
+  if(window.showOpenFilePicker){try{const [h]=await showOpenFilePicker({types:[{description:'HTML',accept:{'text/html':['.html','.htm']}}]});
+    FH=h;idb.set('fh',h);load(await (await h.getFile()).text(),h.name)}catch(e){if(e.name!=='AbortError')msg(e.message,1)}}
+  else $('fi').click()}
+$('b-open').onclick=openFile;
+$('fi').onchange=async e=>{const f=e.target.files[0];if(f){FH=null;load(await f.text(),f.name)}};
+(async()=>{const h=await idb.get('fh');if(h){$('b-reopen').classList.remove('hide');$('b-reopen').textContent='Reopen '+h.name;
+  $('b-reopen').onclick=async()=>{try{if(await h.requestPermission({mode:'readwrite'})!=='granted')return;FH=h;load(await (await h.getFile()).text(),h.name)}catch(e){msg(e.message,1)}}}})();
+for(const ev of ['dragover','drop'])document.addEventListener(ev,async e=>{e.preventDefault();if(ev!=='drop')return;
+  const it=e.dataTransfer.items&&e.dataTransfer.items[0];
+  if(it&&it.getAsFileSystemHandle){try{const h=await it.getAsFileSystemHandle();if(h&&h.kind==='file'){FH=h;idb.set('fh',h);load(await (await h.getFile()).text(),h.name);return}}catch(_){}}
+  const f=e.dataTransfer.files[0];if(f){FH=null;load(await f.text(),f.name)}});
+let FNAME='index.html';
+function load(text,name){
+  try{const keep=P?{LO,EDIT,SEL,COSCAT,COSKEY}:null;P=loadProject(text);FNAME=name||FNAME;for(const k in COMP)delete COMP[k];
+    if(P.warn.length)console.warn(P.warn);
+    for(const s of ['nose','hull','wing','eng'])if(!partOf(s,LO[s]))LO[s]=P.parts[s][0].key;
+    for(const [c] of COS_CATS){const lk=lkOf(c);if(!cosOf(c,LO[lk]))LO[lk]=P.cos[c][0].key}
+    if(!cosOf(COSCAT,COSKEY))COSKEY=P.cos[COSCAT][0].key;
+    $('drop').classList.add('hide');$('b-save').disabled=false;$('b-dl').disabled=false;
+    setDirty(false);msg(`Loaded ${FNAME}${FH?'':' (read-only copy: Save will download)'}${P.warn.length?' · picking may be off: '+P.warn.length+' patch warnings':''}`);
+    meshDirty=true;renderAll()}catch(e){console.error(e);msg('Could not read that file: '+e.message,1)}}
+function msg(t,bad){const s=$('status');s.textContent=t;s.style.color=bad?'#ff6a5a':''}
+function setDirty(v){DIRTY=v;$('status').classList.toggle('dirty',v);if(v)$('status').textContent='Unsaved changes';}
+addEventListener('beforeunload',e=>{if(DIRTY){e.preventDefault();e.returnValue=''}});
+async function save(){if(!P)return;const bad=SLOTS.map(([s])=>COMP[s]).filter(c=>c&&c.err);
+  if(bad.length&&!confirm('A part has a code error ('+bad[0].err+'). Save anyway?'))return;let out;try{out=buildSource(P);loadProject(out)}catch(e){msg('Save failed, file not written: '+e.message,1);return}
+  if(FH&&FH.createWritable){try{if((await FH.queryPermission({mode:'readwrite'}))!=='granted'&&(await FH.requestPermission({mode:'readwrite'}))!=='granted'){msg('No write permission',1);return}
+      const w=await FH.createWritable();await w.write(out);await w.close();load(out,FH.name);msg('Saved to '+FH.name+' at '+new Date().toLocaleTimeString());return}catch(e){msg('Save failed: '+e.message,1);return}}
+  download(out);load(out,FNAME);msg('Downloaded '+FNAME+' (replace the original with it)')}
+function download(text){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:'text/html'}));a.download=FNAME;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
+$('b-save').onclick=save;
+$('b-dl').onclick=()=>{try{download(buildSource(P))}catch(e){msg(e.message,1)}};
+addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();save()}
+  if((e.ctrlKey||e.metaKey)&&e.key==='z'&&!e.shiftKey&&document.activeElement.tagName!=='TEXTAREA'&&document.activeElement.tagName!=='INPUT'){e.preventDefault();undo()}});
+
+// ---------------- undo ----------------
+const UNDO=[];let lastPush=0;
+function snap(obj,force){const t=performance.now();if(!force&&t-lastPush<600&&UNDO.length&&UNDO[UNDO.length-1].obj===obj){lastPush=t;return}lastPush=t;
+  UNDO.push({obj,state:JSON.stringify(Object.fromEntries(['name','desc','price','body','def','mode','gen'].filter(k=>k in obj).map(k=>[k,obj[k]])))});if(UNDO.length>200)UNDO.shift()}
+function undo(){const u=UNDO.pop();if(!u)return;Object.assign(u.obj,JSON.parse(u.state));u.obj.dirty=true;meshDirty=true;renderAll()}
+
+// ---------------- tabs ----------------
+$('t-parts').onclick=()=>{TAB='parts';renderAll()};$('t-cos').onclick=()=>{TAB='cos';renderAll()};
+function renderAll(){
+  $('t-parts').classList.toggle('on',TAB==='parts');$('t-cos').classList.toggle('on',TAB==='cos');
+  for(const [a,b] of [['L-parts','parts'],['R-parts','parts'],['L-cos','cos'],['R-cos','cos']])$(a).classList.toggle('hide',TAB!==b);
+  if(!P)return;renderLoadout();if(TAB==='parts')renderParts();else renderCos()}
+
+// ---------------- loadout bar ----------------
+function renderLoadout(){const el=$('loadout');el.innerHTML='';
+  const mk=(lbl,opts,val,on)=>{const l=document.createElement('label');l.textContent=lbl+' ';const s=document.createElement('select');
+    for(const [k,n] of opts){const o=document.createElement('option');o.value=k;o.textContent=n;s.appendChild(o)}s.value=val;s.onchange=()=>on(s.value);l.appendChild(s);el.appendChild(l)};
+  for(const [s,n] of SLOTS)mk(n,P.parts[s].map(p=>[p.key,p.name]),LO[s],v=>{LO[s]=v;if(TAB==='parts'&&s===EDIT)SEL=-1;meshDirty=true;renderAll()});
+  for(const [c,n] of COS_CATS){const lk=lkOf(c);mk(n,P.cos[c].map(x=>[x.key,x.name]),LO[lk],v=>{LO[lk]=v;if(TAB==='cos'&&c===COSCAT)COSKEY=v;renderAll()})}}
+
+// ---------------- parts ----------------
+function comp(slot){const p=partOf(slot,LO[slot]),c=COMP[slot];
+  if(c&&c.key===p.key&&c.body===p.body)return c;
+  const n={key:p.key,body:p.body,fn:c&&c.key===p.key?c.fn:null,info:c&&c.key===p.key?c.info:[],err:''};
+  try{const r=compilePart(P.E,p.body,slotIdx(slot));const m={tris:[],lights:[],engines:[],guns:[]};r.fn(m);n.fn=r.fn;n.info=r.info}
+  catch(e){n.err=e.message}
+  COMP[slot]=n;return n}
+let meshDirty=true,MESH=null;
+function getMesh(){if(!meshDirty&&MESH)return MESH;
+  const m={tris:[],lights:[],engines:[],guns:[]};
+  for(const [s] of SLOTS){const c=comp(s);if(c.fn)try{c.fn(m)}catch(e){c.err=e.message}}
+  if(!m.guns.length)m.guns=[[-.55,.05,1.2],[.55,.05,1.2]];
+  if(m.tris.length)P.E.fitTo(m);MESH=m;meshDirty=false;return m}
+function curPart(){return partOf(EDIT,LO[EDIT])}
+function changed(p){p.dirty=true;meshDirty=true;setDirty(true)}
+
+function renderParts(){
+  const sb=$('slotbtns');sb.innerHTML='';
+  for(const [s,n] of SLOTS){const b=document.createElement('button');b.className='px'+(s===EDIT?' on':'');b.textContent=n.toUpperCase();b.onclick=()=>{EDIT=s;SEL=-1;renderAll()};sb.appendChild(b)}
+  const rf=$('rolefilter');rf.innerHTML='';const tagOf=k=>P.tags[EDIT]?.[k]||'';
+  for(const r of ['*',...ROLES]){const n=r==='*'?P.parts[EDIT].length:P.parts[EDIT].filter(p=>tagOf(p.key)===r).length;
+    const b=document.createElement('button');b.className='rf'+(ROLEF===r?' on':'');b.textContent=(r==='*'?'All':r?r[0].toUpperCase()+r.slice(1):'No role')+' '+n;
+    if(!n&&r!=='*')b.style.opacity=.45;b.onclick=()=>{ROLEF=r;renderParts()};rf.appendChild(b)}
+  const pl=$('partlist');pl.innerHTML='';
+  const shown=P.parts[EDIT].filter(p=>ROLEF==='*'||tagOf(p.key)===ROLEF);
+  if(!shown.length)pl.innerHTML='<div class="it hint">No parts with this role in this slot.</div>';
+  for(const p of shown){const d=document.createElement('div');d.className='it'+(p.key===LO[EDIT]?' on':'');
+    const t=P.tags[EDIT]?.[p.key];
+    d.innerHTML=`<span class="${p.isNew?'new':p.dirty?'chg':''}">${esc(p.name)}</span>${t?`<span class="tag">${t}</span>`:''}<span class="m">${p.price?'¢'+p.price:'free'}</span>`;
+    d.onclick=()=>{LO[EDIT]=p.key;SEL=-1;meshDirty=true;renderAll()};pl.appendChild(d)}
+  const p=curPart();setVal($('p-key'),p.key);setVal($('p-name'),p.name);setVal($('p-desc'),p.desc);setVal($('p-price'),p.price);
+  const rs=$('p-role');if(!rs.options.length)for(const r of ROLES){const o=document.createElement('option');o.value=r;o.textContent=r?r[0].toUpperCase()+r.slice(1):'No role';rs.appendChild(o)}
+  rs.value=P.tags[EDIT]?.[p.key]||'';
+  const ta=$('code');if(document.activeElement!==ta&&ta.value!==p.body)ta.value=p.body;
+  renderShapes()}
+function renderShapes(){const c=comp(EDIT),sl=$('shapelist');sl.innerHTML='';
+  c.info.forEach(x=>{const d=document.createElement('div');d.className='it'+(x.i===SEL?' on':'');
+    const src=curPart().body.slice(x.s,x.e);
+    d.innerHTML=`<span style="color:var(--mut)">${x.i+1}</span><b>${x.name}</b><span class="m">${x.mat||''}</span>`;d.title=src;
+    d.onclick=()=>{SEL=x.i;FOCUSK=-1;renderShapes()};sl.appendChild(d)});
+  $('err').textContent=c.err?('Error: '+c.err+(c.fn?'\n(showing the last version that worked)':'')):'';
+  renderCall()}
+function setVal(el,v){if(el.value!==String(v))el.value=v}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+let FOCUSK=-1,HOVK=-1,SENS=null,LASTR=null;
+const ZERO_MIN=new Set(['Width','Height','Radius','Thickness','Half width','Half height','Start width','End width','Height radius','Depth','Height ratio']);
+function fieldRange(f){const v=f.v;if(f.int){const r={Sides:[3,16],Segments:[1,32],Blink:[0,5]}[f.name]||[0,10];return [Math.min(r[0],v),Math.max(r[1],v),1]}
+  if(f.angle)return [Math.min(-3.15,v),Math.max(3.15,v),.01];
+  const sp=Math.max(1,Math.ceil(Math.abs(v)*2)/2);let lo=+(v-sp).toFixed(2),hi=+(v+sp).toFixed(2);if(ZERO_MIN.has(f.name)&&v>=0)lo=Math.max(0,lo);return [lo,hi,.01]}
+function renderCall(){const c=comp(EDIT),x=c.info[SEL],box=$('call');
+  if(!x){$('selname').textContent='No shape selected';box.innerHTML='<span class="hint">Click the ship to select a shape. Clicking near a corner or edge jumps to the slider that moves it.</span>';FOCUSK=-1;return}
+  $('selname').textContent=`${x.i+1}. ${x.name}${x.mat?' · '+x.mat:''}`;
+  const sc=$('right').scrollTop;let h='';
+  const mats=x.strs.filter(s=>MAT_NAMES.includes(s.v));
+  if(mats.length)h+=`<div class="grp"><div class="gh">Material</div>${mats.map((s,j)=>`<div class="fr"><label>${esc(s.label||'Material')}</label><select data-s="${s.s}" style="grid-column:2/4">${MAT_NAMES.map(m=>`<option${m===s.v?' selected':''}>${m}</option>`).join('')}</select></div>`).join('')}</div>`;
+  let g=null;
+  x.nums.forEach((f,k)=>{if(f.group!==g){if(g!==null)h+='</div>';g=f.group;h+=`<div class="grp">${g?`<div class="gh">${esc(g)}</div>`:'<div class="gh">Shape</div>'}`}
+    const [lo,hi,st]=fieldRange(f);
+    h+=`<div class="fr${k===FOCUSK?' hot':''}" data-k="${k}"><label>${esc(f.name)}${f.mirror?' <span class="mir">mirrored</span>':''}</label>`+
+      `<input type="range" min="${lo}" max="${hi}" step="${st}" value="${f.v}"><input type="number" class="nv" step="${f.int?1:.01}" value="${fmtNum(f.v).replace(/^(-?)\./,'$10.')}">`+
+      (f.expr&&!f.mirror?`<div class="ex">part of <code>${esc(f.expr)}</code></div>`:'')+`</div>`});
+  if(g!==null)h+='</div>';
+  if(!x.nums.length)h+='<div class="hint">This shape has no numbers to adjust. Edit it in the code box.</div>';
+  box.innerHTML=h;$('right').scrollTop=sc;
+  box.querySelectorAll('select').forEach(s=>s.onchange=()=>{const p=curPart(),str=x.strs.find(q=>q.s===+s.dataset.s);snap(p,1);
+    p.body=p.body.slice(0,str.s)+"'"+s.value+"'"+p.body.slice(str.e);changed(p);renderParts()});
+  box.querySelectorAll('.fr[data-k]').forEach(row=>{const k=+row.dataset.k,rg=row.querySelector('input[type=range]'),nb=row.querySelector('.nv');
+    row.onmouseenter=()=>{HOVK=k};row.onmouseleave=()=>{if(HOVK===k)HOVK=-1};
+    rg.onpointerdown=()=>{snap(curPart(),1);setFocus(k,false)};
+    rg.oninput=()=>{const v=+rg.value;setNum(k,v);nb.value=+v.toFixed(3);refreshSens(k)};
+    rg.onchange=()=>renderParts();
+    nb.onfocus=()=>setFocus(k,false);
+    nb.onchange=()=>{const v=parseFloat(nb.value);if(isFinite(v)){snap(curPart(),1);setNum(k,v);renderParts()}}});
+  getSens()}
+function setFocus(k,scroll){FOCUSK=k;document.querySelectorAll('#call .fr').forEach(r=>r.classList.toggle('hot',+r.dataset.k===k));
+  if(scroll&&k>=0){const r=document.querySelector(`#call .fr[data-k="${k}"]`);if(r){r.scrollIntoView({block:'nearest',behavior:'smooth'});r.classList.remove('flash');void r.offsetWidth;r.classList.add('flash')}}}
+function setNum(k,v){const p=curPart(),c=comp(EDIT),x=c.info[SEL];if(!x)return;const n=x.nums[k];
+  p.body=subNum(p.body,n,v);changed(p);comp(EDIT)}
+function subNum(body,n,v){let t=fmtNum(v);if(t.startsWith('-')&&/[-+*\/]\s*$/.test(body.slice(0,n.s)))t='('+t+')';   // avoid "--" or "*-" ambiguity
+  return body.slice(0,n.s)+t+body.slice(n.e)}
+// ---- which points does each number move? nudge it, rebuild just this part, compare
+function runBody(body,si){try{const r=compilePart(P.E,body,si);const m={tris:[],lights:[],engines:[],guns:[]};r.fn(m);return m}catch(e){return null}}
+function shapePts(m,id){const pts=[],seen=new Set();if(!m)return pts;
+  for(const t of m.tris)if(t.id===id)for(const v of t.v){pts.push(v)}
+  for(const L of m.lights)if(L.id===id)pts.push(L.p);return pts}
+function fieldPts(body,si,ci,f,base){const id=si*10000+ci,d=f.int?1:.05;
+  const m2=runBody(subNum(body,f,f.v+d),si),b2=shapePts(m2,id);
+  if(b2.length!==base.length)return {pts:dedup(base),all:true};
+  const mv=[];for(let i=0;i<base.length;i++){const a=base[i],b=b2[i];if(Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1])+Math.abs(a[2]-b[2])>1e-6)mv.push(a)}
+  return {pts:dedup(mv),all:false}}
+function dedup(a){const s=new Set(),o=[];for(const p of a){const k=p.map(v=>v.toFixed(3)).join();if(!s.has(k)){s.add(k);o.push(p)}}return o}
+function getSens(){const p=curPart(),c=comp(EDIT),x=c.info[SEL];if(!x)return SENS=null;const si=slotIdx(EDIT),key=EDIT+'|'+p.key+'|'+SEL+'|'+p.body;
+  if(SENS&&SENS.key===key)return SENS;const base=shapePts(runBody(p.body,si),si*10000+SEL);
+  return SENS={key,map:x.nums.map(f=>fieldPts(p.body,si,SEL,f,base))}}
+function refreshSens(k){const p=curPart(),c=comp(EDIT),x=c.info[SEL];if(!x||!SENS)return;const si=slotIdx(EDIT),base=shapePts(runBody(p.body,si),si*10000+SEL);
+  SENS.map[k]=fieldPts(p.body,si,SEL,x.nums[k],base)}
+function nearestField(px,py){const S=getSens();if(!S||!LASTR||!MESH)return -1;const E=P.E,ks=jointScale(MESH);let best=-1,bd=1e9;
+  S.map.forEach((r,k)=>{for(const p of r.pts){const sp=E.proj(E.mulR(LASTR,E.scl(p,ks)));if(!sp)continue;const d=Math.hypot(sp.x-px,sp.y-py)+(r.all?6:0);if(d<bd){bd=d;best=k}}});
+  return best}
+function rtXY(e){const r=cv.getBoundingClientRect();return [(e.clientX-r.left)/r.width*RT.w,(e.clientY-r.top)/r.height*RT.h]}
+$('code').oninput=(()=>{let tm;return()=>{clearTimeout(tm);tm=setTimeout(()=>{const p=curPart();snap(p);p.body=$('code').value;changed(p);renderShapes()},250)}})();
+$('p-name').oninput=e=>{const p=curPart();snap(p);p.name=e.target.value;changed(p);renderPartList()};
+$('p-desc').oninput=e=>{const p=curPart();snap(p);p.desc=e.target.value;changed(p)};
+$('p-price').oninput=e=>{const p=curPart();snap(p);p.price=Math.max(0,parseInt(e.target.value)||0);changed(p);renderPartList()};
+$('p-role').onchange=e=>{const p=curPart();P.tags[EDIT]=P.tags[EDIT]||{};if(e.target.value)P.tags[EDIT][p.key]=e.target.value;else delete P.tags[EDIT][p.key];P.dirtyTags=true;setDirty(true);renderPartList()};
+function renderPartList(){const sc=$('partlist').scrollTop;renderParts();$('partlist').scrollTop=sc;renderLoadout()}
+const TEMPLATES={
+  nose:"loft(m,[S_(3.0,0,0),S_(2.2,.25,.15),S_(1.5,.35,.22,.03),J1],6,'hull',0,0,'panel');\nloft(m,[S_(2.0,0,0),S_(1.5,.15,.1),S_(1.0,.18,.12),S_(.6,0,0)],6,'glass',0,.24);",
+  hull:"loft(m,[J1,S_(.3,.5,.3,.05),S_(-.4,.55,.3,.05),J2],8,'hull',0,0,'panel');",
+  wing:"for(const s of [-1,1])wingSeg(m,s,W_(.3,.4,-.6,0,.08),W_(2.0,-.4,-.9,-.05,.04),'hull');\nfor(const s of [-1,1])m.guns.push([s*1.6,0,0]);",
+  eng:"loft(m,[J2,S_(-1.6,.5,.32,.05),S_(-1.8,.42,.28,.05)],8,'panel',0,0,'engine');\nm.engines.push([0,.05,-1.82,.35]);"};
+const SHAPES={
+  'Box':"box(m,-.2,.2,-.1,.1,-.4,.4,'hull');",
+  'Box (mirrored)':"for(const s of [-1,1])box(m,s*.6-.1,s*.6+.1,-.1,.1,-.4,.4,'trim');",
+  'Wing segment (mirrored)':"for(const s of [-1,1])wingSeg(m,s,W_(.3,.2,-.6,0,.08),W_(1.6,-.3,-.9,-.05,.04),'hull');",
+  'Loft (round body)':"loft(m,[S_(.8,.2,.15),S_(0,.3,.2),S_(-.8,.2,.15)],6,'hull',0,0,'panel');",
+  'Prism (square body)':"prism(m,[{z:.5,p:rect(0,0,.2,.15)},{z:-.5,p:rect(0,0,.25,.18)}],'panel');",
+  'Beam':"beam(m,[0,0,0],[0,.5,-.5],.1,.06,'trim');",
+  'Plate (mirrored)':"for(const s of [-1,1])plate(m,[[s*.2,.1,.6],[s*.6,.1,.2],[s*.6,.1,-.2],[s*.2,.1,-.2]],[0,.02,0],'trim');",
+  'Tube':"tube(m,0,.05,[S_(.3,.2,.2),S_(-.3,.2,.2)],8,'hull','hull','panel');",
+  'Nozzle':"nozzle(m,0,.05,-2,.3,8);",
+  'Light':"lit(m,[0,.5,0],0);",
+  'Gun mount (mirrored)':"for(const s of [-1,1])m.guns.push([s*1.2,0,.5]);"};
+{const s=$('addsel');for(const k in SHAPES){const o=document.createElement('option');o.textContent=k;s.appendChild(o)}}
+$('addbtn').onclick=()=>{const p=curPart();snap(p,1);const t=SHAPES[$('addsel').value];p.body=p.body.replace(/\s*$/,'')+'\n    '+t+'\n  ';changed(p);
+  const c=comp(EDIT);SEL=c.info.length?c.info[c.info.length-1].i:-1;renderParts()};
+$('s-del').onclick=()=>{const p=curPart(),x=comp(EDIT).info[SEL];if(!x||!x.stmt){msg('This shape is part of a larger statement; delete it in the code box.',1);return}
+  snap(p,1);let [a,b]=x.stmt;while(a>0&&/[ \t]/.test(p.body[a-1]))a--;if(p.body[b]==='\n')b++;p.body=p.body.slice(0,a)+p.body.slice(b);SEL=-1;changed(p);renderParts()};
+$('s-dup').onclick=()=>{const p=curPart(),x=comp(EDIT).info[SEL];if(!x||!x.stmt)return;snap(p,1);const [a,b]=x.stmt,t=p.body.slice(a,b);
+  p.body=p.body.slice(0,b)+'\n    '+t+p.body.slice(b);changed(p);const c=comp(EDIT);SEL=c.info.find(y=>y.s>b)?.i??SEL;renderParts()};
+const slug=(s,taken)=>{let k=s.toLowerCase().replace(/[^a-z0-9]+/g,'').slice(0,16)||'part';if(/^[0-9]/.test(k))k='p'+k;let n=k,i=2;while(taken(n))n=k+i++;return n};
+function addPart(fromBody,name){const nm=name||prompt('Name for the new part?','New '+SLOTS[slotIdx(EDIT)][1]);if(!nm)return;
+  const key=slug(nm,k=>!!partOf(EDIT,k));const p={slot:EDIT,key,name:nm,desc:'',price:1000,body:fromBody,isNew:true,dirty:true};
+  P.parts[EDIT].push(p);LO[EDIT]=key;SEL=-1;meshDirty=true;setDirty(true);renderAll()}
+$('p-new').onclick=()=>addPart('\n    '+TEMPLATES[EDIT].replace(/\n/g,'\n    ')+'\n  ');
+$('p-dup').onclick=()=>{const p=curPart();addPart(p.body,p.name+' copy');const n=curPart();if(n.key!==p.key){n.desc=p.desc;n.price=p.price;const t=P.tags[EDIT]?.[p.key];if(t){P.tags[EDIT][n.key]=t;P.dirtyTags=true}renderAll()}};
+$('p-copy').onclick=async()=>{const p=curPart(),t=`  ${p.key}:{name:${JSON.stringify(p.name)},desc:${JSON.stringify(p.desc)},price:${p.price},b(m){${p.body}}},`;
+  try{await navigator.clipboard.writeText(t);msg('Copied '+p.name+' code')}catch(e){msg('Clipboard blocked',1)}};
+
+// ---------------- cosmetics ----------------
+const GEN_SPEC={
+  paint:{def:[0,.1,.06,.95,0,.9,210,0],fill:g=>{const a=[...g];if(a.length<7)a[6]=210;if(a.length<8)a[7]=a[4];return a},
+    trim:a=>{a=[...a];if(a[7]===a[4]){a.length=7;if(a[6]===210)a.length=6}return a},
+    rows:[['Hull hue',0,'h',[0,1]],['Hull sat',1,'s'],['Hull dark',2,'l'],['Hull light',3,'l'],['Trim hue',4,'h',[4,5]],['Trim sat',5,'s'],['Glass hue',6,'h'],['Light hue',7,'h']]},
+  exhaust:{def:[30,30,1],fill:g=>{const a=[...g];if(a.length<2)a[1]=a[0];if(a.length<3)a[2]=1;return a},
+    trim:a=>{a=[...a];if(a[2]===1){a.length=2;if(a[1]===a[0])a.length=1}return a},
+    rows:[['Core hue',0,'h',[0,2]],['Tail hue',1,'h'],['Saturation',2,'s']]},
+  laser:{def:[0,1],fill:g=>{const a=[...g];if(a.length<2)a[1]=1;return a},trim:a=>{a=[...a];if(a[1]===1)a.length=1;return a},
+    rows:[['Hue',0,'h',[0,1]],['Saturation',1,'s']]}};
+const SW_ROWS={paint:[['Hull','hull'],['Panel','panel'],['Trim','trim'],['Glass','glass'],['Lights','light']],exhaust:[['Glow','eng'],['Plume','exh']],laser:[['Bolt',null]]};
+function genDef(cat,g){const a=GEN_SPEC[cat].fill(g),E=P.E;return cat==='paint'?E.mkPaint(...a):cat==='exhaust'?E.mkExh(...a):E.mkLaser(...a)}
+function cosStrip(c){const d=c.def,cols=c.cat==='paint'?[d.hull[3],d.hull[5],d.panel[3],d.panel[4],d.light[1]]:c.cat==='exhaust'?[d.eng[1],d.exh[2],d.exh[4],d.exh[5]]:[d[0],d[1]];
+  return `<span class="strip">${cols.map(x=>`<i style="background:${x}"></i>`).join('')}</span>`}
+function wheelOf(c){const v=P.look[lkOf(c.cat)]?.[c.key];return v===undefined?-1:v}
+function renderCos(){renderCosList();renderCosEditor()}
+function renderCosList(){
+  const cb=$('catbtns');cb.innerHTML='';
+  for(const [c,n] of COS_CATS){const b=document.createElement('button');b.className='px'+(c===COSCAT?' on':'');b.textContent=n.toUpperCase();
+    b.onclick=()=>{COSCAT=c;COSKEY=LO[lkOf(c)];renderAll()};cb.appendChild(b)}
+  const W=P.E.WHEEL,WC=P.E.WHEELC,L=P.cos[COSCAT];
+  $('counts').innerHTML=`<span>${L.length} total</span>`+W.map(([k,n],i)=>`<span><i class="dot" style="background:${WC[i]}"></i> ${L.filter(c=>wheelOf(c)===i).length}</span>`).join('')+
+    (L.some(c=>wheelOf(c)<0)?`<span style="color:var(--warn)">${L.filter(c=>wheelOf(c)<0).length} no planet color</span>`:'');
+  const cl=$('coslist'),sc=cl.scrollTop;cl.innerHTML='';
+  const sorted=[...L].sort((a,b)=>(wheelOf(a)+1||99)-(wheelOf(b)+1||99));
+  for(const c of sorted){const d=document.createElement('div');d.className='it'+(c.key===COSKEY?' on':'');const w=wheelOf(c);
+    d.innerHTML=`<i class="dot" style="background:${w<0?'#000':WC[w]}"></i>${cosStrip(c)}<span class="${c.src==='new'?'new':c.dirty?'chg':''}">${esc(c.name)}</span><span class="m">${c.price?'¢'+c.price:'free'}</span>`;
+    d.onclick=()=>{COSKEY=c.key;LO[lkOf(COSCAT)]=c.key;renderAll()};cl.appendChild(d)}
+  cl.scrollTop=sc}
+function renderCosEditor(){const W=P.E.WHEEL,c=cosOf(COSCAT,COSKEY);
+  setVal($('c-key'),c.key);setVal($('c-name'),c.name);setVal($('c-desc'),c.desc);setVal($('c-price'),c.price);
+  const ws=$('c-wheel');ws.innerHTML='<option value="-1">None</option>'+W.map(([k,n],i)=>`<option value="${i}">${n}</option>`).join('');ws.value=wheelOf(c);
+  $('c-mgen').classList.toggle('on',c.mode==='gen');$('c-mhex').classList.toggle('on',c.mode!=='gen');
+  $('modehint').textContent=c.mode==='gen'?'Colors are generated from these settings, the same way the game builds most of its colors. Editing a swatch below switches to custom swatches.':
+    'Each swatch is its own color. Switch to Generated to rebuild them from a hue.';
+  renderGen(c);renderSwatches(c)}
+function hexToHsl(h){const n=parseInt(h.slice(1),16),r=(n>>16&255)/255,g=(n>>8&255)/255,b=(n&255)/255,mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2,d=mx-mn;
+  let hh=0,s=0;if(d){s=d/(1-Math.abs(2*l-1));hh=mx===r?((g-b)/d)%6:mx===g?(b-r)/d+2:(r-g)/d+4;hh*=60;if(hh<0)hh+=360}return [Math.round(hh),+s.toFixed(2),l]}
+function renderGen(c){const box=$('genbox');box.innerHTML='';if(c.mode!=='gen')return;const sp=GEN_SPEC[c.cat],g=sp.fill(c.gen||sp.def);
+  for(const [lbl,i,kind,pick] of sp.rows){const r=document.createElement('div');r.className='sl';
+    const max=kind==='h'?360:1,step=kind==='h'?1:.01;
+    r.innerHTML=`<label>${lbl}</label><input type="range" min="0" max="${max}" step="${step}" value="${g[i]}"><output>${kind==='h'?Math.round(g[i]):(+g[i]).toFixed(2)}</output>`+
+      (kind==='h'?`<input type="color" value="${P.E.hsl(g[i],pick?Math.min(1,g[pick[1]]||1):1,.55)}" title="Pick a color for ${lbl.toLowerCase()}">`:'<span></span>');
+    const rg=r.querySelector('input[type=range]'),out=r.querySelector('output');
+    rg.oninput=()=>{snap(c);const a=sp.fill(c.gen||sp.def);a[i]=+rg.value;setGen(c,a);out.textContent=kind==='h'?a[i]:(+a[i]).toFixed(2)};
+    rg.onchange=()=>renderCosList();
+    const cp=r.querySelector('input[type=color]');if(cp){cp.oninput=()=>{snap(c);const [h,s]=hexToHsl(cp.value),a=sp.fill(c.gen||sp.def);a[i]=h;if(pick)a[pick[1]]=s;setGen(c,a);syncGen(c,cp)};cp.onchange=()=>renderCosList()}
+    r.dataset.i=i;box.appendChild(r)}}
+// update controls in place: rebuilding them would close an open color picker
+function syncGen(c,skip){const sp=GEN_SPEC[c.cat],g=sp.fill(c.gen||sp.def);
+  $('genbox').querySelectorAll('.sl').forEach((r,j)=>{const [,i,kind,pick]=sp.rows[j],rg=r.querySelector('input[type=range]'),out=r.querySelector('output'),cp=r.querySelector('input[type=color]');
+    rg.value=g[i];out.textContent=kind==='h'?Math.round(g[i]):(+g[i]).toFixed(2);if(cp&&cp!==skip)cp.value=P.E.hsl(g[i],pick?Math.min(1,g[pick[1]]||1):1,.55)})}
+function syncSwatches(c){const ins=[...$('swbox').querySelectorAll('input[type=color]')],vals=SW_ROWS[c.cat].flatMap(([,k])=>k?c.def[k]:c.def);
+  if(ins.length!==vals.length)return renderSwatches(c);ins.forEach((el,j)=>{if(el.value!==vals[j])el.value=vals[j];el.title=vals[j]})}
+function setGen(c,a){c.gen=GEN_SPEC[c.cat].trim(a);c.def=genDef(c.cat,c.gen);cosChanged(c);syncSwatches(c)}
+function cosChanged(c){c.dirty=true;setDirty(true)}
+function renderSwatches(c){const box=$('swbox');box.innerHTML='';
+  for(const [lbl,key] of SW_ROWS[c.cat]){const arr=key?c.def[key]:c.def,r=document.createElement('div');r.className='swr';
+    r.innerHTML=`<label>${lbl}</label><div class="sw"></div>`;const sw=r.querySelector('.sw');
+    if(c.cat==='paint'&&key==='trim'&&JSON.stringify(c.def.trim)===JSON.stringify(c.def.panel)){const s=document.createElement('span');s.className='hint';s.textContent='same as panel ';sw.appendChild(s)}
+    arr.forEach((col,i)=>{const inp=document.createElement('input');inp.type='color';inp.value=col.length===7?col:'#000000';inp.title=col;
+      inp.oninput=()=>{snap(c);if(c.mode==='gen')toHex(c);
+        c.def=clone(c.def);const follow=c.cat==='paint'&&key==='panel'&&JSON.stringify(c.def.trim)===JSON.stringify(c.def.panel);
+        (key?c.def[key]:c.def)[i]=inp.value;if(follow)c.def.trim[i]=inp.value;   // trim follows panel while they match
+        cosChanged(c);$('c-mgen').classList.remove('on');$('c-mhex').classList.add('on');$('genbox').innerHTML=''};
+      inp.onchange=()=>{renderCosList();renderLoadout()};sw.appendChild(inp)});
+    box.appendChild(r)}
+  const t=document.createElement('div');t.className='hint';
+  t.textContent=c.cat==='paint'?'Each row runs dark to light: the renderer picks a shade by how much light hits a face.':c.cat==='exhaust'?'Glow is the engine face (dark to bright). Plume runs from the hot core (left) to the fading tail (right).':'Bolt runs tail, body, core.';
+  box.appendChild(t)}
+$('c-mgen').onclick=()=>{const c=cosOf(COSCAT,COSKEY);if(c.mode==='gen')return;
+  const M=c.genMem,same=M&&JSON.stringify(M.def)===JSON.stringify(c.def);
+  if(!same&&!confirm(M?'You changed swatches since this was generated. Switching back rebuilds every swatch from the sliders and replaces those changes. Continue?':
+    'This paint was made from custom swatches, so there are no slider settings for it. Generated mode will estimate a hue from it and rebuild every swatch, which will change its colors. Continue?'))return;
+  snap(c,1);c.mode='gen';
+  if(M)c.gen=M.gen;
+  else{const sp=GEN_SPEC[c.cat],a=[...sp.def],h=hexToHsl(c.cat==='paint'?c.def.panel[4]:c.cat==='exhaust'?c.def.eng[1]:c.def[0]);
+    if(c.cat==='paint'){const hh=hexToHsl(c.def.hull[3]);a[0]=hh[0];a[1]=hh[1];a[4]=h[0];a[5]=Math.max(.3,h[1]);a[7]=h[0]}else{a[0]=h[0];if(c.cat==='exhaust')a[1]=h[0];else a[1]=Math.max(.3,h[1])}
+    c.gen=GEN_SPEC[c.cat].trim(a)}
+  c.def=same?M.def:genDef(c.cat,c.gen);cosChanged(c);renderCos()};
+$('c-mhex').onclick=()=>{const c=cosOf(COSCAT,COSKEY);if(c.mode!=='gen')return;snap(c,1);toHex(c);cosChanged(c);renderCos()};
+function toHex(c){c.genMem={gen:c.gen,def:clone(c.def)};c.mode='hex';c.gen=null}   // remember the sliders so switching back is lossless
+$('c-name').oninput=e=>{const c=cosOf(COSCAT,COSKEY);snap(c);c.name=e.target.value;cosChanged(c);const s=$('coslist').scrollTop;renderCos();renderLoadout()};
+$('c-desc').oninput=e=>{const c=cosOf(COSCAT,COSKEY);snap(c);c.desc=e.target.value;cosChanged(c)};
+$('c-price').oninput=e=>{const c=cosOf(COSCAT,COSKEY);snap(c);c.price=Math.max(0,parseInt(e.target.value)||0);cosChanged(c);renderCos()};
+$('c-wheel').onchange=e=>{const c=cosOf(COSCAT,COSKEY),lk=lkOf(COSCAT),v=+e.target.value;P.look[lk]=P.look[lk]||{};
+  if(v<0)delete P.look[lk][c.key];else P.look[lk][c.key]=v;P.dirtyLook=true;setDirty(true);renderCos()};
+function addCos(dup){const src=cosOf(COSCAT,COSKEY),nm=prompt('Name?',dup?src.name+' copy':'New '+COS_CATS.find(x=>x[0]===COSCAT)[1].replace(/s$/,''));if(!nm)return;
+  const key=slug(nm,k=>!!cosOf(COSCAT,k)),sp=GEN_SPEC[COSCAT];
+  const c=dup?{...clone(src),key,name:nm,src:'new',dirty:true,orig:null}:{cat:COSCAT,key,name:nm,desc:'',price:300,mode:'gen',gen:sp.trim(sp.def),def:genDef(COSCAT,sp.def),src:'new',dirty:true};
+  P.cos[COSCAT].push(c);const w=wheelOf(src);if(w>=0){P.look[lkOf(COSCAT)][key]=w;P.dirtyLook=true}
+  COSKEY=key;LO[lkOf(COSCAT)]=key;setDirty(true);renderAll()}
+$('c-new').onclick=()=>addCos(false);$('c-dup').onclick=()=>addCos(true);
+
+// ---------------- viewport ----------------
+const cv=$('cv'),cx=cv.getContext('2d');let RT=null;
+function rt(w,h){if(RT&&RT.w===w&&RT.h===h)return RT;cv.width=w;cv.height=h;const img=cx.createImageData(w,h);
+  RT={w,h,img,buf:new Uint32Array(img.data.buffer),zb:new Float32Array(w*h),idb:new Int32Array(w*h)};fitCanvas();return RT}
+function fitCanvas(){if(!RT)return;const r=$('vp').getBoundingClientRect(),k=Math.max(1,Math.min(Math.floor((r.width-2)/RT.w),Math.floor((r.height-2)/RT.h)))||1;
+  const k2=Math.min((r.width-2)/RT.w,(r.height-2)/RT.h);const s=k2>=1?Math.max(k,Math.floor(k2)):k2;cv.style.width=RT.w*s+'px';cv.style.height=RT.h*s+'px'}
+addEventListener('resize',fitCanvas);new ResizeObserver(fitCanvas).observe($('vp'));
+function palette(){const E=P.E,S=cosOf('paint',LO.skin).def,X=cosOf('exhaust',LO.exhaust).def,L=cosOf('laser',LO.laser).def;
+  return {MATS:{rock:E.ROCKC,gold:E.GOLDC,hull:E.ramp(S.hull),panel:E.ramp(S.panel),trim:E.ramp(S.trim),glass:E.ramp(S.glass)},LIGHTC:E.ramp(S.light),
+    ENGC:E.ramp([E.shade(X.eng[0],.12),E.shade(X.eng[0],.25),E.shade(X.eng[0],.48),...X.eng]),EXH:E.ramp(X.exh),BOLT:E.ramp(L)}}
+function look(pos,tgt){const E=P.E,C=E.CAM;C.pos=pos;C.f=E.norm(E.sub(tgt,pos));C.r=E.norm(E.cross([0,1,0],C.f));C.u=E.cross(C.f,C.r)}
+const SNAPS={front:[0,.05],back:[Math.PI,.05],side:[Math.PI/2,.05],top:[Math.PI,1.5],three:[2.8,.25]};
+document.querySelectorAll('[data-snap]').forEach(b=>b.onclick=()=>{const [y,p]=SNAPS[b.dataset.snap];VIEW.yaw=y;VIEW.pitch=p;VIEW.mode='orbit';$('v-mode').value='orbit'});
+$('v-mode').onchange=e=>VIEW.mode=e.target.value;$('v-res').onchange=e=>VIEW.res=+e.target.value;
+for(const [id,k] of [['v-iso','iso'],['v-spin','spin'],['v-las','las'],['v-exh','exh'],['v-grid','grid']])$(id).onchange=e=>VIEW[k]=e.target.checked;
+let drag=null;
+cv.onpointerdown=e=>{drag={x:e.clientX,y:e.clientY,yaw:VIEW.yaw,pitch:VIEW.pitch,moved:false};cv.setPointerCapture(e.pointerId)};
+cv.onpointermove=e=>{if(drag){const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>3)drag.moved=true;
+    if(drag.moved){if(VIEW.mode!=='orbit'){VIEW.mode='orbit';$('v-mode').value='orbit'}VIEW.yaw=drag.yaw-dx*.01;VIEW.pitch=Math.max(-1.5,Math.min(1.5,drag.pitch+dy*.01))}}
+  HOV=pick(e);const sid=SEL>=0?slotIdx(EDIT)*10000+SEL:-2;
+  if(TAB==='parts'&&HOV===sid&&!drag){const [x,y]=rtXY(e),k=nearestField(x,y);if(k!==HOVK){HOVK=k;document.querySelectorAll('#call .fr').forEach(r=>r.classList.toggle('hov',+r.dataset.k===k))}}
+  else if(HOVK>=0&&!document.querySelector('#call .fr:hover')){HOVK=-1;document.querySelectorAll('#call .fr.hov').forEach(r=>r.classList.remove('hov'))}};
+cv.onpointerup=e=>{if(drag&&!drag.moved&&TAB==='parts'){const id=pick(e);
+    if(id>=0){const s=SLOTS[Math.floor(id/10000)][0];const same=s===EDIT&&id%10000===SEL;EDIT=s;SEL=id%10000;if(!same){FOCUSK=-1;renderAll()}
+      const [x,y]=rtXY(e),k=nearestField(x,y);setFocus(k,true)}
+    else{SEL=-1;FOCUSK=-1;renderShapes()}}drag=null};
+cv.onpointerleave=()=>{HOV=-1};
+cv.addEventListener('wheel',e=>{e.preventDefault();VIEW.dist=Math.max(3,Math.min(30,VIEW.dist*(e.deltaY>0?1.1:1/1.1)))},{passive:false});
+function pick(e){if(!RT)return -1;const r=cv.getBoundingClientRect(),x=Math.floor((e.clientX-r.left)/r.width*RT.w),y=Math.floor((e.clientY-r.top)/r.height*RT.h);
+  if(x<0||y<0||x>=RT.w||y>=RT.h)return -1;return RT.idb[y*RT.w+x]}
+const FX={parts:[],bolts:[],shot:0,t:0};let lastT=performance.now();
+function frame(now){requestAnimationFrame(frame);const dt=Math.min(.1,(now-lastT)/1000);lastT=now;if(!P)return;FX.t+=dt;
+  const E=P.E,M=getMesh();let w,h,F,R=E.euler(0,0,0);
+  if(VIEW.mode==='game'){w=480;h=270;F=h*1.15;look([4.6,2.6,-13],[-.4,-.2,0])}
+  else if(VIEW.mode==='pv'){w=170;h=120;F=h*1.4;VIEW.rot+=dt;look([0,2.8,-8.6],[0,0,0]);R=E.euler(VIEW.rot*.6,Math.sin(VIEW.rot*.4)*.08,Math.sin(VIEW.rot*.7)*.15)}
+  else{const k=[0,1,2,3][VIEW.res];w=170*k;h=120*k;F=h*1.4;if(VIEW.spin)VIEW.yaw+=dt*.5;
+    const cp=Math.cos(VIEW.pitch);look([Math.sin(VIEW.yaw)*cp*VIEW.dist,Math.sin(VIEW.pitch)*VIEW.dist,Math.cos(VIEW.yaw)*cp*VIEW.dist],[0,0,.3])}
+  const T=rt(w,h),pal=palette(),{buf,zb,idb}=T;
+  buf.fill(E.BLACK);zb.fill(0);idb.fill(-1);
+  E.setRT(w,h,F,buf,zb,idb);E.setPal(pal);E.setFx(4.6,1,Math.sin(FX.t*47)*.35+(Math.random()-.5)*.5);
+  const si=slotIdx(EDIT);E.setSkip(VIEW.iso&&TAB==='parts'?id=>Math.floor(id/10000)!==si:null);
+  const pos=[0,0,0];
+  try{E.drawMesh(M,pos,R)}finally{E.setSkip(null)}
+  E.setRT(w,h,F,buf,zb,null);
+  const vis=e=>!(VIEW.iso&&TAB==='parts'&&e.id!==undefined&&Math.floor(e.id/10000)!==si);
+  if(VIEW.exh){const back=E.mulR(R,[0,0,-1]);
+    for(const e of M.engines){const p=E.add(E.mulR(R,[e[0],e[1],e[2]]),pos);let n=(dt*70*e[3]*4+Math.random())|0;
+      while(n--){const sp=E.rand(5,8),j=e[3]*.6;FX.parts.push({p:[p[0]+E.rand(-j,j),p[1]+E.rand(-j,j),p[2]+E.rand(-j,j)],v:E.scl(back,sp),a:0,L:E.rand(.12,.3)})}}}
+  for(const q of FX.parts){q.a+=dt;q.p=E.add(q.p,E.scl(q.v,dt))}FX.parts=FX.parts.filter(q=>q.a<q.L);
+  for(const q of FX.parts){const p=E.proj(q.p);if(!p)continue;const f=q.a/q.L,th=E.BAY[((p.x|0)&3)|(((p.y|0)&3)<<2)];
+    const col=pal.EXH[E.clamp(Math.floor(f*pal.EXH.length+th*.8),0,pal.EXH.length-1)],sz=Math.max(1,Math.round(.045*F*p.w));
+    for(let yy=0;yy<sz;yy++)for(let xx=0;xx<sz;xx++)E.plot(p.x+xx,p.y+yy,p.w,col)}
+  if(VIEW.las){FX.shot-=dt;if(FX.shot<=0){FX.shot=1.4;for(const g of M.guns)FX.bolts.push({from:E.mulR(R,g),to:E.mulR(R,[g[0],g[1],30]),t:0})}}
+  for(const b of FX.bolts){b.t+=dt;const f0=Math.max(0,b.t/.45-.25),f1=Math.min(1,b.t/.45);
+    const A=E.proj(E.add(b.from,E.scl(E.sub(b.to,b.from),f0))),B=E.proj(E.add(b.from,E.scl(E.sub(b.to,b.from),f1)));if(!A||!B)continue;
+    const dx=B.x-A.x,dy=B.y-A.y,n=Math.ceil(Math.max(Math.abs(dx),Math.abs(dy),1));
+    for(let i=0;i<=n;i++){const t=i/n,x=(A.x+dx*t)|0,y=(A.y+dy*t)|0;if(x>=0&&y>=0&&x<w&&y<h&&!zb[y*w+x])buf[y*w+x]=pal.BOLT[t>.8?2:t>.4?1:0]}}
+  FX.bolts=FX.bolts.filter(b=>b.t<.45);
+  for(const L of M.lights){if(!vis(L))continue;const on=L.blink===0||((FX.t+L.blink*.4)%1.8)<.15;const sp=E.proj(E.add(E.mulR(R,L.p),pos));if(sp)E.plot(sp.x,sp.y,sp.w*1.02,pal.LIGHTC[on?2:0])}
+  if(VIEW.grid&&M.tris.length){const k=jointScale(M);
+    for(const [z,c] of [[1,0xff40ff40],[-1,0xff4040ff]]){for(let a=0;a<48;a++){const t=a/48*Math.PI*2,j=z>0?E.J1:E.J2;
+      const p=E.proj(E.add(E.mulR(R,[Math.cos(t)*j.rx*k,(j.yo+Math.sin(t)*j.ry)*k,j.z*k]),pos));if(p){const x=p.x|0,y=p.y|0;if(x>=0&&y>=0&&x<w&&y<h)buf[y*w+x]=c}}}}
+  if(TAB==='parts'){const sid=SEL>=0?si*10000+SEL:-1;outline(T,sid,0xff3f8aff);if(HOV>=0&&HOV!==sid)outline(T,HOV,0xff808080)}
+  LASTR=R;if(TAB==='parts'&&SENS&&SEL>=0){const ks=jointScale(M),dot=(k,col,sz)=>{const r=SENS.map[k];if(!r)return;for(const p of r.pts){const sp=E.proj(E.mulR(R,E.scl(p,ks)));if(!sp)continue;
+      const x0=Math.round(sp.x-sz/2),y0=Math.round(sp.y-sz/2);for(let yy=0;yy<sz;yy++)for(let xx=0;xx<sz;xx++){const x=x0+xx,y=y0+yy;if(x>=0&&y>=0&&x<w&&y<h)buf[y*w+x]=col}}};
+    const sz=Math.max(2,Math.round(h/120)+1);if(HOVK>=0&&HOVK!==FOCUSK)dot(HOVK,0xffc0c0c0,sz);if(FOCUSK>=0)dot(FOCUSK,0xff20e0ff,sz+1)}
+  cx.putImageData(T.img,0,0);
+  const hv=$('hover');if(TAB==='parts'&&HOV>=0){const s=Math.floor(HOV/10000),c=COMP[SLOTS[s][0]],x=c&&c.info[HOV%10000];const f=HOVK>=0&&x&&x.i===SEL&&s===slotIdx(EDIT)?x.nums[HOVK]:null;hv.textContent=`${SLOTS[s][1]} · ${x?(x.i+1)+'. '+x.name+(x.mat?' · '+x.mat:''):''}${f?' · '+(f.group?f.group+' › ':'')+f.name:''}`}
+  else hv.textContent=VIEW.mode==='game'?'Game camera: the full 480x270 frame the game renders at 1080p':''}
+let JK={m:null,k:1};
+function jointScale(M){if(JK.m===M)return JK.k;const a=P.E.bbox(M);   // fitTo scaled the ship; recover the factor from a fresh unscaled build
+  const m={tris:[],lights:[],engines:[],guns:[]};for(const [s] of SLOTS){const c=COMP[s];if(c&&c.fn)try{c.fn(m)}catch(e){}}
+  const b=P.E.bbox(m);JK={m:M,k:(a.z1-a.z0)/((b.z1-b.z0)||1)};return JK.k}
+function outline(T,id,col){if(id<0)return;const {w,h,idb,buf}=T;
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){const i=y*w+x;if(idb[i]!==id)continue;
+    if(x===0||y===0||x===w-1||y===h-1||idb[i-1]!==id||idb[i+1]!==id||idb[i-w]!==id||idb[i+w]!==id)buf[i]=col}}
+requestAnimationFrame(frame);
+renderAll();
+</script></body></html>

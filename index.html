@@ -463,14 +463,13 @@ function plate(m,pts,off,mat){hexa(m,pts.map(p=>add(p,off)),pts.map(p=>sub(p,off
 // ---------- cosmetics: paint (hull colors), exhaust (glow + plume), lasers (bolt color) ----------
 const pal=(hull,panel,glass,light)=>({hull,panel,trim:panel,glass,light});
 const SKINS={
-  red:pal(['#140f11','#2e2729','#5a5254','#948d8d','#cfcac8','#ffffff'],['#12040a','#2e0710','#5c0e18','#951a22','#cc2a2c','#f25a44'],['#05070d','#101a2c','#1f3552','#3d6488','#9cc8ec'],['#4a0c0c','#ff4a3a','#ffe0d0']),
-  blue:{hull:['#06070b','#0e1019','#191d2c','#283047','#3f4c6e','#6a7ea8'],panel:['#040509','#0a0c13','#12151f','#1d2230','#2d3549'],
-        trim:['#06070b','#0e1019','#191d2c','#283047','#3f4c6e','#6a7ea8'],glass:['#050a14','#0c1d33','#173a5c','#2f6b91','#7fc4e0'],light:['#1a3a8a','#3f7fff','#a8d0ff']},
-  arctic:pal(['#0e1216','#243038','#4c6070','#8aa4b4','#c8dce6','#ffffff'],['#021018','#06303e','#0c5a6e','#1690a8','#38c8dc','#9af4ff'],['#040a14','#0c1e36','#1a3c64','#3a70a0','#a0d8ff'],['#0c3a4a','#38e0ff','#d0ffff']),
-  gunmetal:pal(['#0a0b0d','#1a1c20','#2e3238','#4a5058','#707a84','#a4aeb8'],['#1a0802','#3e1404','#7a2a08','#c04810','#f07020','#ffb070'],['#06080a','#141c24','#263444','#44607a','#9ab8d0'],['#4a1a04','#ff8a2a','#ffe0b0']),
-  hornet:pal(['#050505','#0e0e0e','#1c1c1c','#2e2e2e','#474747','#6a6a6a'],['#1a1402','#3e3004','#7a5e06','#c09208','#f0c020','#ffe66a'],['#140c02','#3a2206','#6a4410','#a8741e','#ffd080'],['#4a3a04','#ffd020','#fff4b0']),
-  viper:pal(['#060a06','#0e1a10','#1c3020','#2e4a32','#4a6e4c','#7aa27a'],['#081402','#163006','#2e5c0a','#4c9410','#7cc81c','#c0f060'],['#040a06','#0c2014','#184028','#2e6c46','#8ae0a8'],['#0e3a06','#6aff3a','#e0ffc0']),
-  royal:pal(['#0c0612','#1c0e2a','#321a4a','#4e2c70','#7448a0','#a47ad0'],['#1a1004','#3e2808','#7a5010','#b8801c','#e8b034','#fff0a0'],['#0a0614','#1e1236','#38245e','#5e4494','#c8a8ff'],['#3a2a04','#ffd24a','#fff4c0']),
+  crimson:pal(['#140f11','#2e2729','#5a5254','#948d8d','#cfcac8','#ffffff'],['#12040a','#2e0710','#5c0e18','#951a22','#cc2a2c','#f25a44'],['#05070d','#101a2c','#1f3552','#3d6488','#9cc8ec'],['#4a0c0c','#ff4a3a','#ffe0d0']),
+  midnight:{hull:['#06070b','#0e1019','#191d2c','#283047','#3f4c6e','#6a7ea8'],panel:['#040509','#0a0c13','#12151f','#1d2230','#2d3549'],trim:['#06070b','#0e1019','#191d2c','#283047','#3f4c6e','#6a7ea8'],glass:['#050a14','#0c1d33','#173a5c','#2f6b91','#7fc4e0'],light:['#1a3a8a','#3f7fff','#a8d0ff']},
+  arctic:{hull:['#0e1216','#243038','#4c6070','#8aa4b4','#c8dce6','#ffffff'],panel:['#021018','#06303e','#0c5a6e','#1690a8','#38c8dc','#9af4ff'],trim:['#021018','#06303e','#0c5a6e','#1690a8','#38c8dc','#9af4ff'],glass:['#040a14','#0c1e36','#1a3c64','#3a70a0','#a0d8ff'],light:['#0c3a4a','#38e0ff','#d0ffff']},
+  gunmetal:{hull:['#0a0b0d','#1a1c20','#2e3238','#4a5058','#707a84','#a4aeb8'],panel:['#1a0802','#3e1404','#7a2a08','#c04810','#f07020','#ffb070'],trim:['#1a0802','#3e1404','#7a2a08','#c04810','#f07020','#ffb070'],glass:['#06080a','#141c24','#263444','#44607a','#9ab8d0'],light:['#4a1a04','#ff8a2a','#ffe0b0']},
+  hornet:{hull:['#050505','#0e0e0e','#1c1c1c','#2e2e2e','#474747','#6a6a6a'],panel:['#1a1402','#3e3004','#7a5e06','#c09208','#f0c020','#ffe66a'],trim:['#1a1402','#3e3004','#7a5e06','#c09208','#f0c020','#ffe66a'],glass:['#140c02','#3a2206','#6a4410','#a8741e','#ffd080'],light:['#4a3a04','#ffd020','#fff4b0']},
+  viper:{hull:['#060a06','#0e1a10','#1c3020','#2e4a32','#4a6e4c','#7aa27a'],panel:['#081402','#163006','#2e5c0a','#4c9410','#7cc81c','#c0f060'],trim:['#081402','#163006','#2e5c0a','#4c9410','#7cc81c','#c0f060'],glass:['#040a06','#0c2014','#184028','#2e6c46','#8ae0a8'],light:['#0e3a06','#6aff3a','#e0ffc0']},
+  ghost:{hull:['#050506','#131115','#221e25','#302b35','#3e3844','#4d4554'],panel:['#0d0218','#2c064d','#4b0b83','#6a0fb9','#8816ec','#a44cf0'],trim:['#0d0218','#2c064d','#4b0b83','#6a0fb9','#8816ec','#a44cf0'],glass:['#0b0410','#3a1659','#6928a1','#9651d3','#c299e6'],light:['#280b41','#a033ff','#e7ccff']},
 };
 const EXHAUSTS={
   flame:{eng:['#b83a10','#ff7a1a','#ffb347','#ffe9b0'],exh:['#ffffff','#fff2c0','#ffd070','#ff9a3a','#e0502a','#9a2020','#401010']},
@@ -489,7 +488,7 @@ const LOCK_RANGE=180,FIRE_RANGE=120,LOCK_LINE=.4,FIRE_LINE=.5;   // Targeting Op
 function applySkin(k){const S=SKINS[k];SKIN=k;MATS={rock:ROCKC,gold:GOLDC,hull:ramp(S.hull),panel:ramp(S.panel),trim:ramp(S.trim),glass:ramp(S.glass)};LIGHTC=ramp(S.light)}
 function applyExhaust(k){const E=EXHAUSTS[k];EXHAUST=k;ENGC=ramp([shade(E.eng[0],.12),shade(E.eng[0],.25),shade(E.eng[0],.48),...E.eng]);EXH=ramp(E.exh)}
 function applyLaser(k){LASER=k;BOLT=ramp(LASERS[k])}
-applySkin('red');applyExhaust('flame');applyLaser('red');
+applySkin('crimson');applyExhaust('flame');applyLaser('red');
 const STARC=ramp(['#5a5a5a','#a0a0a0','#ffffff']);
 const LIGHT=norm([.35,.85,.45]);   // from ahead and above
 const AMB=.12;
@@ -659,7 +658,7 @@ nose:{
   shard:{name:'Shard',desc:'Faceted crystal spike with a glowing collar. No canopy.',price:1200,b(m){
     const dm=(w,t,b,yo=0)=>[[0,t+yo],[w,yo],[0,-b+yo],[-w,yo]];
     prism(m,[{z:3.7,p:dm(.03,.02,.02,.0)},{z:2.25,p:dm(.42,.34,.3,.02)},{z:1.25,p:dm(.44,.32,.24,.04)}],'hull','hull','panel');
-    loft(m,[S_(1.4,.36,.22,.04),J1],6,'hull',0,0,'panel');
+    loft(m,[S_(1.4,.36,.22,.04),J1],6,'hull',0,-.05,'panel');
     const sep=(rx,ry,yo)=>Array.from({length:7},(_,k)=>{const a=Math.PI/2+k/7*PI2;return [Math.cos(a)*rx,yo+Math.sin(a)*ry]});
     prism(m,[{z:2.96,p:sep(.3,.25,.01)},{z:2.86,p:sep(.3,.25,.01)}],'engine');prism(m,[{z:2.39,p:sep(.49,.41,.02)},{z:2.29,p:sep(.49,.41,.02)}],'trim');
     for(const s of [-1,1])plate(m,[[s*.4,.02,2.15],[s*.78,-.04,1.25],[s*.8,-.05,.85],[s*.42,.03,1.15]],[0,.025,0],'trim');
@@ -768,18 +767,19 @@ hull:{
     box(m,-.5,.5,.66,.71,.0,.1,'panel');
     lit(m,[0,.73,-.85],3);
   }},
-  prism:{name:'Prism',desc:'Triangular wedge fuselage with a sharp dorsal ridge.',price:900,b(m){
-    loft(m,[J1,S_(0,.42,.26,.05),J2],6,'panel',0,0,'panel');
-    const T=(w,t,b)=>[[0,t],[w,b],[-w,b]];
-    prism(m,[{z:1.35,p:T(.42,.36,-.22)},{z:.7,p:T(.82,.72,-.3)},{z:-.2,p:T(.9,.78,-.32)},{z:-.95,p:T(.8,.68,-.32)}],'hull','trim','panel');
-    for(const s of [-1,1])plate(m,[[s*.22,.53,.9],[s*.6,.12,.3],[s*.58,.1,-.6],[s*.2,.5,-.8]],[s*.02,.02,0],'trim');
-    lit(m,[0,.8,.1],3);
+  prism:{name:'Prism',desc:'Faceted crystal fuselage cut to continue the Shard nose.',price:900,b(m){
+    loft(m,[J1,S_(0,.42,.26,.05),J2],6,'hull',0,-.01,'panel');
+    const D=(w,t,b,yo=.04)=>[[0,t+yo],[w,yo],[0,-b+yo],[-w,yo]];   // diamond facets, same cut as the Shard nose (its last ring is D(.44,.32,.24) at z 1.25)
+    prism(m,[{z:1.58,p:D(.32,.24,.24)},{z:.55,p:D(.64,.46,.3)},{z:-.3,p:D(.7,.5,.32,.03)},{z:-1.05,p:D(.56,.36,.3,.05)}],'hull','hull','panel');
+    prism(m,[{z:.6,p:D(.67,.49,.33)},{z:.5,p:D(.67,.49,.33)}],'trim');   // facet band
+    for(const s of [-1,1])plate(m,[[s*.4,0,1.0],[s*.95,-.09,.62],[s*.52,.01,.43],[s*.56,.04,.25]],[0,.025,0],'trim');   // strakes pick up where the Shard's end
+    lit(m,[0,.55,-.1],3);
   }},
   vertebra:{name:'Vertebra',desc:'Segmented core in armored collars, each with a back-swept spine.',price:1200,b(m){
     loft(m,[J1,S_(0,.42,.26,.05),J2],6,'panel',0,0,'panel');
     [.75,.25,-.25,-.75].forEach((z,i)=>{const r=.56-Math.abs(z)*.06;
       tube(m,0,.05,[S_(z+.14,r,r*.62),S_(z-.14,r,r*.62)],6,'hull','trim','trim');
-      plate(m,[[0,.3,z+.1],[0,.62,z-.2],[0,.62,z-.32],[0,.3,z-.12]],[.03,0,0],'trim')});
+});
     lit(m,[0,.63,-1.07],3);
   }},
   reactor:{name:'Reactor',desc:'Exposed core glowing in your exhaust color, caged by heat fins.',price:1300,b(m){
@@ -828,7 +828,7 @@ wing:{
   forward:{name:'Forward',desc:'Forward-swept wings with canards.',price:1000,b(m){
     for(const s of [-1,1]){
       wingChain(m,s,[W_(.2,-.3,-1.5,-.05,.12),W_(2.2,.75,.15,-.12,.05),W_(2.55,1.05,.45,-.14,.04)],['hull','trim']);
-      wingSeg(m,s,W_(.2,1.0,.55,.03,.06),W_(1.0,.72,.48,.05,.04),'trim');
+      wingSeg(m,s,W_(.08,1.44,.26,-.01,.06),W_(1.02,-.21,-.54,.67,.04),'trim');
       plate(m,[[s*.2,.22,-.45],[s*.72,1.0,-1.2],[s*.78,1.0,-1.6],[s*.25,.22,-1.5]],[s*.03,-.02,0],'trim');
       lit(m,[s*2.57,-.14,.95],s>0?1:2);lit(m,[s*.78,1.02,-1.6]);m.guns.push([s*.95,-.06,.15]);
     }
@@ -841,7 +841,7 @@ wing:{
       box(m,x-.33,x+.33,.12,.2,1.45,2.35,'trim');                       // armor band on the block
       box(m,x-.06,x+.06,.13,.19,-1.3,1.15,'trim');                      // stripe down the boom
       // glowing vents in the front face (they pulse with the exhaust color)
-      box(m,x-s*.2,x-s*.04,-.14,.04,2.75,2.79,'engine');box(m,x+s*.04,x+s*.2,-.14,-.02,2.75,2.79,'engine');
+      box(m,x-s*.2,x-s*.04,-.14,.04,2.75,2.79,'engine');box(m,x+s*.05,x+s*.21,-.14,.04,2.75,2.79,'engine');
       // forward-raked blade under the front block
       plate(m,[[x,-.2,2.7],[x,-.68,2.3],[x,-.68,1.75],[x,-.2,1.5]],[.04,0,0],'trim');
       // pylon to the hull, then short stub wings and a tail blade off the back of the boom
@@ -935,7 +935,7 @@ wing:{
   lander:{name:'Bulwark',desc:'Long armor blades held off the hull on thin arms, toed out and fanned.',price:1200,b(m){
     const TOE=12*D2R;   // blades run along the ship, front end toed out by this much
     for(const s of [-1,1]){const X=(a,b)=>[s*a,s*b].sort((p,q)=>p-q),hub=[s*.5,.2,-1.3];
-      box(m,...X(.3,.62),-.05,.42,-1.75,-.85,'trim');                  // hub on the hull flank
+      box(m,...X(.3,.54),.05,.27,-1.75,-.01,'trim');                  // hub on the hull flank
       // [fan angle, inner dist, width, rear z, length, front rake]
       for(const [el,r0,w,zr,len,rake] of [[40,.55,.85,-1.95,3.8,.55],[15,.55,.72,-1.9,3.4,.45]]){
         const e=el*D2R,d=[s*Math.cos(e),Math.sin(e),0],ax=[d[0]*Math.tan(TOE),d[1]*Math.tan(TOE),1];   // ax: blade length axis, mostly +z
@@ -964,14 +964,15 @@ wing:{
   }},
   boxwing:{name:'Boxwing',desc:'Thick, level slab wings with a cargo container slung under each.',price:1100,b(m){
     for(const s of [-1,1]){const X=(a,b)=>[s*a,s*b].sort((p,q)=>p-q);
-      box(m,...X(.3,2.05),-.06,.2,-1.45,.15,'hull');                   // solid slab wing, level
+      box(m,...X(.3,2.05),-.06,.72,-1.57,.15,'hull');                   // solid slab wing, level
       box(m,...X(.3,2.07),-.07,.21,.05,.25,'trim');                    // leading-edge stripe
       box(m,...X(.9,1.75),-.5,-.06,-1.25,.0,'panel');                  // slung container
       box(m,...X(.88,1.77),-.52,-.05,-.75,-.55,'trim');                // band around it
       box(m,...X(1.25,1.4),-.08,-.04,-1.1,-.15,'trim');                // clamp rail
-      box(m,...X(2.05,2.17),-.22,.36,-1.5,.1,'trim');                  // solid tip plate, upright
+      box(m,...X(.35,2.17),-.22,.82,-1.5,.1,'trim');                  // solid tip plate, upright
       lit(m,[s*2.17,.36,-1.5],s>0?1:2);lit(m,[s*1.32,-.52,.0]);m.guns.push([s*2.11,.07,.15]);
     }
+    for(const s of [-1,1])wingSeg(m,s,W_(1.98,.4,-3.58,.75,.11),W_(3.47,-.05,-1.9,1.21,0),'trim');
   }},
 },
 eng:{
@@ -1067,13 +1068,13 @@ eng:{
     nozzle(m,0,.05,-2.75,.2,8);
     lit(m,[0,.4,-1.5],3);
   }},
-  gill:{name:'Gill',desc:'Tapered organic tail that vents through glowing gill slits.',price:1200,b(m){
-    loft(m,[S_(-.75,.54,.3,.05),S_(-1.4,.46,.28,.05),S_(-2.1,.2,.14,.05),S_(-2.55,.05,.04,.05)],6,'hull',0,0,'engine');
-    for(const s of [-1,1])[-1.0,-1.3,-1.6].forEach((z,i)=>{const x=.5-i*.07;
-      box(m,s*x-.05,s*x+.05,-.17,.24,z-.05,z+.05,'engine');m.engines.push([s*(x+.03),.03,z,.07])});
-    m.engines.push([0,.05,-2.58,.06]);
-    for(const z of [-.9,-1.35,-1.8])plate(m,[[0,.3,z+.05],[0,.5,z-.2],[0,.5,z-.28],[0,.28,z-.1]],[.025,0,0],'trim');
-    lit(m,[0,.05,-2.57],3);
+  gill:{name:'Gill',desc:'Long tapered tail that vents through three glowing rings.',price:1200,b(m){
+    loft(m,[S_(-.75,.54,.3,.05),S_(-1.5,.47,.28,.05),S_(-2.3,.34,.21,.05),S_(-3.0,.18,.11,.05),S_(-3.4,.05,.04,.05)],6,'hull',0,0,'engine');
+    const R=[[-1.85,.44,.27],[-2.4,.33,.2],[-2.9,.21,.13]];   // vent rings: z, width, height (first ring sits behind the wing roots)
+    R.forEach(([z,rx,ry])=>{hoop(m,z,rx+0,ry+.01,.1,.12,12,'engine',.05);
+      for(let k=0;k<6;k++){const a=k/6*PI2;m.engines.push([Math.cos(a)*(rx+.04),.05+Math.sin(a)*(ry+.04),z-.06,.05])}});
+    m.engines.push([0,.05,-3.42,.06]);
+    lit(m,[0,.05,-3.41],3);
   }},
   cross:{name:'Cross',desc:'Four thruster pods on an X-shaped frame.',price:1300,b(m){
     loft(m,[S_(-.75,.46,.3,.05),S_(-1.55,.3,.22,.05)],6,'panel',0,0,'panel');
@@ -1091,9 +1092,9 @@ const ROLE_TAGS={interceptor:['Interceptor','Raiders hit 3% less often'],gunship
 const AURA_PCT=.1,AURA_CRIT=.1,AURA_ACC=.03,AURA_STOCK=2;   // auras don't stack: one per role per fleet
 const PART_TAGS={
   nose:{needle:'marksman',mandible:'gunship',chisel:'interceptor',beak:'interceptor',bubble:'hauler',keel:'marksman',hammer:'guardian',shard:'interceptor',orb:'guardian',visor:'hauler',offset:'marksman',cannon:'gunship',splitter:'gunship'},
-  hull:{spine:'gunship',plated:'guardian',slab:'hauler',halo:'marksman',sidepod:'interceptor',hauler:'hauler',ribcage:'interceptor',container:'hauler',prism:'marksman',vertebra:'guardian',reactor:'gunship',tiered:'guardian',turret:'gunship'},
-  wing:{delta:'interceptor',forward:'interceptor',gunpod:'gunship',gull:'marksman',cargo:'hauler',crescent:'gunship',panel:'guardian',xfoil:'gunship',sail:'marksman',ring:'guardian',lander:'guardian',louver:'interceptor',boxwing:'hauler'},
-  eng:{mono:'marksman',twin:'guardian',quad:'hauler',slot:'guardian',seven:'gunship',nacelle:'interceptor',annulus:'marksman',totem:'hauler',canted:'guardian',chevron:'interceptor',longburn:'interceptor',gill:'gunship',cross:'gunship'}};
+  hull:{spine:'interceptor',plated:'guardian',slab:'hauler',halo:'marksman',sidepod:'marksman',hauler:'hauler',ribcage:'interceptor',container:'hauler',prism:'interceptor',vertebra:'guardian',reactor:'gunship',tiered:'guardian',turret:'gunship'},
+  wing:{delta:'interceptor',forward:'interceptor',gunpod:'gunship',gull:'marksman',cargo:'hauler',crescent:'gunship',panel:'guardian',xfoil:'gunship',sail:'marksman',ring:'guardian',lander:'interceptor',louver:'marksman',boxwing:'hauler'},
+  eng:{mono:'marksman',twin:'guardian',quad:'hauler',slot:'guardian',seven:'gunship',nacelle:'gunship',annulus:'marksman',totem:'hauler',canted:'guardian',chevron:'interceptor',longburn:'interceptor',gill:'interceptor',cross:'gunship'}};
 const STAT_NAME={A:'Agility',S:'Shields',D:'Damage',T:'Targeting',C:'Cargo'};
 const slbl=k=>`<i class="fl" data-stat="${k}">${STAT_NAME[k]}</i><i class="ab" data-stat="${k}">${k}</i>`;
 const ROLE_STAT={interceptor:'A',gunship:'D',guardian:'S',marksman:'T',hauler:'C'};
@@ -1147,13 +1148,13 @@ const SHOP=[
   {id:'ab_drone',cat:'modules',name:'Repair Drone',desc:'Little bots patch your emitters on the fly.<br>Shields recharge twice as fast.<br>Ability module: equip in Fleet.',price:5000},
   {id:'ab_salvage',cat:'modules',name:'Salvage Rig',desc:'Grabbers and a sorting bay.<br>+50% credits from asteroids and won fights.<br>Ability module: equip in Fleet.',price:5000},
   {id:'ab_trade',cat:'modules',name:'Trade Computer',desc:'Live price feeds from nearby ports.<br>+10% on all cargo you sell.<br>Ability module: equip in Fleet.',price:5000},
-  {id:'skin_red',cat:'paint',kind:'skin',key:'red',name:'Crimson',desc:'White hull, red trim. Standard issue.',price:0,free:true},
-  {id:'skin_blue',cat:'paint',kind:'skin',key:'blue',name:'Midnight',desc:'Dark gunmetal blue, blue running lights.',price:350,ord:1},
-  {id:'skin_arctic',cat:'paint',kind:'skin',key:'arctic',name:'Arctic',desc:'Ice white hull, cyan trim.',price:300,ord:1},
-  {id:'skin_gunmetal',cat:'paint',kind:'skin',key:'gunmetal',name:'Gunmetal',desc:'Grey steel with orange hazard trim.',price:300},
-  {id:'skin_hornet',cat:'paint',kind:'skin',key:'hornet',name:'Hornet',desc:'Matte black with yellow stripes.',price:400},
-  {id:'skin_viper',cat:'paint',kind:'skin',key:'viper',name:'Viper',desc:'Dark green hull, lime trim.',price:400},
-  {id:'skin_royal',cat:'paint',kind:'skin',key:'royal',name:'Royal',desc:'Deep purple with gold trim.',price:600},
+  {id:'skin_crimson',cat:'paint',kind:'skin',key:'crimson',name:'Crimson',desc:'White hull, red trim. Standard issue.',price:250,free:true},
+  {id:'skin_midnight',cat:'paint',kind:'skin',key:'midnight',name:'Midnight',desc:'Dark gunmetal blue, blue running lights.',price:450,ord:1},
+  {id:'skin_arctic',cat:'paint',kind:'skin',key:'arctic',name:'Arctic',desc:'Ice white hull, cyan trim.',price:700,ord:1},
+  {id:'skin_gunmetal',cat:'paint',kind:'skin',key:'gunmetal',name:'Gunmetal',desc:'Grey steel with orange hazard trim.',price:450},
+  {id:'skin_hornet',cat:'paint',kind:'skin',key:'hornet',name:'Hornet',desc:'Matte black with yellow stripes.',price:450},
+  {id:'skin_viper',cat:'paint',kind:'skin',key:'viper',name:'Viper',desc:'Dark green hull, lime trim.',price:450},
+  {id:'skin_ghost',cat:'paint',kind:'skin',key:'ghost',name:'Ghost',desc:'Glossy black, deep violet trim.',price:450},
   {id:'exh_flame',cat:'exhaust',kind:'exhaust',key:'flame',name:'Flame',desc:'Orange glow, fiery plume. Standard issue.',price:0,free:true},
   {id:'exh_ion',cat:'exhaust',kind:'exhaust',key:'ion',name:'Ion',desc:'Blue glow, pale blue plume.',price:200},
   {id:'exh_plasma',cat:'exhaust',kind:'exhaust',key:'plasma',name:'Plasma',desc:'Green glow and plume.',price:250},
@@ -1191,20 +1192,20 @@ const mkExh=(h,h2=h,S=1)=>({eng:[hsl(h,.85*S,.38),hsl(h,S,.55),hsl(h,S,.75),hsl(
   exh:['#ffffff',hsl(h,S,.92),hsl(h,S,.75),hsl((h*2+h2)/3,.9*S,.58),hsl((h+h2*2)/3,.85*S,.42),hsl(h2,.8*S,.25),hsl(h2,.7*S,.1)]});
 const mkLaser=(h,S=1)=>[hsl(h,S,.55),hsl(h,S,.82),'#ffffff'];
 const MORE_PAINT=[
-  ['ember','Ember','Charcoal hull, ember orange trim.',350,mkPaint(20,.08,.04,.42,18,.95)],
-  ['sakura','Sakura','Pearl white hull, cherry blossom pink.',450,mkPaint(340,.25,.08,.97,335,.8)],
-  ['ocean','Ocean','Navy hull, teal trim.',350,mkPaint(222,.5,.04,.5,180,.85)],
+  ['sunset','Sunset','Burning orange hull, dusk purple trim.',700,{hull:['#2a0c18','#5a1a24','#9a3428','#d8602a','#f8963a','#ffc878'],panel:['#160404','#330a0a','#571414','#7b2323','#a74f39','#d87d5f'],trim:['#160404','#330a0a','#571414','#7b2323','#a75539','#d8775f'],glass:['#0a0614','#1e1236','#602424','#9b4b67','#ffb3cd'],light:['#4a1a04','#ff8a2a','#ffe0b0']}],
+  ['orchid','Orchid','White hull, hot fuchsia trim.',250,mkPaint(318,.08,.08,.97,318,.85)],
+  ['overgrowth','Overgrowth','Tree bark brown, leafy green trim.',700,mkPaint(35,.5,.03,.36,126,.54,135,140)],
   ['clover','Clover','White hull, clover green trim.',250,mkPaint(140,.08,.08,.97,138,.85)],
-  ['tangerine','Tangerine','White hull, bright orange trim.',350,mkPaint(30,.15,.08,.97,28,1)],
+  ['tangerine','Tangerine','White hull, bright orange trim.',250,mkPaint(30,.15,.08,.97,28,1)],
   ['cobalt','Cobalt','White hull, deep cobalt trim.',250,mkPaint(215,.15,.08,.97,220,.9)],
-  ['obsidian','Obsidian','Glossy black, blood red trim.',500,mkPaint(0,.05,.02,.3,355,.95,0)],
-  ['bubblegum','Bubblegum','Pink hull, cyan trim.',450,mkPaint(325,.7,.08,.85,185,.9)],
-  ['copper','Copper','Polished copper with dark bronze.',550,mkPaint(22,.6,.06,.72,30,.45)],
-  ['storm','Storm','Slate blue hull, electric yellow trim.',450,mkPaint(215,.2,.05,.62,55,1)],
-  ['ghost','Ghost','Pale grey hull, lavender trim.',500,mkPaint(260,.08,.1,.95,265,.6)],
-  ['lava','Lava','Black rock hull, glowing magma trim.',700,mkPaint(10,.15,.03,.32,15,1,15)],
-  ['neon','Neon','Black hull, hot magenta trim.',650,mkPaint(280,.15,.03,.35,305,1,280)],
-  ['carbon','Carbon','Carbon black, silver trim.',800,mkPaint(220,.06,.02,.28,210,.06)],
+  ['obsidian','Obsidian','Glossy black, blood red trim.',450,mkPaint(0,.05,.02,.3,355,.95,0)],
+  ['neopop','Neopop','Pink hull, cyan trim.',700,mkPaint(325,.7,.08,.85,185,.9)],
+  ['copper','Copper','Polished copper with dark bronze.',700,{hull:['#180d06','#4e2914','#844521','#ba622f','#d58557','#e2ac8d'],panel:['#120d07','#3d2a17','#674727','#916437','#ba8148','#ca9e72'],trim:['#120d07','#3d2a17','#674727','#916437','#ba8148','#ca9e72'],glass:['#040a10','#163759','#2865a1','#5192d3','#99bfe6'],light:['#41260b','#ff9933','#ffe6cc']}],
+  ['canary','Canary','White hull, canary yellow trim.',250,mkPaint(52,.08,.08,.97,50,.95)],
+  ['amethyst','Amethyst','White hull, amethyst violet trim.',250,mkPaint(272,.08,.08,.97,272,.75)],
+  ['flashfire','Flashfire','Deep red hull, golden trim.',700,mkPaint(0,1,.03,.32,35,1,38,0)],
+  ['untexture','Untexture','Black hull, hot magenta trim.',450,mkPaint(280,.15,.03,.35,305,1,280)],
+  ['royal','Royal','Deep purple with gold trim.',700,{hull:['#0c0612','#1c0e2a','#321a4a','#4e2c70','#7448a0','#a47ad0'],panel:['#1a1004','#3e2808','#7a5010','#b8801c','#e8b034','#fff0a0'],trim:['#1a1004','#3e2808','#7a5010','#b8801c','#e8b034','#fff0a0'],glass:['#0a0614','#1e1236','#38245e','#5e4494','#c8a8ff'],light:['#3a2a04','#ffd24a','#fff4c0']}],
 ];
 const MORE_EXH=[
   ['crimson','Crimson','Deep red glow and plume.',250,mkExh(358)],
@@ -1248,7 +1249,7 @@ for(const [slot] of SLOT_KEYS)for(const [k,P] of Object.entries(SHIP_PARTS[slot]
   SHOP.push({id:'part_'+slot+'_'+k,cat:'p_'+slot,kind:slot,key:k,name:P.name,desc:P.desc+'<br>'+tagTxt(slot,k),price:P.price,free:!P.price});
 for(const [k,n,d,pr,def] of MORE_LAS){LASERS[k]=def;SHOP.push({id:'las_'+k,cat:'laser',kind:'laser',key:k,name:n,desc:d,price:pr})}
 // starter cosmetics: a red, green and blue choice in each category (red is equipped by default)
-for(const id of ['skin_red','skin_clover','skin_cobalt','exh_flame','exh_ion','exh_plasma','las_red','las_green','las_blue']){const it=SHOP.find(x=>x.id===id);it.price=0;it.free=true}
+for(const id of ['skin_crimson','skin_clover','skin_cobalt','exh_flame','exh_ion','exh_plasma','las_red','las_green','las_blue']){const it=SHOP.find(x=>x.id===id);it.price=0;it.free=true}
 // ---------- modules: one stat module per stat + one ability (X) per fighter. Stat modules come from planets/loot, abilities from the shop ----------
 // stat range per rarity (Basic..Prototype); each module rolls a whole number in its range when found
 const MOD_STATS={A:['Control Vanes',[[2,3],[4,5],[6,7],[8,10],[12,14]]],S:['Shield Booster',[[8,12],[18,23],[32,38],[50,60],[75,85]]],D:['Cannon Mount',[[2,3],[3,4],[5,6],[7,8],[9,11]]],T:['Targeting Array',[[2,4],[5,6],[7,9],[10,12],[14,16]]],C:['Cargo Pod',[[2,3],[3,4],[5,6],[7,8],[9,11]]]};
@@ -1262,9 +1263,9 @@ const modBonus=m=>{const [a,b]=MOD_STATS[m.s][1][m.r-1];if(m.v==null)m.v=rollMod
 const MATCH_PCT=.1;   // each part whose role matches the module's role adds 10% (4 parts = +40%)
 const matchCount=(slot,k)=>{const L=LOADOUTS[slot];return SLOT_KEYS.filter(([sl])=>PART_TAGS[sl][L[sl]]===MOD_ROLE[k]).length};
 let MODS=[],EQUIPM=[{},{},{}],MODU=1;
-let AUTOFIGHT=false,SEEN={},DIST=0,CREDITS=0,OWNED={},HOLD={},SH=null,SAVED={wing:0,skin:'red',exhaust:null,laser:'red',ship:null};
+let AUTOFIGHT=false,SEEN={},DIST=0,CREDITS=0,OWNED={},HOLD={},SH=null,SAVED={wing:0,skin:'crimson',exhaust:null,laser:'red',ship:null};
 try{const j=JSON.parse(localStorage.getItem('drift.save')||'null');
-  if(j){AUTOFIGHT=!!j.auto;SEEN=j.seen||{};DIST=j.dist||0;CREDITS=j.credits||0;FUEL=j.fuel??FUEL_MAX;THR=FUEL>0?1:0;OWNED=j.owned||{};HOLD=j.cargo&&typeof j.cargo==='object'?j.cargo:{};SH=typeof j.sh==='number'?j.sh:null;if(Array.isArray(j.mods))MODS=j.mods.filter(m=>m&&MOD_STATS[m.s]&&m.r>=1&&m.r<=5);if(Array.isArray(j.equipm))EQUIPM=[0,1,2].map(i=>j.equipm[i]||{});MODS.forEach(m=>{if(!(m.c>=0&&m.c<7))m.c=Math.random()*7|0});MODU=MODS.reduce((a,m)=>Math.max(a,m.u+1),1);SAVED={active:Array.isArray(j.active)?j.active:null,wing:j.wing||0,skin:j.skin||'red',exhaust:j.exhaust||null,laser:j.laser||'red',ship:typeof j.ship==='object'?j.ship:null,loadouts:Array.isArray(j.loadouts)?j.loadouts:null,con:j.con||null}}
+  if(j){AUTOFIGHT=!!j.auto;SEEN=j.seen||{};DIST=j.dist||0;CREDITS=j.credits||0;FUEL=j.fuel??FUEL_MAX;THR=FUEL>0?1:0;OWNED=j.owned||{};HOLD=j.cargo&&typeof j.cargo==='object'?j.cargo:{};SH=typeof j.sh==='number'?j.sh:null;if(Array.isArray(j.mods))MODS=j.mods.filter(m=>m&&MOD_STATS[m.s]&&m.r>=1&&m.r<=5);if(Array.isArray(j.equipm))EQUIPM=[0,1,2].map(i=>j.equipm[i]||{});MODS.forEach(m=>{if(!(m.c>=0&&m.c<7))m.c=Math.random()*7|0});MODU=MODS.reduce((a,m)=>Math.max(a,m.u+1),1);SAVED={active:Array.isArray(j.active)?j.active:null,wing:j.wing||0,skin:j.skin||'crimson',exhaust:j.exhaust||null,laser:j.laser||'red',ship:typeof j.ship==='object'?j.ship:null,loadouts:Array.isArray(j.loadouts)?j.loadouts:null,con:j.con||null,pk:j.pk||0}}
   else DIST=+localStorage.getItem('drift.dist')||0}catch(e){}
 const tankTier=()=>(OWNED.tank1?1:0)+(OWNED.tank2?1:0)+(OWNED.tank3?1:0);
 const cellHours=()=>CELL_HOURS[tankTier()];
@@ -1303,7 +1304,7 @@ const skinsOwned=()=>SHOP.filter(it=>it.kind==='skin'&&owns(it)).map(it=>it.key)
 // per-fighter loadouts; EDIT is the fighter being edited in Customize/Modules/shop
 const SLOT_NAMES=['Lead','Left Wing','Right Wing'];
 const LOAD_KINDS=['nose','hull','wing','eng','skin','exhaust','laser'];
-const defLoad=()=>({...DEFAULT_SHIP,skin:'red',exhaust:'flame',laser:'red'});
+const defLoad=()=>({...DEFAULT_SHIP,skin:'crimson',exhaust:'flame',laser:'red'});
 let LOADOUTS=[defLoad(),defLoad(),defLoad()],EDIT=0;
 const cur=()=>LOADOUTS[EDIT];
 const PAL_CACHE={};
@@ -1322,9 +1323,14 @@ if(OWNED.skin_blue&&!('exh_ion' in OWNED))OWNED.exh_ion=true;
 if(OWNED.skin_forest){OWNED.skin_clover=true;delete OWNED.skin_forest}
 if(SAVED.skin==='forest')SAVED.skin='clover';
 if(SAVED.loadouts)for(const l of SAVED.loadouts)if(l&&l.skin==='forest')l.skin='clover';
+// paint keys renamed to match their names (save format pk:2): remap owned paints, loadouts and saved contract ships
+if(SAVED.pk!==2){const PK={red:'crimson',blue:'midnight',royal:'ghost',ember:'sunset',sakura:'orchid',ocean:'overgrowth',bubblegum:'neopop',storm:'canary',ghost:'amethyst',lava:'flashfire',neon:'untexture',carbon:'royal'},rk=k=>PK[k]||k;
+  const own={...OWNED};for(const o in PK)delete OWNED['skin_'+o];for(const o in PK)if(own['skin_'+o])OWNED['skin_'+PK[o]]=true;
+  SAVED.skin=rk(SAVED.skin);if(SAVED.loadouts)for(const l of SAVED.loadouts)if(l)l.skin=rk(l.skin);
+  if(SAVED.con)for(const c of [...(SAVED.con.offers||[]),...(SAVED.con.active||[])])if(c&&c.cfg)c.cfg.skin=rk(c.cfg.skin)}
 for(const [o,n] of [['part_eng_stack','part_eng_seven'],['part_wing_ring','part_wing_cargo']])if(OWNED[o]){OWNED[n]=true;delete OWNED[o]}
 if(SAVED.ship){if(SAVED.ship.eng==='stack')SAVED.ship.eng='seven';if(SAVED.ship.wing==='ring')SAVED.ship.wing='cargo'}
-function save(){try{localStorage.setItem('drift.save',JSON.stringify({dist:DIST,credits:CREDITS,fuel:FUEL,exhaust:EXHAUST,laser:LASER,ship:SHIPCFG,loadouts:LOADOUTS,owned:OWNED,cargo:HOLD,sh:SH,mods:MODS,equipm:EQUIPM,auto:AUTOFIGHT,seen:SEEN,con:CON,active:activeSlots(),wing:FLEET.length-1,skin:SKIN}))}catch(e){}}
+function save(){try{localStorage.setItem('drift.save',JSON.stringify({pk:2,dist:DIST,credits:CREDITS,fuel:FUEL,exhaust:EXHAUST,laser:LASER,ship:SHIPCFG,loadouts:LOADOUTS,owned:OWNED,cargo:HOLD,sh:SH,mods:MODS,equipm:EQUIPM,auto:AUTOFIGHT,seen:SEEN,con:CON,active:activeSlots(),wing:FLEET.length-1,skin:SKIN}))}catch(e){}}
 let scan=0,STARS=[],PARTS=[],T=0,V=22,paused=false,cov,showCov=false;
 const FAR=420,NEAR=1.5,STALE=300;
 const COVC=Uint32Array.from({length:64},(_,k)=>(0xff000000|(30+((225*k/63)|0)))>>>0);   // coverage-map reds; STALE = max seconds a pixel may stay unlit
@@ -1576,7 +1582,7 @@ const MKT={},MKT_HALF=600,MKT_DROP=.93;
 function sat(pc,id){const m=MKT[pc+'|'+id];return m?m.s*Math.pow(.5,(T-m.t)/MKT_HALF):0}
 // ---- cosmetic colors: each paint/exhaust/laser belongs to a color-wheel color (index into WHEEL). The lead ship's matches give a trade bonus on that color's planets.
 const LOOK_COLOR={
-  skin:{red:0,obsidian:0,lava:0, gunmetal:1,ember:1,tangerine:1, hornet:2,storm:2,copper:2, viper:3,clover:3,ocean:3, blue:4,arctic:4,cobalt:4, royal:5,ghost:5,carbon:5, sakura:6,bubblegum:6,neon:6},
+  skin:{crimson:0,obsidian:0,flashfire:0, gunmetal:1,sunset:1,tangerine:1, hornet:2,canary:2,copper:2, viper:3,clover:3,overgrowth:3, midnight:4,arctic:4,cobalt:4, ghost:5,amethyst:5,royal:5, orchid:6,neopop:6,untexture:6},
   exhaust:{crimson:0,inferno:0,flame:0, amber:1,goldfx:1,whitehot:1, toxic:2,lime:2,spectral:2, plasma:3,aurora:3,teal:3, cyan:4,azure:4,ion:4, indigo:5,nebula:5,void:5, magenta:6,pink:6,frost:6},
   laser:{red:0,crimson:0,white:0, orange:1,amber:1,gold:1, yellow:2,lime:2,ice:2, green:3,emerald:3,teal:3, blue:4,sky:4,cyan:4, violet:5,void:5,indigo:5, magenta:6,pink:6,plasma:6}};
 const LOOK_BONUS=[0,.03,.05,.07];   // per active fighter: 1, 2 or 3 of its paint/exhaust/lasers match the planet color; fighters add up
@@ -1839,12 +1845,12 @@ const AUTO_RUN=.2,AUTO_GAP=.7;     // auto-fight: run below 20% shields; pause b
 let WS=1,VW=22,FIGHT=null,SHIMS=[];
 // role: [weight, shields x, damage x, accuracy +, dodge, loot x, paint]
 const RAIDER_ROLES={interceptor:[3,.8,1,0,.15,1,'hornet'],gunship:[3,.9,1.4,0,0,1,'obsidian'],guardian:[2,1.5,.8,0,0,1,'gunmetal'],
-  marksman:[2,1,1,.15,0,1,'carbon'],hauler:[1,1.1,.6,-.05,0,2,'copper'],
-  drone:[0,.6,.7,0,.1,0,'ghost'],hunter:[0,1.4,1.3,.1,.05,1.5,'neon'],patrol:[0,1.3,1,.05,0,1,'arctic']};   // weight 0: special encounters only   // drones only come from derelicts
+  marksman:[2,1,1,.15,0,1,'royal'],hauler:[1,1.1,.6,-.05,0,2,'copper'],
+  drone:[0,.6,.7,0,.1,0,'amethyst'],hunter:[0,1.4,1.3,.1,.05,1.5,'untexture'],patrol:[0,1.3,1,.05,0,1,'arctic']};   // weight 0: special encounters only   // drones only come from derelicts
 const SHC=ramp(['#123a6a','#4aa8ff','#d0ecff']);
 function pickRole(){const ks=Object.keys(RAIDER_ROLES);let r=Math.random()*ks.reduce((a,k)=>a+RAIDER_ROLES[k][0],0);
   for(const k of ks){r-=RAIDER_ROLES[k][0];if(r<0)return k}return ks[0]}
-function raiderCfg(role){if(role==='drone')return {skin:'ghost',exhaust:'ion',laser:'blue',nose:'orb',hull:'halo',wing:'ring',eng:'annulus'};
+function raiderCfg(role){if(role==='drone')return {skin:'amethyst',exhaust:'ion',laser:'blue',nose:'orb',hull:'halo',wing:'ring',eng:'annulus'};
   const c={skin:RAIDER_ROLES[role][6],exhaust:role==='patrol'?'ion':'flame',laser:role==='patrol'?'blue':role==='hunter'?'violet':'red'},tag={hunter:'marksman',patrol:'guardian'}[role]||role;   // parts carry the raider's role tag
   for(const [sl] of SLOT_KEYS){const all=Object.keys(SHIP_PARTS[sl]),ks=all.filter(k=>PART_TAGS[sl][k]===tag);c[sl]=pickOne(ks.length?ks:all)}
   return c}
@@ -1948,14 +1954,14 @@ const pilotName=()=>`${pickOne(FIRSTN)} "${pickOne(CALLS)}" ${pickOne(LASTN)}`;
 const conMul=()=>{const F=threatStats();return 1+(F.S+F.D*4)/100};   // rewards scale with threat
 let CON=null;   // {offers:[...], refill:[ms...], active:[...], seq}
 function newContract(){const type=pickOne(['escort','escort','bounty','bounty','duel']),c=Math.random()*7|0,C=col(c,WHEEL[c][1]),id=CON.seq++;
-  if(type==='escort'){const used=[...CON.offers,...CON.active].filter(Boolean).map(k=>k.nm),nm='the '+pickOne(FREIGHTERS.filter(f=>!used.includes('the '+f))),cfg=raiderCfg('hauler');cfg.skin=pickOne(['tangerine','ocean','clover','cobalt','copper','ghost']);cfg.exhaust='ion';cfg.laser='green';
+  if(type==='escort'){const used=[...CON.offers,...CON.active].filter(Boolean).map(k=>k.nm),nm='the '+pickOne(FREIGHTERS.filter(f=>!used.includes('the '+f))),cfg=raiderCfg('hauler');cfg.skin=pickOne(['tangerine','overgrowth','clover','cobalt','copper','amethyst']);cfg.exhaust='ion';cfg.laser='green';
     return {id,type,c,nm,cfg,reward:Math.round(rand(250,450)*conMul()/10)*10,
       title:`Escort ${nm}`,blurb:`${nm[0].toUpperCase()+nm.slice(1)} is hauling a full load to any ${C} planet and wants guns alongside. Raiders have been working that lane.`}}
   if(type==='bounty'){const nm=pilotName(),role=pickOne(['interceptor','gunship','guardian','marksman']);
     return {id,type,c,nm,role,cfg:raiderCfg(role),reward:Math.round(rand(450,750)*conMul()/10)*10,
       title:`Bounty: ${nm}`,blurb:`${pickOne(CRIMES)}. Flies a ${ROLE_TAGS[role][0].toLowerCase()}. Last seen near ${C} planets.`}}
   const nm=pilotName(),role=pickOne(['interceptor','gunship','guardian','marksman']),cfg=raiderCfg(role),wager=clamp(Math.round(CREDITS*.08/50)*50,100,3000);
-  cfg.skin=pickOne(['neon','storm','sakura','bubblegum','royal','viper','lava']);cfg.exhaust=pickOne(['flame','ion','plasma']);
+  cfg.skin=pickOne(['untexture','canary','orchid','neopop','ghost','viper','flashfire']);cfg.exhaust=pickOne(['flame','ion','plasma']);
   return {id,type,c,nm,role,cfg,wager,reward:wager*2,title:`Duel: ${nm}`,blurb:`${nm.split(' ')[0]} has heard about your flying and wants to settle who's better. ${cr(wager)} each, winner takes the pot. Meet at a ${C} planet.`}}
 function initContracts(){if(!CON||!Array.isArray(CON.offers))CON={offers:[],refill:[],active:[],seq:1};
   for(let i=0;i<CON_SLOTS;i++){if(CON.offers[i]===undefined)CON.offers[i]=newContract();if(CON.refill[i]===undefined)CON.refill[i]=0}}
@@ -2466,7 +2472,7 @@ let idleT;function wake(){document.body.classList.remove('idle');clearTimeout(id
 addEventListener('mousemove',wake);wake();
 const nf=new Intl.NumberFormat('en-US');
 if(skinsOwned().includes(SAVED.skin))applySkin(SAVED.skin);
-{const ex=SAVED.exhaust||(SAVED.skin==='blue'&&OWNED.exh_ion?'ion':'flame');const it=SHOP.find(x=>x.kind==='exhaust'&&x.key===ex);if(it&&owns(it))applyExhaust(ex)}
+{const ex=SAVED.exhaust||(SAVED.skin==='midnight'&&OWNED.exh_ion?'ion':'flame');const it=SHOP.find(x=>x.kind==='exhaust'&&x.key===ex);if(it&&owns(it))applyExhaust(ex)}
 {const it=SHOP.find(x=>x.kind==='laser'&&x.key===SAVED.laser);if(it&&owns(it))applyLaser(SAVED.laser)}
 if(SAVED.ship)for(const [slot] of SLOT_KEYS){const it=SHOP.find(x=>x.kind===slot&&x.key===SAVED.ship[slot]);if(it&&owns(it))applyPart(slot,it.key)}
 {const lead={...SHIPCFG,skin:SKIN,exhaust:EXHAUST,laser:LASER},sl=SAVED.loadouts||[];
